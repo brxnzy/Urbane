@@ -1,0 +1,29 @@
+package com.example.urbane.navigation
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.example.urbane.ui.Splash
+import com.example.urbane.ui.auth.RegisterScreen
+
+@Composable
+fun MainNavigation(navController: NavHostController, modifier: Modifier){
+    NavHost(
+        navController = navController,
+        startDestination = Routes.SPLASH,
+    ){
+        composable(Routes.SPLASH) {
+            Splash(
+                modifier = Modifier.padding(0.dp),
+                navController = navController
+            ) {
+                navController.navigate("register")
+            }
+        }
+        composable(Routes.REGISTER){ RegisterScreen(modifier = modifier) }
+    }
+}
