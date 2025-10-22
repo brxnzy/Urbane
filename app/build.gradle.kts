@@ -1,12 +1,28 @@
+import java.util.Properties
+import java.io.FileReader
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    kotlin("plugin.serialization") version "2.2.20"
 }
+
+val localProperties = rootProject.file("local.properties").takeIf { it.exists() }?.let {
+    Properties().apply { load(FileReader(it)) }
+} ?: Properties()
+
+val supabaseUrl = localProperties.getProperty("SUPABASE_URL") ?: "DEFAULT_URL"
+val supabaseKey = localProperties.getProperty("SUPABASE_KEY") ?: "DEFAULT_KEY"
 
 android {
     namespace = "com.example.urbane"
     compileSdk = 36
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.urbane"
@@ -16,6 +32,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // 🔹 BuildConfig con variables de entorno
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
     }
 
     buildTypes {
@@ -40,7 +60,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -49,6 +68,15 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.navigation:navigation-compose:2.9.5")
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.4"))
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:auth-kt")
+    implementation("io.ktor:ktor-client-android:3.3.1")
+    implementation("androidx.datastore:datastore-core-android:1.1.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.0")
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
