@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.urbane.ui.Splash
+
 import com.example.urbane.ui.theme.UrbaneTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,9 +23,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             UrbaneTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Urbane",
+                    Splash(
                         modifier = Modifier.padding(innerPadding)
+
                     )
                 }
             }
