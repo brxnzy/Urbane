@@ -1,6 +1,6 @@
 package com.example.urbane.ui.theme
 
-import android.app.Activity
+
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +31,7 @@ private val LightColorScheme = lightColorScheme(
 fun UrbaneTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
 
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

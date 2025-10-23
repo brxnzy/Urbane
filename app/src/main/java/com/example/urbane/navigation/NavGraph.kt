@@ -8,7 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.urbane.ui.Splash
-import com.example.urbane.ui.auth.RegisterScreen
+import com.example.urbane.ui.auth.view.RegisterScreen
 
 @Composable
 fun MainNavigation(navController: NavHostController, modifier: Modifier){

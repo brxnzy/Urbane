@@ -75,6 +75,9 @@ dependencies {
     implementation("io.ktor:ktor-client-android:3.3.1")
     implementation("androidx.datastore:datastore-core-android:1.1.0")
     implementation("androidx.datastore:datastore-preferences:1.1.0")
+    implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
+    implementation(libs.androidx.benchmark.traceprocessor.android)
+
 
 
     testImplementation(libs.junit)

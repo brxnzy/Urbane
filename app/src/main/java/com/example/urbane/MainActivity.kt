@@ -9,7 +9,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.urbane.navigation.MainNavigation
-
 import com.example.urbane.ui.theme.UrbaneTheme
 
 class MainActivity : ComponentActivity() {
