@@ -84,10 +84,10 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier) {
     var residentialName by remember { mutableStateOf(value = "") }
     var residentialAddress by remember { mutableStateOf("") }
     var residentialPhone by remember{mutableStateOf(TextFieldValue(""))}
-    var emailFormat by remember { mutableStateOf(false) }
-    var idCardFormat by remember { mutableStateOf(false) }
-    var validPassword by remember {mutableStateOf(false)}
-    var validPhone by remember {mutableStateOf(false)}
+    var emailFormat by remember { mutableStateOf(true) }
+    var idCardFormat by remember { mutableStateOf(true) }
+    var validPassword by remember {mutableStateOf(true)}
+    var validPhone by remember {mutableStateOf(true)}
 
     val totalSteps = 2
 
@@ -280,8 +280,8 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier) {
 
                         1 -> {
                             OutlinedTextField(
-                                value = residentialName,
-                                onValueChange = { residentialName = it },
+                                value = state.residentialName,
+                                onValueChange = { viewModel.processIntent(RegisterIntent.ResidentialNameChanged(it)) },
                                 label = {
                                     Text(text = stringResource(R.string.nombre_del_residencial))
                                 },
@@ -302,8 +302,8 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier) {
 
 
                             OutlinedTextField(
-                                value = residentialAddress,
-                                onValueChange = { residentialAddress = it },
+                                value = state.residentialAddress,
+                                onValueChange = {viewModel.processIntent(RegisterIntent.ResidentialAddressChanged(it)) },
                                 label = {
                                     Text(text = stringResource(R.string.direcci_n))
                                 },
@@ -322,26 +322,18 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier) {
                                 )
                             )
                             OutlinedTextField(
-                                value = residentialPhone,
+                                value = TextFieldValue(
+                                    text = state.residentialPhone,
+                                    selection = TextRange(state.residentialPhone.length)
+                                ),
                                 onValueChange = { newValue ->
                                     val digits = newValue.text.filter { it.isDigit() }.take(10)
                                     val formatted = formatPhone(digits)
 
-                                    // calcula posición del cursor
-                                    val cursorPos = when {
-                                        digits.length <= 3 -> digits.length
-                                        digits.length <= 6 -> digits.length + 1
-                                        else -> digits.length + 2
-                                    }
-
-                                    residentialPhone = TextFieldValue(
-                                        text = formatted,
-                                        selection = TextRange(cursorPos.coerceAtMost(formatted.length))
-                                    )
-
-                                    validPhone = !isValidPhone(formatted)
+                                    validPhone = isValidPhone(formatted)
+                                    viewModel.processIntent(RegisterIntent.ResidentialPhoneChanged(formatted))
                                 },
-                                isError = validPhone,
+                                isError = !validPhone,
                                 label = {
                                     Text(text = stringResource(R.string.tel_fono))
                                 },
@@ -415,7 +407,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier) {
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        enabled = residentialName.isNotEmpty() && residentialAddress.isNotEmpty() && !validPhone
+                        enabled = state.residentialName.isNotEmpty() && state.residentialAddress.isNotEmpty() && state.residentialPhone.isNotEmpty() && validPhone
                     ) {
                         Text(
                             text = stringResource(R.string.aceptar),
