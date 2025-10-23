@@ -12,12 +12,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Email
@@ -26,17 +26,20 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,30 +48,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.urbane.R
+import com.example.urbane.utils.formatIdCard
+import com.example.urbane.utils.isValidEmail
+import com.example.urbane.utils.isValidIdCard
+
 
 
 @Composable
 fun RegisterScreen(modifier: Modifier) {
-    var currentStep by remember { mutableStateOf(0) }
+    var currentStep by remember { mutableIntStateOf(0) }
 
     // Estados para los inputs - Paso 1
     var name by remember { mutableStateOf(value = "") }
-    var idCard by remember { mutableStateOf(value = "") }
+    var idCard by remember { mutableStateOf(TextFieldValue("")) }
     var email by remember { mutableStateOf(value = "") }
     var password by remember { mutableStateOf(value = "") }
     var passwordVisible by remember { mutableStateOf(value = false) }
 
     var residentialName by remember { mutableStateOf(value = "") }
-    var residentialAddress by remember { mutableStateOf(value = "") }
+    var residentialAddress by remember { mutableStateOf(TextFieldValue("")) }
     var residentialPhone by remember{mutableStateOf(value="")}
-
-    var error by remember { mutableStateOf(value = false) }
+    var emailFormat by remember { mutableStateOf(false) }
+    var idCardFormat by remember { mutableStateOf(false) }
+    var validPassword by remember {mutableStateOf(false)}
 
     val totalSteps = 2
 
@@ -78,14 +89,17 @@ fun RegisterScreen(modifier: Modifier) {
         modifier = modifier.fillMaxSize()
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(30.dp),
+            verticalArrangement = Arrangement.spacedBy(15.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Crea tu Cuenta",
+            Text(
+                stringResource(R.string.crea_tu_cuenta),
                 style = MaterialTheme.typography.displayLarge
                 )
             Text(
-                text = if (currentStep == 0) "1. Datos Personales" else "2. Datos del Residencial",
+                text = if (currentStep == 0) stringResource(R.string._1_datos_personales) else stringResource(
+                    R.string._2_datos_del_residencial
+                ),
                 style = MaterialTheme.typography.displayMedium,
 
             )
@@ -124,7 +138,7 @@ fun RegisterScreen(modifier: Modifier) {
                 label = "step_transition"
             ) { step ->
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(30.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     when (step) {
@@ -143,7 +157,6 @@ fun RegisterScreen(modifier: Modifier) {
                                     )
                                 },
                                 modifier = Modifier.fillMaxWidth(fraction = 0.7f),
-                                isError = error,
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
@@ -154,7 +167,10 @@ fun RegisterScreen(modifier: Modifier) {
 
                             OutlinedTextField(
                                 value = email,
-                                onValueChange = { email = it },
+                                onValueChange = {
+                                    email = it
+                                    emailFormat = !isValidEmail(it) },
+                                isError = emailFormat,
                                 label = {
                                     Text(text = stringResource(R.string.correo_electronico))
                                 },
@@ -164,29 +180,51 @@ fun RegisterScreen(modifier: Modifier) {
                                         contentDescription = null
                                     )
                                 },
+                                placeholder = {Text(text="example@gmail.com") },
                                 modifier = Modifier.fillMaxWidth(fraction = 0.7f),
-                                isError = error,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
                                 )
+
                             )
 
                             OutlinedTextField(
                                 value = idCard,
-                                onValueChange = { idCard = it },
+                                onValueChange = { newValue ->
+                                    val digits = newValue.text.filter { it.isDigit() }.take(11)
+                                    val formatted = formatIdCard(digits)
+
+
+                                    val cursorPos = when {
+                                        digits.length <= 3 -> digits.length
+                                        digits.length <= 10 -> digits.length + 1
+                                        else -> digits.length + 2
+                                    }
+
+                                    idCard = TextFieldValue(
+                                        text = formatted,
+                                        selection = TextRange(cursorPos.coerceAtMost(formatted.length))
+                                    )
+                                    idCardFormat = !isValidIdCard(formatted)   // valida
+                                },
                                 label = {
                                     Text(text = stringResource(R.string.cedula))
                                 },
+                                placeholder = { Text("000-0000000-0") },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Badge,
                                         contentDescription = null
                                     )
                                 },
+                                isError = idCardFormat,
                                 modifier = Modifier.fillMaxWidth(fraction = 0.7f),
-                                isError = error,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number
+                                ),
+
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
@@ -197,12 +235,13 @@ fun RegisterScreen(modifier: Modifier) {
 
                             OutlinedTextField(
                                 value = password,
-                                onValueChange = { password = it },
+                                onValueChange = {
+                                    password = it
+                                    validPassword = password.length < 8  },
                                 label = {
                                     Text(text = stringResource(R.string.contrase_a))
                                 },
                                 modifier = Modifier.fillMaxWidth(fraction = 0.7f),
-                                isError = error,
                                 singleLine = true,
                                 leadingIcon = {
                                     Icon(
@@ -210,13 +249,18 @@ fun RegisterScreen(modifier: Modifier) {
                                         contentDescription = null
                                     )
                                 },
+                                isError = validPassword,
                                 trailingIcon = {
-                                    TextButton(onClick = { passwordVisible = !passwordVisible }) {
-                                        Text(
-                                            text = if (passwordVisible) stringResource(R.string.ocultar) else stringResource(
-                                                R.string.mostrar
-                                            )
-                                        )
+                                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                        if (passwordVisible){
+                                            Icon(imageVector = Icons.Default.VisibilityOff, contentDescription = null)
+                                        }else{
+                                            Icon(imageVector = Icons.Default.Visibility, contentDescription = null)
+                                        }
+
+
+
+
                                     }
                                 },
                                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -233,7 +277,7 @@ fun RegisterScreen(modifier: Modifier) {
                                 value = residentialName,
                                 onValueChange = { residentialName = it },
                                 label = {
-                                    Text(text = "Nombre del Residencial")
+                                    Text(text = stringResource(R.string.nombre_del_residencial))
                                 },
                                 leadingIcon = {
                                     Icon(
@@ -242,7 +286,6 @@ fun RegisterScreen(modifier: Modifier) {
                                     )
                                 },
                                 modifier = Modifier.fillMaxWidth(fraction = 0.7f),
-                                isError = error,
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
@@ -256,7 +299,7 @@ fun RegisterScreen(modifier: Modifier) {
                                 value = residentialAddress,
                                 onValueChange = { residentialAddress = it },
                                 label = {
-                                    Text(text = "Dirección")
+                                    Text(text = stringResource(R.string.direcci_n))
                                 },
                                 leadingIcon = {
                                     Icon(
@@ -265,7 +308,6 @@ fun RegisterScreen(modifier: Modifier) {
                                     )
                                 },
                                 modifier = Modifier.fillMaxWidth(fraction = 0.7f),
-                                isError = error,
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
@@ -278,7 +320,7 @@ fun RegisterScreen(modifier: Modifier) {
                                 ,
                                 onValueChange = { residentialPhone = it },
                                 label = {
-                                    Text(text = "Teléfono")
+                                    Text(text = stringResource(R.string.tel_fono))
                                 },
                                 leadingIcon = {
                                     Icon(
@@ -287,13 +329,13 @@ fun RegisterScreen(modifier: Modifier) {
                                     )
                                 },
                                 modifier = Modifier.fillMaxWidth(fraction = 0.7f),
-                                isError = error,
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
-                                )
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                             )
 
 
@@ -302,19 +344,22 @@ fun RegisterScreen(modifier: Modifier) {
                 }
             }
 
-            // Botones de navegación
+
             if (currentStep == 0) {
-                // Solo botón Siguiente en paso 1
+                if (validPassword){
+                    Text(stringResource(R.string.la_contrase_a_debe_contener_al_menos_8_caracteres), modifier = Modifier.fillMaxWidth(0.7f), color = Color.Red)
+                }
                 Button(
                     onClick = { currentStep = 1 },
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth(fraction = 0.7f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
-                    )
+                    ),
+                    enabled = password.length >= 8 && name.isNotEmpty() && isValidEmail(email) && isValidIdCard(idCard.text)
                 ) {
                     Text(
-                        text = "Siguiente",
+                        text = stringResource(R.string.siguiente),
                         color = Color.White,
                         fontSize = 17.sp,
                         modifier = Modifier.padding(5.dp)
@@ -334,7 +379,7 @@ fun RegisterScreen(modifier: Modifier) {
                         )
                     ) {
                         Text(
-                            text = "Volver",
+                            text = stringResource(R.string.volver),
                             fontSize = 16.sp,
                             modifier = Modifier.padding(5.dp)
                         )
@@ -349,7 +394,7 @@ fun RegisterScreen(modifier: Modifier) {
                         )
                     ) {
                         Text(
-                            text = "Aceptar",
+                            text = stringResource(R.string.aceptar),
                             color = Color.White,
                             fontSize = 16.sp,
                             modifier = Modifier.padding(5.dp)
@@ -368,4 +413,7 @@ fun RegisterScreen(modifier: Modifier) {
         }
     }
 }
+
+
+
 
