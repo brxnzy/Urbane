@@ -1,5 +1,6 @@
 package com.example.urbane.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -9,7 +10,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.auth.view.RegisterScreen
+import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun MainNavigation(navController: NavHostController, modifier: Modifier){
     NavHost(
@@ -24,6 +27,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier){
                 navController.navigate("register")
             }
         }
-        composable(Routes.REGISTER){ RegisterScreen(modifier = modifier) }
+        composable(Routes.REGISTER){
+            val registerViewModel = RegisterViewModel()
+            RegisterScreen(registerViewModel,modifier = modifier) }
     }
 }

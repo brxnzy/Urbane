@@ -16,15 +16,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.AppRegistration
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -38,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,32 +60,34 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.urbane.R
+import com.example.urbane.ui.auth.model.RegisterIntent
+import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
 import com.example.urbane.utils.formatIdCard
+import com.example.urbane.utils.formatPhone
 import com.example.urbane.utils.isValidEmail
 import com.example.urbane.utils.isValidIdCard
-
+import com.example.urbane.utils.isValidPhone
 
 
 @Composable
-fun RegisterScreen(modifier: Modifier) {
+fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier) {
     var currentStep by remember { mutableIntStateOf(0) }
 
-    // Estados para los inputs - Paso 1
-    var name by remember { mutableStateOf(value = "") }
-    var idCard by remember { mutableStateOf(TextFieldValue("")) }
-    var email by remember { mutableStateOf(value = "") }
-    var password by remember { mutableStateOf(value = "") }
+    val state by viewModel.state.collectAsState()
+
     var passwordVisible by remember { mutableStateOf(value = false) }
 
     var residentialName by remember { mutableStateOf(value = "") }
-    var residentialAddress by remember { mutableStateOf(TextFieldValue("")) }
-    var residentialPhone by remember{mutableStateOf(value="")}
+    var residentialAddress by remember { mutableStateOf("") }
+    var residentialPhone by remember{mutableStateOf(TextFieldValue(""))}
     var emailFormat by remember { mutableStateOf(false) }
     var idCardFormat by remember { mutableStateOf(false) }
     var validPassword by remember {mutableStateOf(false)}
+    var validPhone by remember {mutableStateOf(false)}
 
     val totalSteps = 2
 
@@ -92,9 +100,12 @@ fun RegisterScreen(modifier: Modifier) {
             verticalArrangement = Arrangement.spacedBy(15.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+
             Text(
-                stringResource(R.string.crea_tu_cuenta),
-                style = MaterialTheme.typography.displayLarge
+                stringResource(R.string.crea_una_cuenta),
+                style = MaterialTheme.typography.displayLarge,
+                textAlign = TextAlign.Start
                 )
             Text(
                 text = if (currentStep == 0) stringResource(R.string._1_datos_personales) else stringResource(
@@ -138,15 +149,15 @@ fun RegisterScreen(modifier: Modifier) {
                 label = "step_transition"
             ) { step ->
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(15.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     when (step) {
                         0 -> {
                             // Paso 1: Datos Personales
                             OutlinedTextField(
-                                value = name,
-                                onValueChange = { name = it },
+                                value = state.name,
+                                onValueChange = { viewModel.processIntent(RegisterIntent.NameChanged(it)) },
                                 label = {
                                     Text(text = stringResource(R.string.nombre))
                                 },
@@ -156,7 +167,7 @@ fun RegisterScreen(modifier: Modifier) {
                                         contentDescription = null
                                     )
                                 },
-                                modifier = Modifier.fillMaxWidth(fraction = 0.7f),
+                                modifier = Modifier.fillMaxWidth(fraction = 0.75f),
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
@@ -166,11 +177,12 @@ fun RegisterScreen(modifier: Modifier) {
                             )
 
                             OutlinedTextField(
-                                value = email,
+                                value = state.email,
                                 onValueChange = {
-                                    email = it
-                                    emailFormat = !isValidEmail(it) },
-                                isError = emailFormat,
+                                    emailFormat = isValidEmail(it)
+                                    viewModel.processIntent(RegisterIntent.EmailChanged(it))
+                                },
+                                isError = !emailFormat,
                                 label = {
                                     Text(text = stringResource(R.string.correo_electronico))
                                 },
@@ -181,7 +193,7 @@ fun RegisterScreen(modifier: Modifier) {
                                     )
                                 },
                                 placeholder = {Text(text="example@gmail.com") },
-                                modifier = Modifier.fillMaxWidth(fraction = 0.7f),
+                                modifier = Modifier.fillMaxWidth(fraction = 0.75f),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
                                     focusedContainerColor = Color.Transparent,
@@ -191,23 +203,16 @@ fun RegisterScreen(modifier: Modifier) {
                             )
 
                             OutlinedTextField(
-                                value = idCard,
+                                value = TextFieldValue(
+                                    text = state.idCard,
+                                    selection = TextRange(state.idCard.length)
+                                ),
                                 onValueChange = { newValue ->
-                                    val digits = newValue.text.filter { it.isDigit() }.take(11)
-                                    val formatted = formatIdCard(digits)
-
-
-                                    val cursorPos = when {
-                                        digits.length <= 3 -> digits.length
-                                        digits.length <= 10 -> digits.length + 1
-                                        else -> digits.length + 2
-                                    }
-
-                                    idCard = TextFieldValue(
-                                        text = formatted,
-                                        selection = TextRange(cursorPos.coerceAtMost(formatted.length))
-                                    )
-                                    idCardFormat = !isValidIdCard(formatted)   // valida
+                                    val digits = newValue.text.replace(Regex("[^0-9]"), "")
+                                    val limited = if (digits.length > 11) digits.substring(0, 11) else digits
+                                    val formatted = formatIdCard(limited)
+                                    idCardFormat = isValidIdCard(formatted)
+                                    viewModel.processIntent(RegisterIntent.IdCardChanged(formatted))
                                 },
                                 label = {
                                     Text(text = stringResource(R.string.cedula))
@@ -215,12 +220,12 @@ fun RegisterScreen(modifier: Modifier) {
                                 placeholder = { Text("000-0000000-0") },
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = Icons.Default.Badge,
+                                        imageVector = Icons.Default.Badge ,
                                         contentDescription = null
                                     )
                                 },
-                                isError = idCardFormat,
-                                modifier = Modifier.fillMaxWidth(fraction = 0.7f),
+                                isError = !idCardFormat,
+                                modifier = Modifier.fillMaxWidth(fraction = 0.75f),
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Number
                                 ),
@@ -234,14 +239,15 @@ fun RegisterScreen(modifier: Modifier) {
                             )
 
                             OutlinedTextField(
-                                value = password,
+                                value = state.password,
                                 onValueChange = {
-                                    password = it
-                                    validPassword = password.length < 8  },
+                                    validPassword = it.length >= 8
+                                    viewModel.processIntent(RegisterIntent.PasswordChanged(it))
+                                },
                                 label = {
                                     Text(text = stringResource(R.string.contrase_a))
                                 },
-                                modifier = Modifier.fillMaxWidth(fraction = 0.7f),
+                                modifier = Modifier.fillMaxWidth(fraction = 0.75f),
                                 singleLine = true,
                                 leadingIcon = {
                                     Icon(
@@ -249,7 +255,7 @@ fun RegisterScreen(modifier: Modifier) {
                                         contentDescription = null
                                     )
                                 },
-                                isError = validPassword,
+                                isError = !validPassword,
                                 trailingIcon = {
                                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                         if (passwordVisible){
@@ -285,7 +291,7 @@ fun RegisterScreen(modifier: Modifier) {
                                         contentDescription = null
                                     )
                                 },
-                                modifier = Modifier.fillMaxWidth(fraction = 0.7f),
+                                modifier = Modifier.fillMaxWidth(fraction = 0.75f),
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
@@ -307,7 +313,7 @@ fun RegisterScreen(modifier: Modifier) {
                                         contentDescription = null
                                     )
                                 },
-                                modifier = Modifier.fillMaxWidth(fraction = 0.7f),
+                                modifier = Modifier.fillMaxWidth(fraction = 0.75f),
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
@@ -316,9 +322,26 @@ fun RegisterScreen(modifier: Modifier) {
                                 )
                             )
                             OutlinedTextField(
-                                value = residentialPhone
-                                ,
-                                onValueChange = { residentialPhone = it },
+                                value = residentialPhone,
+                                onValueChange = { newValue ->
+                                    val digits = newValue.text.filter { it.isDigit() }.take(10)
+                                    val formatted = formatPhone(digits)
+
+                                    // calcula posición del cursor
+                                    val cursorPos = when {
+                                        digits.length <= 3 -> digits.length
+                                        digits.length <= 6 -> digits.length + 1
+                                        else -> digits.length + 2
+                                    }
+
+                                    residentialPhone = TextFieldValue(
+                                        text = formatted,
+                                        selection = TextRange(cursorPos.coerceAtMost(formatted.length))
+                                    )
+
+                                    validPhone = !isValidPhone(formatted)
+                                },
+                                isError = validPhone,
                                 label = {
                                     Text(text = stringResource(R.string.tel_fono))
                                 },
@@ -328,7 +351,7 @@ fun RegisterScreen(modifier: Modifier) {
                                         contentDescription = null
                                     )
                                 },
-                                modifier = Modifier.fillMaxWidth(fraction = 0.7f),
+                                modifier = Modifier.fillMaxWidth(fraction = 0.75f),
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     errorLabelColor = Color.Red,
@@ -346,17 +369,17 @@ fun RegisterScreen(modifier: Modifier) {
 
 
             if (currentStep == 0) {
-                if (validPassword){
+                if (!validPassword){
                     Text(stringResource(R.string.la_contrase_a_debe_contener_al_menos_8_caracteres), modifier = Modifier.fillMaxWidth(0.7f), color = Color.Red)
                 }
                 Button(
                     onClick = { currentStep = 1 },
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth(fraction = 0.7f),
+                    modifier = Modifier.fillMaxWidth(fraction = 0.75f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     ),
-                    enabled = password.length >= 8 && name.isNotEmpty() && isValidEmail(email) && isValidIdCard(idCard.text)
+                    enabled = state.name.isNotEmpty() && validPassword && isValidEmail(state.email) && isValidIdCard(state.idCard)
                 ) {
                     Text(
                         text = stringResource(R.string.siguiente),
@@ -367,7 +390,7 @@ fun RegisterScreen(modifier: Modifier) {
                 }
             } else {
                 Row(
-                    modifier = Modifier.fillMaxWidth(fraction = 0.7f),
+                    modifier = Modifier.fillMaxWidth(fraction = 0.75f),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
@@ -391,7 +414,8 @@ fun RegisterScreen(modifier: Modifier) {
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
-                        )
+                        ),
+                        enabled = residentialName.isNotEmpty() && residentialAddress.isNotEmpty() && !validPhone
                     ) {
                         Text(
                             text = stringResource(R.string.aceptar),
@@ -413,6 +437,10 @@ fun RegisterScreen(modifier: Modifier) {
         }
     }
 }
+
+
+
+
 
 
 
