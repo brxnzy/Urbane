@@ -1,12 +1,14 @@
 package com.example.urbane.ui.auth.viewmodel
 
 import android.provider.ContactsContract
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.remote.supabase
+import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.model.RegisterIntent
 import com.example.urbane.ui.auth.model.RegisterState
-import io.github.jan.supabase.auth.OtpType
+
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.delay
@@ -61,6 +63,8 @@ class RegisterViewModel : ViewModel() {
             is RegisterIntent.ClearError -> {
                 _state.update { it.copy(errorMessage = null) }
             }
+
+
         }
     }
 
@@ -86,16 +90,31 @@ class RegisterViewModel : ViewModel() {
                 
 
             } catch (e: Exception) {
+                val msg = when {
+                    e.message?.contains("User already registered", ignoreCase = true) == true ->
+                        "Ya existe un usuario registrado con ese correo electrónico"
+
+                    e is io.github.jan.supabase.exceptions.UnknownRestException ->
+                        "La cédula ingresada ya está registrada o hay un dato duplicado"
+
+                    e.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
+                            e.message?.contains("No address associated with hostname", ignoreCase = true) == true ->
+                        "Sin conexión a internet. Verifica tu red e inténtalo de nuevo"
+
+                    else -> e.message ?: "Error desconocido al registrar usuario"
+                }
+
                 _state.update {
                     it.copy(
                         isLoading = false,
                         success = false,
-                        errorMessage = e.message ?: "Error al registrar usuario"
+                        errorMessage = msg
                     )
                 }
-
             }
         }
     }
 }
+
+
 

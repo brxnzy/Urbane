@@ -15,4 +15,6 @@
     <string name="volver">Volver</string>
     <string name="aceptar">Aceptar</string>
     <string name="la_contrase_a_debe_contener_al_menos_8_caracteres">La contraseña debe contener al menos 8 caracteres</string>
+    <string name="ya_tienes_una_cuenta">¿Ya tienes una cuenta?</string>
+    <string name="loguearse">Loguearse</string>
 </resources>

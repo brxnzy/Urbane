@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,16 +21,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.AppRegistration
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -79,12 +76,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
     var currentStep by remember { mutableIntStateOf(0) }
 
     val state by viewModel.state.collectAsState()
-
     var passwordVisible by remember { mutableStateOf(value = false) }
-
-    var residentialName by remember { mutableStateOf(value = "") }
-    var residentialAddress by remember { mutableStateOf("") }
-    var residentialPhone by remember{mutableStateOf(TextFieldValue(""))}
     var emailFormat by remember { mutableStateOf(true) }
     var idCardFormat by remember { mutableStateOf(true) }
     var validPassword by remember {mutableStateOf(true)}
@@ -98,7 +90,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
         modifier = modifier.fillMaxSize()
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(15.dp),
+            verticalArrangement = Arrangement.spacedBy(25.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -199,7 +191,8 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
                                     errorLabelColor = Color.Red,
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
-                                )
+                                ),
+                                singleLine = true
 
                             )
 
@@ -427,7 +420,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
             }
 
             if (state.errorMessage != null){
-                Text(state.errorMessage!!)
+                Text(state.errorMessage!!, color = Color.Red)
             }
 
             if(state.success){
@@ -435,10 +428,13 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
             }
 
             Text(
-                text = "¿Ya tienes una cuenta?",
+                text = stringResource(R.string.ya_tienes_una_cuenta),
                 fontSize = 18.sp,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
+                modifier = Modifier.clickable{
+                    toLogin()
+                }
             )
         }
     }

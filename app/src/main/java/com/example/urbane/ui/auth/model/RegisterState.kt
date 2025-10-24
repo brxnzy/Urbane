@@ -1,8 +1,5 @@
 package com.example.urbane.ui.auth.model
 
-import co.touchlab.kermit.Message
-
-
 data class RegisterState(
     val name: String = "",
     val email: String = "",

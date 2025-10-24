@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.auth.view.Login
 import com.example.urbane.ui.auth.view.RegisterScreen
+import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -25,14 +26,15 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier){
                 modifier = Modifier.padding(0.dp),
                 navController = navController
             ) {
-                navController.navigate("register")
+                navController.navigate("login")
             }
         }
         composable(Routes.REGISTER){
             val registerViewModel = RegisterViewModel()
             RegisterScreen(registerViewModel,modifier = modifier, toLogin = { navController.navigate("login")}) }
         composable(Routes.LOGIN){
-            Login()
+            val loginViewModel = LoginViewModel()
+            Login(loginViewModel, modifier = modifier)
      }
         }
     }
