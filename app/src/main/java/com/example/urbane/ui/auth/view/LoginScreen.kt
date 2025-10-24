@@ -1,11 +1,13 @@
 package com.example.urbane.ui.auth.view
 
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -15,6 +17,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -43,7 +47,7 @@ import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 
 @Composable
-fun Login(viewModel: LoginViewModel, modifier: Modifier) {
+fun Login(viewModel: LoginViewModel, modifier: Modifier, toRegister:()-> Unit) {
     val state by viewModel.state.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
     var emailEmpty by remember { mutableStateOf(false) }
@@ -134,7 +138,30 @@ fun Login(viewModel: LoginViewModel, modifier: Modifier) {
                     modifier = Modifier.padding(5.dp)
                 )
             }
+
+            if (state.isLoading){
+                CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+            if (state.errorMessage != null){
+                Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
+            }
+
+            if(state.success){
+               TODO()
+            }
+
+            Text("No tienes una cuenta?",
+                fontSize = 18.sp,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.clickable{
+                    toRegister()
+                })
         }
+
     }
 }
 

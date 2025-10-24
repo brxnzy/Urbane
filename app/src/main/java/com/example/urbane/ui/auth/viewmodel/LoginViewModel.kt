@@ -1,8 +1,10 @@
 package com.example.urbane.ui.auth.viewmodel
 
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.urbane.R
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.model.LoginState
@@ -41,18 +43,40 @@ class LoginViewModel: ViewModel() {
     private fun handleSubmit(){
         viewModelScope.launch {
             try {
+                _state.update{
+                    it.copy(isLoading = true)
+                }
                 val user = supabase.auth.signInWith(Email) {
                     email = state.value.email
                     password = state.value.password
                 }
+
+
             } catch (e: Exception){
-                Log.e("Error en el login", "$e")
+                val msg = when {
+                    e.message?.contains("Invalid login credentials", ignoreCase = true) == true ->
+                        R.string.credenciales_invalidas_o_cuenta_inexistente
+
+                    e.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
+                            e.message?.contains("No address associated with hostname", ignoreCase = true) == true ->
+                       R.string.sin_conexi_n_a_internet_verifica_tu_red_e_int_ntalo_de_nuevo
+
+                    else -> e.message ?: R.string.error_desconocido_al_registrar_usuario
+                }
+                _state.update{
+                    it.copy(
+                        errorMessage = msg.toString(),
+
+                    )
+                }
         }
 
 
         }
 
     }
+
+
 }
 
 

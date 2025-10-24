@@ -34,7 +34,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier){
             RegisterScreen(registerViewModel,modifier = modifier, toLogin = { navController.navigate("login")}) }
         composable(Routes.LOGIN){
             val loginViewModel = LoginViewModel()
-            Login(loginViewModel, modifier = modifier)
+            Login(loginViewModel, modifier = modifier, toRegister = { navController.navigate("register")})
      }
         }
     }
