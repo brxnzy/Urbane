@@ -117,7 +117,7 @@ class RegisterViewModel(private val sessionManager: SessionManager) : ViewModel(
                 sessionManager.saveSession(currentUser)
                 Log.d("Registerr", "Sesión guardada en DataStore")
 
-                // 6️⃣ Actualizar estado
+
                 _state.update { it.copy(isLoading = false, success = true) }
                 Log.d("Registerr", "Registro completado y estado actualizado")
 

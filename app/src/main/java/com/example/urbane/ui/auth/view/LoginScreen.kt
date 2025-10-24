@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -41,18 +43,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.urbane.R
+import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 
 
 @Composable
-fun Login(viewModel: LoginViewModel, modifier: Modifier, toRegister:()-> Unit) {
+fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier, toRegister:()-> Unit) {
     val state by viewModel.state.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
     var emailEmpty by remember { mutableStateOf(false) }
     var passwordEmpty by remember { mutableStateOf(false) }
     var triedSubmit by remember { mutableStateOf(false) } // controla ambos campos
+
+
+
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -15,17 +15,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.urbane.R
+import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.theme.DarkGray
 import kotlinx.coroutines.delay
 
 @Composable
-fun Splash(modifier: Modifier, navController: NavController, toHome: ()-> Unit) {
+fun Splash(
+    sessionManager: SessionManager,
+    onRoleFound: (String) -> Unit
+) {
     LaunchedEffect(Unit) {
-        delay(2000)
-        navController.popBackStack()
-        toHome()
+        sessionManager.sessionFlow.collect { currentUser ->
+            currentUser?.let {
+                onRoleFound(it.role)
+            }
+        }
     }
-
     SplashScreen()
 }
 
