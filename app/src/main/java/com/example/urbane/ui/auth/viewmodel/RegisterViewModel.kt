@@ -1,17 +1,17 @@
 package com.example.urbane.ui.auth.viewmodel
 
-import android.provider.ContactsContract
+import com.example.urbane.data.local.SessionManager
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.remote.supabase
-import com.example.urbane.ui.auth.model.LoginIntent
+import com.example.urbane.ui.auth.model.CurrentUser
 import com.example.urbane.ui.auth.model.RegisterIntent
 import com.example.urbane.ui.auth.model.RegisterState
 
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
-import kotlinx.coroutines.delay
+import io.github.jan.supabase.exceptions.UnknownRestException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,10 +21,14 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
 
-class RegisterViewModel : ViewModel() {
+class RegisterViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state.asStateFlow()
+
+    private val _currentUser = MutableStateFlow(CurrentUser())
+    val currentUser: StateFlow<CurrentUser> = _currentUser
+
 
     fun processIntent(intent: RegisterIntent) {
         when (intent) {
@@ -73,6 +77,9 @@ class RegisterViewModel : ViewModel() {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
+                Log.d("Register", "=== Inicio del registro ===")
+
+                // 1️⃣ Registro en Supabase
                 val result = supabase.auth.signUpWith(Email) {
                     email = state.value.email
                     password = state.value.password
@@ -84,17 +91,42 @@ class RegisterViewModel : ViewModel() {
                         put("residentialPhone", JsonPrimitive(state.value.residentialPhone))
                     }
                 }
+                Log.d("Register", "Usuario registrado correctamente: $result")
 
 
+                val session = supabase.auth.currentSessionOrNull()
+                if (session == null) throw Exception("No se pudo obtener la sesión después del registro")
+                Log.d("Register", "Sesión obtenida: $session")
+
+                val userId = session.user?.id
+                Log.d("Register", "UserId: $userId")
+
+
+
+
+                // 4️⃣ Construir CurrentUser
+                val currentUser = CurrentUser(
+                    userId = userId.toString(),
+                    email = session.user?.email ?: "",
+                    accessToken = session.accessToken,
+                    refreshToken = session.refreshToken,
+                    role = "admin"
+                )
+                Log.d("Registerr", "CurrentUser construido: $currentUser")
+
+                sessionManager.saveSession(currentUser)
+                Log.d("Registerr", "Sesión guardada en DataStore")
+
+                // 6️⃣ Actualizar estado
                 _state.update { it.copy(isLoading = false, success = true) }
-                
+                Log.d("Registerr", "Registro completado y estado actualizado")
 
             } catch (e: Exception) {
                 val msg = when {
                     e.message?.contains("User already registered", ignoreCase = true) == true ->
                         "Ya existe un usuario registrado con ese correo electrónico"
 
-                    e is io.github.jan.supabase.exceptions.UnknownRestException ->
+                    e is UnknownRestException ->
                         "La cédula ingresada ya está registrada o hay un dato duplicado"
 
                     e.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
@@ -103,6 +135,8 @@ class RegisterViewModel : ViewModel() {
 
                     else -> e.message ?: "Error desconocido al registrar usuario"
                 }
+
+                Log.e("Registerr", "Error en el registro: $msg", e)
 
                 _state.update {
                     it.copy(
@@ -115,6 +149,7 @@ class RegisterViewModel : ViewModel() {
         }
     }
 }
+
 
 
 

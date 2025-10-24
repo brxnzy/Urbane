@@ -5,7 +5,7 @@ val email : String = "",
 val password : String = "",
 val isLoading : Boolean = false,
 val success : Boolean = false,
-val errorMessage: String? = null
+val errorMessage: String? = null,
 )
 
 sealed class LoginIntent{

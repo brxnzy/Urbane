@@ -46,11 +46,18 @@ class LoginViewModel: ViewModel() {
                 _state.update{
                     it.copy(isLoading = true)
                 }
+
                 val user = supabase.auth.signInWith(Email) {
                     email = state.value.email
                     password = state.value.password
                 }
 
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        success = true,
+                        errorMessage = null
+                    )}
 
             } catch (e: Exception){
                 val msg = when {
