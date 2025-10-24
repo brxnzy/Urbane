@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -74,7 +75,7 @@ import com.example.urbane.utils.isValidPhone
 
 
 @Composable
-fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier) {
+fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: () -> Unit ) {
     var currentStep by remember { mutableIntStateOf(0) }
 
     val state by viewModel.state.collectAsState()
@@ -401,7 +402,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier) {
                     }
 
                     Button(
-                        onClick = { /* Registrarse */ },
+                        onClick = { viewModel.processIntent(RegisterIntent.Submit) },
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
@@ -419,6 +420,19 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier) {
                 }
             }
 
+            if (state.isLoading){
+                CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+            if (state.errorMessage != null){
+                Text(state.errorMessage!!)
+            }
+
+            if(state.success){
+                toLogin()
+            }
 
             Text(
                 text = "¿Ya tienes una cuenta?",
