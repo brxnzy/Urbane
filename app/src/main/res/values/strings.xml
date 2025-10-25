@@ -23,5 +23,8 @@
     <string name="no_se_pudo_obtener_la_sesi_n_despu_s_del_registro">No se pudo obtener la sesión después del registro</string>
     <string name="ya_existe_un_usuario_registrado_con_ese_correo_electr_nico">Ya existe un usuario registrado con ese correo electrónico</string>
     <string name="la_c_dula_ingresada_ya_est_registrada_o_hay_un_dato_duplicado">La cédula ingresada ya está registrada o hay un dato duplicado</string>
+    <string name="residencias">Residencias</string>
+    <string name="pagos">Pagos</string>
+    <string name="usuarios">Usuarios</string>
 
 </resources>

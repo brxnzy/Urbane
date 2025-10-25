@@ -6,5 +6,8 @@ object Routes {
     const val REGISTER = "register"
     const val LOGIN = "login"
     const val ADMIN = "admin"
-    const val RESIDENT ="residente"
+    const val RESIDENT ="resident"
+    const val ADMIN_USERS = "admin/users"
+    const val ADMIN_RESIDENCES = "admin/residences"
+    const val ADMIN_PAYMENTS = "admin/payments"
 }

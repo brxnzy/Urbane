@@ -2,6 +2,10 @@ package com.example.urbane.navigation
 
 import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -10,6 +14,10 @@ import androidx.navigation.compose.composable
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.Admin
+import com.example.urbane.ui.admin.AdminMainScaffold
+import com.example.urbane.ui.admin.payments.PaymentsScreen
+import com.example.urbane.ui.admin.residences.ResidencesScreen
+import com.example.urbane.ui.admin.users.UsersScreen
 import com.example.urbane.ui.auth.view.LoginScreen
 import com.example.urbane.ui.auth.view.RegisterScreen
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
@@ -20,6 +28,7 @@ import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
 fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
+
     NavHost(
         navController = navController,
         startDestination = Routes.SPLASH,
@@ -27,61 +36,72 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         composable(Routes.SPLASH) {
             Splash(sessionManager = sessionManager) { role ->
                 when (role) {
-                    "1" -> navController.navigate(Routes.ADMIN) {
+                    "1" -> navController.navigate(Routes.ADMIN_USERS) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
-                    "2"-> navController.navigate(Routes.RESIDENT) {
+                    "2" -> navController.navigate(Routes.RESIDENT) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
-                    }else -> navController.navigate(Routes.LOGIN){
-                        popUpTo(Routes.SPLASH) {inclusive = true}
-                }
-
+                    }
+                    else -> navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    }
                 }
             }
         }
+
         composable(Routes.REGISTER) {
             val registerViewModel = RegisterViewModel()
             RegisterScreen(
                 registerViewModel,
                 modifier = modifier,
-                toLogin = { navController.navigate("login") })
+                toLogin = { navController.navigate(Routes.LOGIN) }
+            )
         }
+
         composable(Routes.LOGIN) {
             val loginViewModel = LoginViewModel(sessionManager)
             LoginScreen(
                 loginViewModel,
-                sessionManager ,
+                sessionManager,
                 modifier = modifier,
-                toRegister = { navController.navigate("register") },
+                toRegister = { navController.navigate(Routes.REGISTER) },
                 navigateByRole = { roleId ->
                     when (roleId) {
-                        "1" -> navController.navigate(Routes.ADMIN) {
+                        "1" -> navController.navigate(Routes.ADMIN_USERS) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
-
                         "2" -> navController.navigate(Routes.RESIDENT) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
-
                         else -> navController.navigate(Routes.LOGIN) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
                     }
-                    }
-            )}
-
-
-        composable(Routes.ADMIN) {
-            val loginViewModel = LoginViewModel(sessionManager)
-            Admin(loginViewModel){
-                navController.navigate("login") {
-                    popUpTo("admin") { inclusive = true }
-                    launchSingleTop = true
                 }
-
+            )
         }
-            }
+
+        composable(Routes.ADMIN_USERS) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_USERS
+            )
+        }
+
+        composable(Routes.ADMIN_RESIDENCES) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_RESIDENCES
+            )
+        }
+
+        composable(Routes.ADMIN_PAYMENTS) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_PAYMENTS
+            )
         }
     }
+}
 
 
