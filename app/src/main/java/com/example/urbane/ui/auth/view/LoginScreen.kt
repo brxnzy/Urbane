@@ -50,12 +50,22 @@ import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier, toRegister:()-> Unit) {
+fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifier: Modifier, toRegister:()-> Unit, navigateByRole:(String?)-> Unit) {
     val state by viewModel.state.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
     var emailEmpty by remember { mutableStateOf(false) }
     var passwordEmpty by remember { mutableStateOf(false) }
-    var triedSubmit by remember { mutableStateOf(false) } // controla ambos campos
+    var triedSubmit by remember { mutableStateOf(false) }
+    val currentUser by sessionManager.sessionFlow.collectAsState(initial = null)
+
+    LaunchedEffect(currentUser) {
+        currentUser?.let { user ->
+            if (state.success) {
+                navigateByRole(user.roleId)
+            }
+        }
+    }
+
 
 
 
@@ -155,9 +165,7 @@ fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier, toRegister:()-> U
                 Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
             }
 
-            if(state.success){
-               TODO()
-            }
+
 
             Text("No tienes una cuenta?",
                 fontSize = 18.sp,
@@ -170,6 +178,8 @@ fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier, toRegister:()-> U
 
     }
 }
+
+
 
 
 

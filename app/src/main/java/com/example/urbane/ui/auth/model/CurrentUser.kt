@@ -5,5 +5,5 @@ data class CurrentUser(
     val email: String = "",
     val accessToken: String = "",
     val refreshToken: String ="",
-    val role: String=""
+    val roleId: String = ""
 )

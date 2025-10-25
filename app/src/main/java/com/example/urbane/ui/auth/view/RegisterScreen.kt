@@ -420,7 +420,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
             }
 
             if (state.errorMessage != null){
-                Text(state.errorMessage!!, color = Color.Red)
+                Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
             }
 
             if(state.success){

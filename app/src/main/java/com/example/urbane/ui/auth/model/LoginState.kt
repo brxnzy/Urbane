@@ -13,5 +13,6 @@ sealed class LoginIntent{
     data class PasswordChanged(val password: String) : LoginIntent()
     data object Submit : LoginIntent()
     data object ClearError: LoginIntent()
+    data object Logout: LoginIntent()
 }
 

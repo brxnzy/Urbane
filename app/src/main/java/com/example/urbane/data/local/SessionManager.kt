@@ -25,7 +25,7 @@ class SessionManager(context: Context) {
         dataStore.edit { prefs ->
             prefs[USER_ID_KEY] = user.userId
             prefs[EMAIL_KEY] = user.email
-            prefs[ROLE_KEY] = user.role
+            prefs[ROLE_KEY] = user.roleId.toString()
             prefs[TOKEN_KEY] = user.accessToken
             prefs[REFRESH_KEY] = user.refreshToken
         }
@@ -34,12 +34,12 @@ class SessionManager(context: Context) {
     val sessionFlow: Flow<CurrentUser?> = dataStore.data.map { prefs ->
         val userId = prefs[USER_ID_KEY]
         val email = prefs[EMAIL_KEY]
-        val role = prefs[ROLE_KEY]
+        val roleId = prefs[ROLE_KEY]
         val access = prefs[TOKEN_KEY]
         val refresh = prefs[REFRESH_KEY]
 
-        if (userId != null && email != null && role != null && access != null && refresh != null) {
-            CurrentUser(userId, email, access, refresh, role)
+        if (userId != null && email != null && roleId != null && access != null && refresh != null) {
+            CurrentUser(userId, email, access, refresh, roleId)
         } else null
     }
 

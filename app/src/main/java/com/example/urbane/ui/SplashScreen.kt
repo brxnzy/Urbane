@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -18,21 +19,28 @@ import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.theme.DarkGray
 import kotlinx.coroutines.delay
-
 @Composable
 fun Splash(
     sessionManager: SessionManager,
-    onRoleFound: (String) -> Unit
+    onRoleFound: (String?) -> Unit
 ) {
-    LaunchedEffect(Unit) {
-        sessionManager.sessionFlow.collect { currentUser ->
-            currentUser?.let {
-                onRoleFound(it.role)
-            }
+
+    val sessionState = sessionManager.sessionFlow.collectAsState(initial = null)
+    val session = sessionState.value
+
+    LaunchedEffect(session) {
+        delay(1500)
+        if (session != null) {
+            onRoleFound(session.roleId)
+        } else {
+            onRoleFound(null)
         }
     }
+
     SplashScreen()
 }
+
+
 
 @Preview(showSystemUi = true)
 @Composable

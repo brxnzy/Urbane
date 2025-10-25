@@ -4,6 +4,7 @@ import com.example.urbane.data.local.SessionManager
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.urbane.R
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.ui.auth.model.CurrentUser
 import com.example.urbane.ui.auth.model.RegisterIntent
@@ -77,9 +78,6 @@ class RegisterViewModel(private val sessionManager: SessionManager) : ViewModel(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
-                Log.d("Register", "=== Inicio del registro ===")
-
-                // 1️⃣ Registro en Supabase
                 val result = supabase.auth.signUpWith(Email) {
                     email = state.value.email
                     password = state.value.password
@@ -91,49 +89,35 @@ class RegisterViewModel(private val sessionManager: SessionManager) : ViewModel(
                         put("residentialPhone", JsonPrimitive(state.value.residentialPhone))
                     }
                 }
-                Log.d("Register", "Usuario registrado correctamente: $result")
-
 
                 val session = supabase.auth.currentSessionOrNull()
-                if (session == null) throw Exception("No se pudo obtener la sesión después del registro")
-                Log.d("Register", "Sesión obtenida: $session")
-
+                if (session == null) throw Exception("Error obteniendo la sesion")
                 val userId = session.user?.id
                 Log.d("Register", "UserId: $userId")
 
-
-
-
-                // 4️⃣ Construir CurrentUser
                 val currentUser = CurrentUser(
                     userId = userId.toString(),
                     email = session.user?.email ?: "",
                     accessToken = session.accessToken,
                     refreshToken = session.refreshToken,
-                    role = "admin"
+                    roleId = "1"
                 )
-                Log.d("Registerr", "CurrentUser construido: $currentUser")
 
                 sessionManager.saveSession(currentUser)
-                Log.d("Registerr", "Sesión guardada en DataStore")
-
-
                 _state.update { it.copy(isLoading = false, success = true) }
-                Log.d("Registerr", "Registro completado y estado actualizado")
-
             } catch (e: Exception) {
                 val msg = when {
                     e.message?.contains("User already registered", ignoreCase = true) == true ->
-                        "Ya existe un usuario registrado con ese correo electrónico"
+                      R.string.ya_existe_un_usuario_registrado_con_ese_correo_electr_nico
 
                     e is UnknownRestException ->
-                        "La cédula ingresada ya está registrada o hay un dato duplicado"
+                        R.string.la_c_dula_ingresada_ya_est_registrada_o_hay_un_dato_duplicado
 
                     e.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
                             e.message?.contains("No address associated with hostname", ignoreCase = true) == true ->
-                        "Sin conexión a internet. Verifica tu red e inténtalo de nuevo"
+                        R.string.sin_conexi_n_a_internet_verifica_tu_red_e_int_ntalo_de_nuevo
 
-                    else -> e.message ?: "Error desconocido al registrar usuario"
+                    else -> e.message ?:  R.string.error_desconocido_al_registrar_usuario
                 }
 
                 Log.e("Registerr", "Error en el registro: $msg", e)
@@ -142,12 +126,14 @@ class RegisterViewModel(private val sessionManager: SessionManager) : ViewModel(
                     it.copy(
                         isLoading = false,
                         success = false,
-                        errorMessage = msg
+                        errorMessage = msg.toString()
                     )
                 }
             }
         }
     }
+
+
 }
 
 
