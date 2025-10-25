@@ -66,10 +66,7 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifi
         }
     }
 
-
-
-
-
+    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,

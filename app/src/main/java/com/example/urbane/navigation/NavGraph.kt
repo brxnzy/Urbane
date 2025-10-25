@@ -1,18 +1,14 @@
 package com.example.urbane.navigation
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
-import com.example.urbane.ui.SplashScreen
 import com.example.urbane.ui.admin.Admin
 import com.example.urbane.ui.auth.view.LoginScreen
 import com.example.urbane.ui.auth.view.RegisterScreen
@@ -44,8 +40,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             }
         }
         composable(Routes.REGISTER) {
-
-            val registerViewModel = RegisterViewModel(sessionManager)
+            val registerViewModel = RegisterViewModel()
             RegisterScreen(
                 registerViewModel,
                 modifier = modifier,
@@ -79,7 +74,11 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         composable(Routes.ADMIN) {
             val loginViewModel = LoginViewModel(sessionManager)
             Admin(loginViewModel){
-                navController.navigate("login")
+                navController.navigate("login") {
+                    popUpTo("admin") { inclusive = true }
+                    launchSingleTop = true
+                }
+
         }
             }
         }

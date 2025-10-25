@@ -1,15 +1,12 @@
 package com.example.urbane.ui.auth.viewmodel
 
-import com.example.urbane.data.local.SessionManager
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.R
 import com.example.urbane.data.remote.supabase
-import com.example.urbane.ui.auth.model.CurrentUser
 import com.example.urbane.ui.auth.model.RegisterIntent
 import com.example.urbane.ui.auth.model.RegisterState
-
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.exceptions.UnknownRestException
@@ -22,13 +19,12 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
 
-class RegisterViewModel(private val sessionManager: SessionManager) : ViewModel() {
+class RegisterViewModel() : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state.asStateFlow()
 
-    private val _currentUser = MutableStateFlow(CurrentUser())
-    val currentUser: StateFlow<CurrentUser> = _currentUser
+
 
 
     fun processIntent(intent: RegisterIntent) {
@@ -90,20 +86,9 @@ class RegisterViewModel(private val sessionManager: SessionManager) : ViewModel(
                     }
                 }
 
-                val session = supabase.auth.currentSessionOrNull()
-                if (session == null) throw Exception("Error obteniendo la sesion")
-                val userId = session.user?.id
-                Log.d("Register", "UserId: $userId")
+                Log.d("Result", "$result")
 
-                val currentUser = CurrentUser(
-                    userId = userId.toString(),
-                    email = session.user?.email ?: "",
-                    accessToken = session.accessToken,
-                    refreshToken = session.refreshToken,
-                    roleId = "1"
-                )
-
-                sessionManager.saveSession(currentUser)
+                supabase.auth.signOut()
                 _state.update { it.copy(isLoading = false, success = true) }
             } catch (e: Exception) {
                 val msg = when {
