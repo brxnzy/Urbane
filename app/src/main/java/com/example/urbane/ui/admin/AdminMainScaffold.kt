@@ -5,10 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.House
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.twotone.Payments
 import androidx.compose.material3.*
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -45,7 +49,7 @@ fun AdminMainScaffold(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(350.dp)
+                    .width(300.dp)
                     .background(MaterialTheme.colorScheme.surface) // tu color para drawer en modo oscuro
             ) {
                 DrawerContent(currentRoute) { route ->
@@ -100,9 +104,9 @@ fun DrawerContent(currentRoute: String,onDestinationClicked: (String) -> Unit) {
             style = MaterialTheme.typography.titleLarge,
         )
         HorizontalDivider(modifier = Modifier.padding(bottom = 20.dp))
-        DrawerItem(" Usuarios", Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
-        DrawerItem("Residencias", Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
-        DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
+        DrawerItem("Usuarios", Icons.Default.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
+        DrawerItem("Residencias", Icons.Default.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
+        DrawerItem("Pagos", Icons.Default.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
 
     }
 }
@@ -115,22 +119,27 @@ fun DrawerItem(
     currentRoute: String,
     onClick: (String) -> Unit
 ) {
+    val isSelected = route == currentRoute
+
     val backgroundColor =
-        if (route == currentRoute) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         else Color.Transparent
+
+    val contentColor =
+        if (isSelected) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick(route) }
-            .padding(top = 4.dp , bottom = 4.dp, end= 10.dp),
+            .padding(top = 4.dp, bottom = 4.dp, end = 10.dp),
         color = backgroundColor,
         shape = RoundedCornerShape(
             topStart = 0.dp,
             bottomStart = 0.dp,
             topEnd = 35.dp,
             bottomEnd = 35.dp
-
         )
     ) {
         Row(
@@ -139,9 +148,16 @@ fun DrawerItem(
                 .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = icon, contentDescription = title)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = contentColor
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge.copy(color = contentColor)
+            )
         }
     }
 }
