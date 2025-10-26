@@ -2,10 +2,6 @@ package com.example.urbane.navigation
 
 import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -13,11 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
-import com.example.urbane.ui.admin.Admin
 import com.example.urbane.ui.admin.AdminMainScaffold
-import com.example.urbane.ui.admin.payments.PaymentsScreen
-import com.example.urbane.ui.admin.residences.ResidencesScreen
-import com.example.urbane.ui.admin.users.UsersScreen
 import com.example.urbane.ui.auth.view.LoginScreen
 import com.example.urbane.ui.auth.view.RegisterScreen
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel

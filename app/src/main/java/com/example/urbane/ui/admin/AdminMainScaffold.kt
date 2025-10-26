@@ -5,14 +5,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.House
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.twotone.Payments
 import androidx.compose.material3.*
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -27,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.urbane.R
 import com.example.urbane.navigation.Routes
-import com.example.urbane.ui.admin.users.UsersScreen
+import com.example.urbane.ui.admin.users.view.UsersScreen
 import com.example.urbane.ui.admin.residences.ResidencesScreen
 import com.example.urbane.ui.admin.payments.PaymentsScreen
 import kotlinx.coroutines.launch
@@ -49,8 +45,8 @@ fun AdminMainScaffold(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(300.dp)
-                    .background(MaterialTheme.colorScheme.surface) // tu color para drawer en modo oscuro
+                    .width(290.dp)
+                    .background(MaterialTheme.colorScheme.surface)
             ) {
                 DrawerContent(currentRoute) { route ->
                     navController.navigate(route) {
@@ -77,14 +73,19 @@ fun AdminMainScaffold(
                             },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menú", modifier = Modifier.size(30.dp))
+                            Icon(Icons.Default.Menu, contentDescription = "Panel", modifier = Modifier.size(30.dp))
                         }
-                    }
+                    },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
                 )
+
+                )
+
             }
-        ) { innerPadding ->
+        )
+        { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                // Aquí solo mostramos el contenido según la ruta actual
                 when (currentRoute) {
                     Routes.ADMIN_USERS -> UsersScreen(modifier = Modifier.padding(16.dp))
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(modifier = Modifier.padding(16.dp))
@@ -97,16 +98,19 @@ fun AdminMainScaffold(
 
 @Composable
 fun DrawerContent(currentRoute: String,onDestinationClicked: (String) -> Unit) {
-    Column(modifier = Modifier.fillMaxSize().padding(top = 35.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(top = 35.dp,
+
+
+    )) {
         Text(
-            "Menú",
+            "Panel",
             modifier = Modifier.padding(16.dp),
             style = MaterialTheme.typography.titleLarge,
         )
         HorizontalDivider(modifier = Modifier.padding(bottom = 20.dp))
-        DrawerItem("Usuarios", Icons.Default.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
-        DrawerItem("Residencias", Icons.Default.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
-        DrawerItem("Pagos", Icons.Default.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
+        DrawerItem("Usuarios", Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
+        DrawerItem("Residencias", Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
+        DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
 
     }
 }
@@ -156,7 +160,7 @@ fun DrawerItem(
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge.copy(color = contentColor)
+                style = MaterialTheme.typography.bodyMedium.copy(color = contentColor)
             )
         }
     }

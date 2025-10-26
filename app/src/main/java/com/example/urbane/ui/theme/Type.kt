@@ -95,15 +95,15 @@ val Typography = Typography(
     // Body styles
     bodyLarge = TextStyle(
         fontFamily = PlusJakartaSans,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = PlusJakartaSans,
-        fontWeight = FontWeight.Normal,
-        fontSize = 28.sp,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 15.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
