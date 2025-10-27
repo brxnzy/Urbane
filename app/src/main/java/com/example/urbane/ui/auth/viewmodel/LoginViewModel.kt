@@ -56,27 +56,20 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
         viewModelScope.launch {
             try {
                 Log.d("LoginVM", "Iniciando login...")
-                _state.update { it.copy(isLoading = true) }
+                _state.update { it.copy(isLoading = true, errorMessage = null) }
 
                 val result = supabase.auth.signInWith(Email) {
                     email = state.value.email
                     password = state.value.password
                 }
-                Log.d("LoginVM", "Login realizado: $result")
-
                 val session = supabase.auth.currentSessionOrNull()
-                Log.d("LoginVM", "Sesión actual: $session")
                 if (session == null) throw Exception("No se pudo obtener la sesión")
 
                 val userId = session.user?.id
-                Log.d("LoginVM", "UserId obtenido: $userId")
                 if (userId == null) throw Exception("No se pudo obtener userId")
 
                 val email = session.user!!.email ?: state.value.email
-                Log.d("LoginVM", "Email obtenido: $email")
-
                 val roleId = UserRepository().getUserRole(userId)
-                Log.d("LoginVM", "RoleId obtenido: $roleId")
 
                 val currentUser = CurrentUser(
                     userId = userId,

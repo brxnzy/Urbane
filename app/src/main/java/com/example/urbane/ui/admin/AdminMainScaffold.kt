@@ -3,13 +3,16 @@ package com.example.urbane.ui.admin
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
+import androidx.compose.material3.CheckboxDefaults.colors
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalNavigationDrawer
@@ -28,13 +31,15 @@ import com.example.urbane.ui.admin.residences.ResidencesScreen
 import com.example.urbane.ui.admin.payments.PaymentsScreen
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
+import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminMainScaffold(
     navController: NavHostController,
-    currentRoute: String
+    currentRoute: String,
+    loginViewModel: LoginViewModel,
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -48,7 +53,7 @@ fun AdminMainScaffold(
                     .width(290.dp)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                DrawerContent(currentRoute) { route ->
+                DrawerContent(navController,loginViewModel,currentRoute) { route ->
                     navController.navigate(route) {
                         popUpTo(Routes.ADMIN_USERS) { inclusive = false }
                         launchSingleTop = true
@@ -97,11 +102,17 @@ fun AdminMainScaffold(
 }
 
 @Composable
-fun DrawerContent(currentRoute: String,onDestinationClicked: (String) -> Unit) {
-    Column(modifier = Modifier.fillMaxSize().padding(top = 35.dp,
+fun DrawerContent(navController: NavHostController,loginViewModel: LoginViewModel, currentRoute: String, onDestinationClicked: (String) -> Unit) {
+    Column(modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween
+
+    ) {
 
 
-    )) {
+    Column(modifier = Modifier
+        .padding(top = 35.dp,
+            )
+    ) {
         Text(
             "Panel",
             modifier = Modifier.padding(16.dp),
@@ -111,6 +122,41 @@ fun DrawerContent(currentRoute: String,onDestinationClicked: (String) -> Unit) {
         DrawerItem("Usuarios", Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
         DrawerItem("Residencias", Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
         DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
+
+    }
+
+    Column(modifier = Modifier.padding(bottom = 45.dp)) {
+
+        Button(
+            onClick = {loginViewModel.onLogoutClicked { navController.navigate(Routes.LOGIN)
+            {popUpTo(0) { inclusive = true }
+                launchSingleTop = true } }},
+
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Red,
+                contentColor = Color.White
+
+            ),
+            shape =  RoundedCornerShape(
+                topStart = 10.dp,
+                bottomStart = 10.dp,
+                topEnd = 10.dp,
+                bottomEnd = 10.dp
+            )
+        ) {
+
+            Row (modifier = Modifier.padding(vertical = 5.dp),horizontalArrangement = Arrangement.spacedBy(10.dp)
+
+            ){
+
+                Icon(Icons.Default.Logout, contentDescription = "Cerrar sesion")
+                Text("Cerrar Sesion", style = MaterialTheme.typography.bodyMedium)
+
+            }
+        }
+
+    }
 
     }
 }

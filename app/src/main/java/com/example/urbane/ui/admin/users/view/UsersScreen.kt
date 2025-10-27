@@ -76,6 +76,7 @@ fun UsersScreen(modifier: Modifier) {
                         label = { Text(filtro) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = Color.White
                         )
                     )
                 }
@@ -129,7 +130,11 @@ fun UsuarioCard(usuario: Usuario) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 20.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+
     ) {
         Row(
             modifier = Modifier

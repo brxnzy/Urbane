@@ -45,6 +45,8 @@ import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
+import android.widget.Toast
+
 
 
 
@@ -56,6 +58,7 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifi
     var passwordEmpty by remember { mutableStateOf(false) }
     var triedSubmit by remember { mutableStateOf(false) }
     val currentUser by sessionManager.sessionFlow.collectAsState(initial = null)
+    val context = LocalContext.current
 
     LaunchedEffect(currentUser) {
         currentUser?.let { user ->
@@ -157,9 +160,11 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifi
                 )
             }
 
-            if (state.errorMessage != null){
-                Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
-            }
+                if (state.errorMessage != null) {
+                    Toast.makeText(context, context.getString(state.errorMessage!!.toInt()), Toast.LENGTH_SHORT).show()
+
+                }
+
 
 
 

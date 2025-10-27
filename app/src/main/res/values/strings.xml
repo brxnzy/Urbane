@@ -17,7 +17,7 @@
     <string name="la_contrase_a_debe_contener_al_menos_8_caracteres">La contraseña debe contener al menos 8 caracteres</string>
     <string name="ya_tienes_una_cuenta">¿Ya tienes una cuenta?</string>
     <string name="loguearse">Loguearse</string>
-    <string name="credenciales_invalidas_o_cuenta_inexistente">Credenciales invalidas o cuenta inexistente</string>
+    <string name="credenciales_invalidas_o_cuenta_inexistente">Credenciales incorrectos</string>
     <string name="sin_conexi_n_a_internet_verifica_tu_red_e_int_ntalo_de_nuevo">Sin conexión a internet. Verifica tu red e inténtalo de nuevo</string>
     <string name="error_desconocido_al_registrar_usuario">Error desconocido al registrar usuario</string>
     <string name="no_se_pudo_obtener_la_sesi_n_despu_s_del_registro">No se pudo obtener la sesión después del registro</string>

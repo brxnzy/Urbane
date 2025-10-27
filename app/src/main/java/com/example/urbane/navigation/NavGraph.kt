@@ -15,11 +15,13 @@ import com.example.urbane.ui.auth.view.RegisterScreen
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
 
-@SuppressLint("ViewModelConstructorInComposable")
+@SuppressLint("ViewModelConstructorInComposable", "ComposableDestinationInComposeScope")
 @Composable
 fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
+    val loginViewModel = LoginViewModel(sessionManager)
+
 
     NavHost(
         navController = navController,
@@ -31,9 +33,11 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                     "1" -> navController.navigate(Routes.ADMIN_USERS) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
+
                     "2" -> navController.navigate(Routes.RESIDENT) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
+
                     else -> navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
@@ -51,7 +55,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         }
 
         composable(Routes.LOGIN) {
-            val loginViewModel = LoginViewModel(sessionManager)
             LoginScreen(
                 loginViewModel,
                 sessionManager,
@@ -62,9 +65,11 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                         "1" -> navController.navigate(Routes.ADMIN_USERS) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
+
                         "2" -> navController.navigate(Routes.RESIDENT) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
+
                         else -> navController.navigate(Routes.LOGIN) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
@@ -76,24 +81,42 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         composable(Routes.ADMIN_USERS) {
             AdminMainScaffold(
                 navController = navController,
-                currentRoute = Routes.ADMIN_USERS
+                currentRoute = Routes.ADMIN_USERS,
+                loginViewModel
+
             )
         }
 
         composable(Routes.ADMIN_RESIDENCES) {
             AdminMainScaffold(
                 navController = navController,
-                currentRoute = Routes.ADMIN_RESIDENCES
+                currentRoute = Routes.ADMIN_RESIDENCES,
+                loginViewModel
             )
+
         }
+
 
         composable(Routes.ADMIN_PAYMENTS) {
             AdminMainScaffold(
                 navController = navController,
-                currentRoute = Routes.ADMIN_PAYMENTS
+                currentRoute = Routes.ADMIN_PAYMENTS,
+                loginViewModel
             )
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
