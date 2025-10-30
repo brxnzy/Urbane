@@ -77,6 +77,8 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.0")
     implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
     implementation(libs.androidx.benchmark.traceprocessor.android)
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
 
 
 

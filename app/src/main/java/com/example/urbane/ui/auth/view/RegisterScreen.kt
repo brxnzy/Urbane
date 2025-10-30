@@ -347,6 +347,8 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                             )
 
+                            ImagePickerExample()
+
 
                         }
                     }
@@ -365,7 +367,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     ),
-                    enabled = state.name.isNotEmpty() && validPassword && isValidEmail(state.email) && isValidIdCard(state.idCard)
+//                    enabled = state.name.isNotEmpty() && validPassword && isValidEmail(state.email) && isValidIdCard(state.idCard)
                 ) {
                     Text(
                         text = stringResource(R.string.siguiente),
