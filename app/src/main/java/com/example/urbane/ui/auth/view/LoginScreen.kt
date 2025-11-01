@@ -46,12 +46,11 @@ import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import android.widget.Toast
-
-
+import androidx.navigation.NavController
 
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifier: Modifier, toRegister:()-> Unit, navigateByRole:(String?)-> Unit) {
+fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navController: NavController, modifier: Modifier, toRegister:()-> Unit, navigateByRole:(String?)-> Unit) {
     val state by viewModel.state.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
     var emailEmpty by remember { mutableStateOf(false) }
@@ -68,7 +67,20 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifi
         }
     }
 
-    
+    val successMsg = navController
+        .currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<String>("success_msg")
+
+    if (successMsg != null) {
+        Toast.makeText(context, successMsg, Toast.LENGTH_LONG).show()
+        navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.remove<String>("success_msg")
+    }
+
+
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -150,6 +162,7 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifi
                 Text(
                     text = stringResource(R.string.loguearse),
                     fontSize = 17.sp,
+                    color = Color.White,
                     modifier = Modifier.padding(5.dp)
                 )
             }

@@ -26,5 +26,7 @@
     <string name="residencias">Residencias</string>
     <string name="pagos">Pagos</string>
     <string name="usuarios">Usuarios</string>
+    <string name="logo_del_residencial">Selecciona el logo</string>
+    <string name="cuenta_creada_correctamente">Cuenta creada correctamente</string>
 
 </resources>

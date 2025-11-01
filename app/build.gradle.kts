@@ -78,6 +78,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
     implementation(libs.androidx.benchmark.traceprocessor.android)
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.github.jan-tennert.supabase:storage-kt:2.2.20")
 
 
 

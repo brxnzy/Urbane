@@ -1,5 +1,8 @@
 package com.example.urbane.ui.auth.model
 
+import android.content.Context
+import android.net.Uri
+
 data class RegisterState(
     val name: String = "",
     val email: String = "",
@@ -8,6 +11,7 @@ data class RegisterState(
     val residentialName: String = "",
     val residentialAddress: String = "",
     val residentialPhone: String = "",
+    val logoUrl: Uri? =  null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val success: Boolean = false
@@ -22,7 +26,8 @@ sealed class RegisterIntent {
     data class ResidentialNameChanged(val residentialName: String) : RegisterIntent()
     data class ResidentialAddressChanged(val residentialAddress: String) : RegisterIntent()
     data class ResidentialPhoneChanged(val residentialPhone: String) : RegisterIntent()
-    data object Submit : RegisterIntent()
+    data class LogoChanged(val logoUrl: Uri?) : RegisterIntent()
+    data class Submit(val context: Context) : RegisterIntent()
     data object ClearError : RegisterIntent()
 }
 
