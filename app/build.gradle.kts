@@ -79,6 +79,8 @@ dependencies {
     implementation(libs.androidx.benchmark.traceprocessor.android)
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.github.jan-tennert.supabase:storage-kt:2.2.20")
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.0") // ajusta versión a la que uses
+
 
 
 

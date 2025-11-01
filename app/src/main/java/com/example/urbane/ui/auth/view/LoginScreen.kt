@@ -47,6 +47,8 @@ import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import android.widget.Toast
 import androidx.navigation.NavController
+import androidx.compose.runtime.livedata.observeAsState
+
 
 
 @Composable
@@ -68,15 +70,18 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
     }
 
     val successMsg = navController
-        .currentBackStackEntry
+        .previousBackStackEntry
         ?.savedStateHandle
-        ?.get<String>("success_msg")
+        ?.getLiveData<String>("success_msg")
+        ?.observeAsState()
 
-    if (successMsg != null) {
-        Toast.makeText(context, successMsg, Toast.LENGTH_LONG).show()
-        navController.currentBackStackEntry
-            ?.savedStateHandle
-            ?.remove<String>("success_msg")
+    successMsg?.value?.let { msg ->
+        LaunchedEffect(msg) {
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.remove<String>("success_msg")
+        }
     }
 
 
@@ -174,8 +179,7 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
             }
 
                 if (state.errorMessage != null) {
-                    Toast.makeText(context, context.getString(state.errorMessage!!.toInt()), Toast.LENGTH_SHORT).show()
-
+                    Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
                 }
 
 
@@ -192,6 +196,8 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
 
     }
 }
+
+
 
 
 
