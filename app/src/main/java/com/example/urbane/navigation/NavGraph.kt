@@ -49,6 +49,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             val registerViewModel = RegisterViewModel()
             RegisterScreen(
                 registerViewModel,
+                navController,
                 modifier = modifier,
                 toLogin = { navController.navigate(Routes.LOGIN) }
             )
@@ -58,6 +59,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             LoginScreen(
                 loginViewModel,
                 sessionManager,
+                navController,
                 modifier = modifier,
                 toRegister = { navController.navigate(Routes.REGISTER) },
                 navigateByRole = { roleId ->

@@ -27,21 +27,21 @@ val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Bold,
-        fontSize = 40.sp,
+        fontSize = 37.sp,
         lineHeight = 47.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 28.sp,
+        fontSize = 25.sp,
         lineHeight = 52.sp,
         letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 36.sp,
+        fontSize = 25.sp,
         lineHeight = 44.sp,
         letterSpacing = 0.sp
     ),
