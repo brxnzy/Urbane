@@ -1,14 +1,18 @@
 package com.example.urbane.data.local
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.urbane.data.model.UserResidentialRole
 import com.example.urbane.ui.auth.model.CurrentUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
 class SessionManager(context: Context) {
 
@@ -20,7 +24,9 @@ class SessionManager(context: Context) {
     private val ROLE_KEY = stringPreferencesKey("role")
     private val TOKEN_KEY = stringPreferencesKey("accessToken")
     private val REFRESH_KEY = stringPreferencesKey("refreshToken")
+    private val USER_DATA = stringPreferencesKey("userData")
 
+    @RequiresApi(Build.VERSION_CODES.P)
     suspend fun saveSession(user: CurrentUser) {
         dataStore.edit { prefs ->
             prefs[USER_ID_KEY] = user.userId
@@ -28,6 +34,7 @@ class SessionManager(context: Context) {
             prefs[ROLE_KEY] = user.roleId.toString()
             prefs[TOKEN_KEY] = user.accessToken
             prefs[REFRESH_KEY] = user.refreshToken
+            prefs[USER_DATA] = user.userData?.let { Json.encodeToString(it) }?: ""
         }
     }
 
@@ -37,9 +44,14 @@ class SessionManager(context: Context) {
         val roleId = prefs[ROLE_KEY]
         val access = prefs[TOKEN_KEY]
         val refresh = prefs[REFRESH_KEY]
+        val userDataJson = prefs[USER_DATA]
 
         if (userId != null && email != null && roleId != null && access != null && refresh != null) {
-            CurrentUser(userId, email, access, refresh, roleId)
+            val userData = if (!userDataJson.isNullOrEmpty())
+                Json.decodeFromString<UserResidentialRole>(userDataJson)
+            else null
+
+            CurrentUser(userId, email, access, refresh, roleId, userData)
         } else null
     }
 
@@ -47,3 +59,5 @@ class SessionManager(context: Context) {
         dataStore.edit { it.clear() }
     }
 }
+
+

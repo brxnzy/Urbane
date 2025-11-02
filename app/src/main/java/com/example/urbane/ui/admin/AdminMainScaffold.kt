@@ -8,11 +8,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
-import androidx.compose.material3.CheckboxDefaults.colors
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalNavigationDrawer
@@ -31,6 +31,7 @@ import com.example.urbane.ui.admin.residences.ResidencesScreen
 import com.example.urbane.ui.admin.payments.PaymentsScreen
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
+import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 
@@ -40,7 +41,10 @@ fun AdminMainScaffold(
     navController: NavHostController,
     currentRoute: String,
     loginViewModel: LoginViewModel,
-) {
+    sessionManager: SessionManager
+
+
+    ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -55,7 +59,7 @@ fun AdminMainScaffold(
             ) {
                 DrawerContent(navController,loginViewModel,currentRoute) { route ->
                     navController.navigate(route) {
-                        popUpTo(Routes.ADMIN_USERS) { inclusive = false }
+                        popUpTo(Routes.ADMIN) { inclusive = false }
                         launchSingleTop = true
                     }
                     scope.launch { drawerState.close() }
@@ -71,6 +75,7 @@ fun AdminMainScaffold(
                             Routes.ADMIN_USERS -> stringResource(R.string.usuarios)
                             Routes.ADMIN_PAYMENTS -> stringResource(R.string.pagos)
                             Routes.ADMIN_RESIDENCES -> stringResource(R.string.residencias)
+                            Routes.ADMIN -> "Dashboard"
                             else -> "Panel Admin"
                         }, style = MaterialTheme.typography.displayMedium)
 
@@ -95,6 +100,7 @@ fun AdminMainScaffold(
                     Routes.ADMIN_USERS -> UsersScreen(modifier = Modifier.padding(16.dp))
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(modifier = Modifier.padding(16.dp))
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(modifier = Modifier.padding(16.dp))
+                    Routes.ADMIN -> Dashboard(sessionManager)
                 }
             }
         }
@@ -119,6 +125,7 @@ fun DrawerContent(navController: NavHostController,loginViewModel: LoginViewMode
             style = MaterialTheme.typography.titleLarge,
         )
         HorizontalDivider(modifier = Modifier.padding(bottom = 20.dp))
+        DrawerItem("Dashboard", Icons.Outlined.Dashboard, Routes.ADMIN, currentRoute, onDestinationClicked)
         DrawerItem("Usuarios", Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
         DrawerItem("Residencias", Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
         DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)

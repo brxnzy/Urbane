@@ -1,6 +1,8 @@
 package com.example.urbane.ui.auth.viewmodel
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.R
@@ -26,6 +28,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
     val currentUser = _currentUser.asStateFlow()
 
 
+    @RequiresApi(Build.VERSION_CODES.P)
     fun processIntent(intent: LoginIntent) {
         when (intent) {
 
@@ -52,6 +55,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun handleSubmit() {
         viewModelScope.launch {
             try {
@@ -69,14 +73,18 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 if (userId == null) throw Exception("No se pudo obtener userId")
 
                 val email = session.user!!.email ?: state.value.email
-                val roleId = UserRepository().getUserRole(userId)
+                val roleId = UserRepository(sessionManager).getUserRole(userId)
+                val userData = UserRepository(sessionManager).getCurrentUser(userId,email)
+                Log.d("LoginVM","data del usuario $userData")
 
                 val currentUser = CurrentUser(
                     userId = userId,
                     email = email,
                     accessToken = session.accessToken,
                     refreshToken = session.refreshToken,
-                    roleId = roleId.toString()
+                    roleId = roleId.toString(),
+                    userData
+
                 )
                 Log.d("LoginVM", "CurrentUser creado: $currentUser")
 
@@ -108,6 +116,8 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
             }
         }
     }
+
+
     fun checkSession(onRoleFound: (String) -> Unit) {
         viewModelScope.launch {
             sessionManager.sessionFlow.collect { currentUser ->
