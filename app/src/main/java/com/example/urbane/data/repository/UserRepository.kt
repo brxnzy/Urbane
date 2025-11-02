@@ -18,7 +18,7 @@ class UserRepository {
         return try {
             Log.d("UserRepository", "=== getUserRole llamado con userId: $userId ===")
 
-            val response = supabase.from("users_roles")
+            val response = supabase.from("users_residentials_roles")
                 .select(columns = Columns.list("role_id")) {
                     filter {
                         eq("user_id", userId)
