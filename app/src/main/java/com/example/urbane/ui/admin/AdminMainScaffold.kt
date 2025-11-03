@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
@@ -22,7 +21,6 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,12 +28,11 @@ import androidx.navigation.NavHostController
 import com.example.urbane.R
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.users.view.UsersScreen
-import com.example.urbane.ui.admin.residences.ResidencesScreen
+import com.example.urbane.ui.admin.residences.view.ResidencesScreen
 import com.example.urbane.ui.admin.payments.PaymentsScreen
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
@@ -107,7 +104,7 @@ fun AdminMainScaffold(
                         modifier = Modifier.padding(16.dp),
                         navController = navController
                     )
-                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(modifier = Modifier.padding(16.dp))
+                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(navController,modifier = Modifier.padding(16.dp))
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(modifier = Modifier.padding(16.dp))
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
