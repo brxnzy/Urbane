@@ -8,6 +8,7 @@ object Routes {
     const val ADMIN = "admin"
     const val RESIDENT ="resident"
     const val ADMIN_USERS = "admin/users"
+    const val ADMIN_USERS_ADD = "admin/users/new"
     const val ADMIN_RESIDENCES = "admin/residences"
     const val ADMIN_PAYMENTS = "admin/payments"
 }

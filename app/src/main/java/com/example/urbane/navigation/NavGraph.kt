@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
+import com.example.urbane.ui.admin.users.view.AddUserScreen
 import com.example.urbane.ui.admin.viewmodel.MainViewModel
 import com.example.urbane.ui.auth.view.LoginScreen
 import com.example.urbane.ui.auth.view.RegisterScreen
@@ -32,7 +33,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         composable(Routes.SPLASH) {
             Splash(sessionManager = sessionManager) { role ->
                 when (role) {
-                    "1" -> navController.navigate(Routes.ADMIN_USERS) {
+                    "1" -> navController.navigate(Routes.ADMIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
 
@@ -66,7 +67,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 toRegister = { navController.navigate(Routes.REGISTER) },
                 navigateByRole = { roleId ->
                     when (roleId) {
-                        "1" -> navController.navigate(Routes.ADMIN_USERS) {
+                        "1" -> navController.navigate(Routes.ADMIN) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
 
@@ -121,6 +122,12 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 loginViewModel,
                 sessionManager
             )
+        }
+
+        composable(Routes.ADMIN_USERS_ADD) {
+            AddUserScreen(){
+                navController.navigate(Routes.ADMIN_USERS)
+            }
         }
     }
 }

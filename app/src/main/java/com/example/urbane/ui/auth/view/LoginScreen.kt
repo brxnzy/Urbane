@@ -1,6 +1,7 @@
 package com.example.urbane.ui.auth.view
 
 
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,11 +47,13 @@ import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.navigation.NavController
 import androidx.compose.runtime.livedata.observeAsState
 
 
 
+@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navController: NavController, modifier: Modifier, toRegister:()-> Unit, navigateByRole:(String?)-> Unit) {
     val state by viewModel.state.collectAsState()

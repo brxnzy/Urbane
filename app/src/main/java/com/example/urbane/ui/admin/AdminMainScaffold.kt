@@ -1,9 +1,11 @@
 package com.example.urbane.ui.admin
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
@@ -20,6 +22,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -31,6 +34,9 @@ import com.example.urbane.ui.admin.residences.ResidencesScreen
 import com.example.urbane.ui.admin.payments.PaymentsScreen
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
@@ -57,7 +63,7 @@ fun AdminMainScaffold(
                     .width(290.dp)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                DrawerContent(navController,loginViewModel,currentRoute) { route ->
+                DrawerContent(sessionManager,navController,loginViewModel,currentRoute) { route ->
                     navController.navigate(route) {
                         popUpTo(Routes.ADMIN) { inclusive = false }
                         launchSingleTop = true
@@ -97,7 +103,10 @@ fun AdminMainScaffold(
         { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (currentRoute) {
-                    Routes.ADMIN_USERS -> UsersScreen(modifier = Modifier.padding(16.dp))
+                    Routes.ADMIN_USERS -> UsersScreen(
+                        modifier = Modifier.padding(16.dp),
+                        navController = navController
+                    )
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(modifier = Modifier.padding(16.dp))
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(modifier = Modifier.padding(16.dp))
                     Routes.ADMIN -> Dashboard(sessionManager)
@@ -108,7 +117,10 @@ fun AdminMainScaffold(
 }
 
 @Composable
-fun DrawerContent(navController: NavHostController,loginViewModel: LoginViewModel, currentRoute: String, onDestinationClicked: (String) -> Unit) {
+fun DrawerContent(sessionManager: SessionManager,navController: NavHostController,loginViewModel: LoginViewModel, currentRoute: String, onDestinationClicked: (String) -> Unit) {
+    val userState = sessionManager.sessionFlow.collectAsState(initial = null)
+    val user = userState.value
+
     Column(modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween
 
@@ -119,9 +131,27 @@ fun DrawerContent(navController: NavHostController,loginViewModel: LoginViewMode
         .padding(top = 35.dp,
             )
     ) {
+
+        if (user?.userData?.residential?.logoUrl?.isBlank() == true) {
+            Image(
+                painter = rememberAsyncImagePainter(user.userData.residential.logoUrl),
+                contentDescription = "Logo del residencial",
+                modifier = Modifier
+                    .padding(start = 10.dp).size(100.dp)
+            )
+        } else {
+        Image(
+            painter = painterResource(R.drawable.logo),
+            contentDescription = null,
+            modifier = Modifier.size(60.dp).padding(start = 15.dp)
+        )
+
+    }
+
+
         Text(
-            "Panel",
-            modifier = Modifier.padding(16.dp),
+            user?.userData?.residential?.name ?: "Panel" ,
+            modifier = Modifier.padding(12.dp),
             style = MaterialTheme.typography.titleLarge,
         )
         HorizontalDivider(modifier = Modifier.padding(bottom = 20.dp))

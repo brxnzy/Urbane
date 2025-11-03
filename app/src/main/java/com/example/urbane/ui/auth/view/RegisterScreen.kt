@@ -436,7 +436,7 @@ fun RegisterScreen(viewModel: RegisterViewModel,navController: NavController, mo
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        enabled = state.residentialName.isNotEmpty() && state.residentialAddress.isNotEmpty() && state.residentialPhone.isNotEmpty() && validPhone
+                        enabled = state.residentialName.isNotEmpty() && state.residentialAddress.isNotEmpty() && state.residentialPhone.isNotEmpty() && validPhone && !state.isLoading
                     ) {
                         Text(
                             text = stringResource(R.string.aceptar),

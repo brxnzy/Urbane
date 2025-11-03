@@ -1,5 +1,6 @@
 package com.example.urbane.ui.admin.users.view
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.urbane.navigation.Routes
 
 data class Usuario(
     val nombre: String,
@@ -23,8 +26,9 @@ data class Usuario(
     val tipo: String
 )
 
+@SuppressLint("SuspiciousIndentation", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun UsersScreen(modifier: Modifier) {
+fun UsersScreen(modifier: Modifier = Modifier, navController: NavController) {
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
     var busqueda by remember { mutableStateOf("") }
 
@@ -39,34 +43,41 @@ fun UsersScreen(modifier: Modifier) {
 
     val filtros = listOf("Todos", "Residente", "Guardia", "Activo")
 
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate(Routes.ADMIN_USERS_ADD) },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, tint = Color.White, contentDescription = "Agregar usuario")
+            }
+        }
+    ) {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            // Barra de búsqueda
-            OutlinedTextField(
-                value = busqueda,
-                onValueChange = { busqueda = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                placeholder = { Text("Buscar por nombre...", color = Color.Gray) },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
-                },
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                )
-            )
 
-            // Filtros
+        ) {
+//            OutlinedTextField(
+//                value = busqueda,
+//                onValueChange = { busqueda = it },
+//                modifier = Modifier
+//                    .fillMaxWidth(),
+//                placeholder = { Text("Buscar por nombre...", color = Color.Gray) },
+//                leadingIcon = {
+//                    Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+//                },
+//                shape = RoundedCornerShape(12.dp),
+//                colors = OutlinedTextFieldDefaults.colors(
+//                    focusedContainerColor = Color.Transparent,
+//                    unfocusedContainerColor = Color.Transparent,
+//                )
+//            )
+
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    .fillMaxWidth(),
+
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 filtros.forEach { filtro ->
@@ -82,7 +93,6 @@ fun UsersScreen(modifier: Modifier) {
                 }
             }
 
-            // Lista de usuarios
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -95,9 +105,9 @@ fun UsersScreen(modifier: Modifier) {
 
                 item {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 32.dp),
+                        modifier = Modifier.padding(vertical = 32.dp)
+                            .fillMaxWidth(),
+
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
@@ -123,12 +133,12 @@ fun UsersScreen(modifier: Modifier) {
             }
         }
     }
+}
 
 
 @Composable
 fun UsuarioCard(usuario: Usuario) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
         colors = CardDefaults.cardColors(
@@ -137,9 +147,9 @@ fun UsuarioCard(usuario: Usuario) {
 
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp)
+                .fillMaxWidth(),
+
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Avatar
