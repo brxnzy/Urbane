@@ -128,8 +128,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-    private fun performLogout() {
-        viewModelScope.launch {
+    suspend fun performLogout() {
             try {
                 supabase.auth.signOut()
                 sessionManager.clearSession()
@@ -137,7 +136,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 _currentUser.value = null
             } catch (e: Exception) {
                 Log.e("LoginViewModel", "Error logout: ${e.message}")
-            }
+
         }
     }
 
@@ -145,8 +144,10 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
 
     fun onLogoutClicked(toLogin: () -> Unit) {
+        viewModelScope.launch {
         performLogout()
         toLogin()
+        }
     }
 
 

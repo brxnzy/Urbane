@@ -9,5 +9,5 @@ data class Residential(
     val name: String,
     val address: String,
     val phone: String,
-    val logoUrl: String
+    val logoUrl: String?
 )
