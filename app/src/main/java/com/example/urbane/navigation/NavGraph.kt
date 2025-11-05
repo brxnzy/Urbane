@@ -1,6 +1,9 @@
 package com.example.urbane.navigation
 
+import AddResidenceScreen
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -10,17 +13,23 @@ import androidx.navigation.compose.composable
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
+
+import com.example.urbane.ui.admin.users.view.AddUserScreen
+import com.example.urbane.ui.admin.viewmodel.MainViewModel
 import com.example.urbane.ui.auth.view.LoginScreen
 import com.example.urbane.ui.auth.view.RegisterScreen
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
+import com.example.urbane.ui.resident.view.ResidentScreen
 
+@RequiresApi(Build.VERSION_CODES.P)
 @SuppressLint("ViewModelConstructorInComposable", "ComposableDestinationInComposeScope")
 @Composable
 fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
     val loginViewModel = LoginViewModel(sessionManager)
+    val mainViewModel = MainViewModel(sessionManager)
 
 
     NavHost(
@@ -30,7 +39,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         composable(Routes.SPLASH) {
             Splash(sessionManager = sessionManager) { role ->
                 when (role) {
-                    "1" -> navController.navigate(Routes.ADMIN_USERS) {
+                    "1" -> navController.navigate(Routes.ADMIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
 
@@ -64,7 +73,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 toRegister = { navController.navigate(Routes.REGISTER) },
                 navigateByRole = { roleId ->
                     when (roleId) {
-                        "1" -> navController.navigate(Routes.ADMIN_USERS) {
+                        "1" -> navController.navigate(Routes.ADMIN) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
 
@@ -84,7 +93,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             AdminMainScaffold(
                 navController = navController,
                 currentRoute = Routes.ADMIN_USERS,
-                loginViewModel
+                loginViewModel,
+                sessionManager
 
             )
         }
@@ -93,7 +103,19 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             AdminMainScaffold(
                 navController = navController,
                 currentRoute = Routes.ADMIN_RESIDENCES,
-                loginViewModel
+                loginViewModel,
+                sessionManager
+
+            )
+
+        }
+
+        composable(Routes.ADMIN) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN,
+                loginViewModel,
+                sessionManager
             )
 
         }
@@ -103,8 +125,24 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             AdminMainScaffold(
                 navController = navController,
                 currentRoute = Routes.ADMIN_PAYMENTS,
-                loginViewModel
+                loginViewModel,
+                sessionManager
             )
+        }
+
+        composable(Routes.ADMIN_USERS_ADD) {
+            AddUserScreen(){
+                navController.navigate(Routes.ADMIN_USERS)
+            }
+        }
+        composable(Routes.ADMIN_RESIDENCES_ADD) {
+            AddResidenceScreen(){
+                navController.navigate(Routes.ADMIN_RESIDENCES)
+            }
+        }
+
+        composable(Routes.RESIDENT){
+            ResidentScreen(sessionManager)
         }
     }
 }

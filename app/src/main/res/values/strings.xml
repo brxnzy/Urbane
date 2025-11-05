@@ -28,5 +28,7 @@
     <string name="usuarios">Usuarios</string>
     <string name="logo_del_residencial">Selecciona el logo</string>
     <string name="cuenta_creada_correctamente">Cuenta creada correctamente</string>
+    <string name="nuevo_usuario">Nuevo Usuario</string>
+    <string name="nueva_residencia">Nueva Residencia</string>
 
 </resources>

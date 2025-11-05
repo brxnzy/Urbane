@@ -1,5 +1,6 @@
 package com.example.urbane.ui.admin
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,11 +9,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
-import androidx.compose.material3.CheckboxDefaults.colors
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalNavigationDrawer
@@ -27,10 +28,13 @@ import androidx.navigation.NavHostController
 import com.example.urbane.R
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.users.view.UsersScreen
-import com.example.urbane.ui.admin.residences.ResidencesScreen
+import com.example.urbane.ui.admin.residences.view.ResidencesScreen
 import com.example.urbane.ui.admin.payments.PaymentsScreen
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import coil.compose.rememberAsyncImagePainter
+import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 
@@ -40,7 +44,10 @@ fun AdminMainScaffold(
     navController: NavHostController,
     currentRoute: String,
     loginViewModel: LoginViewModel,
-) {
+    sessionManager: SessionManager
+
+
+    ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -53,9 +60,9 @@ fun AdminMainScaffold(
                     .width(290.dp)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                DrawerContent(navController,loginViewModel,currentRoute) { route ->
+                DrawerContent(sessionManager,navController,loginViewModel,currentRoute) { route ->
                     navController.navigate(route) {
-                        popUpTo(Routes.ADMIN_USERS) { inclusive = false }
+                        popUpTo(Routes.ADMIN) { inclusive = false }
                         launchSingleTop = true
                     }
                     scope.launch { drawerState.close() }
@@ -71,6 +78,7 @@ fun AdminMainScaffold(
                             Routes.ADMIN_USERS -> stringResource(R.string.usuarios)
                             Routes.ADMIN_PAYMENTS -> stringResource(R.string.pagos)
                             Routes.ADMIN_RESIDENCES -> stringResource(R.string.residencias)
+                            Routes.ADMIN -> "Dashboard"
                             else -> "Panel Admin"
                         }, style = MaterialTheme.typography.displayMedium)
 
@@ -92,9 +100,13 @@ fun AdminMainScaffold(
         { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (currentRoute) {
-                    Routes.ADMIN_USERS -> UsersScreen(modifier = Modifier.padding(16.dp))
-                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(modifier = Modifier.padding(16.dp))
+                    Routes.ADMIN_USERS -> UsersScreen(
+                        modifier = Modifier.padding(16.dp),
+                        navController = navController
+                    )
+                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(navController,modifier = Modifier.padding(16.dp))
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(modifier = Modifier.padding(16.dp))
+                    Routes.ADMIN -> Dashboard(sessionManager)
                 }
             }
         }
@@ -102,7 +114,10 @@ fun AdminMainScaffold(
 }
 
 @Composable
-fun DrawerContent(navController: NavHostController,loginViewModel: LoginViewModel, currentRoute: String, onDestinationClicked: (String) -> Unit) {
+fun DrawerContent(sessionManager: SessionManager,navController: NavHostController,loginViewModel: LoginViewModel, currentRoute: String, onDestinationClicked: (String) -> Unit) {
+    val userState = sessionManager.sessionFlow.collectAsState(initial = null)
+    val user = userState.value
+
     Column(modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween
 
@@ -113,12 +128,31 @@ fun DrawerContent(navController: NavHostController,loginViewModel: LoginViewMode
         .padding(top = 35.dp,
             )
     ) {
+
+        if (user?.userData?.residential?.logoUrl?.isBlank() == true) {
+            Image(
+                painter = rememberAsyncImagePainter(user.userData.residential.logoUrl),
+                contentDescription = "Logo del residencial",
+                modifier = Modifier
+                    .padding(start = 10.dp).size(100.dp)
+            )
+        } else {
+        Image(
+            painter = painterResource(R.drawable.logo),
+            contentDescription = null,
+            modifier = Modifier.size(60.dp).padding(start = 15.dp)
+        )
+
+    }
+
+
         Text(
-            "Panel",
-            modifier = Modifier.padding(16.dp),
+            user?.userData?.residential?.name ?: "Panel" ,
+            modifier = Modifier.padding(12.dp),
             style = MaterialTheme.typography.titleLarge,
         )
         HorizontalDivider(modifier = Modifier.padding(bottom = 20.dp))
+        DrawerItem("Dashboard", Icons.Outlined.Dashboard, Routes.ADMIN, currentRoute, onDestinationClicked)
         DrawerItem("Usuarios", Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
         DrawerItem("Residencias", Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
         DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)

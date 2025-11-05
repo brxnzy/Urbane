@@ -43,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -89,6 +90,9 @@ fun RegisterScreen(viewModel: RegisterViewModel,navController: NavController, mo
     var validPassword by remember {mutableStateOf(true)}
     var validPhone by remember {mutableStateOf(true)}
     val context = LocalContext.current
+
+
+
 
 
 
@@ -432,7 +436,7 @@ fun RegisterScreen(viewModel: RegisterViewModel,navController: NavController, mo
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        enabled = state.residentialName.isNotEmpty() && state.residentialAddress.isNotEmpty() && state.residentialPhone.isNotEmpty() && validPhone
+                        enabled = state.residentialName.isNotEmpty() && state.residentialAddress.isNotEmpty() && state.residentialPhone.isNotEmpty() && validPhone && !state.isLoading
                     ) {
                         Text(
                             text = stringResource(R.string.aceptar),

@@ -92,13 +92,11 @@ class RegisterViewModel() : ViewModel() {
                 Log.d("Registerr", "BUCKET $bucket")
                 var publicUrl: String? = null
 
-                // Subida del logo si existe
                 state.value.logoUrl?.let { uri ->
                     Log.d("Registerr", "Logo seleccionado, preparando lectura del archivo")
                     val inputStream = context.contentResolver.openInputStream(uri)
                     val byteArray = inputStream?.readBytes()
                     inputStream?.close()
-
 
                     if (byteArray != null) {
                         Log.d("Registerr", "Archivo leído correctamente, subiendo a bucket")

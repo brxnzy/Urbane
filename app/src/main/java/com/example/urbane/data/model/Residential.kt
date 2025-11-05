@@ -4,10 +4,10 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class User(
-    val id: String,
-    val email: String? = null,
+data class Residential(
+    val id: Int,
     val name: String,
-    val idCard:String,
-    val createdAt: String
+    val address: String,
+    val phone: String,
+    val logoUrl: String?
 )
