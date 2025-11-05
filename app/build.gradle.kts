@@ -72,6 +72,7 @@ dependencies {
     implementation(platform("io.github.jan-tennert.supabase:bom:3.2.4"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
+    implementation("io.github.jan-tennert.supabase:functions-kt")
     implementation("io.ktor:ktor-client-android:3.3.1")
     implementation("androidx.datastore:datastore-core-android:1.1.0")
     implementation("androidx.datastore:datastore-preferences:1.1.0")
@@ -79,7 +80,7 @@ dependencies {
     implementation(libs.androidx.benchmark.traceprocessor.android)
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.github.jan-tennert.supabase:storage-kt:2.2.20")
-    implementation("androidx.compose.runtime:runtime-livedata:1.5.0") // ajusta versión a la que uses
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.0")
 
 
 

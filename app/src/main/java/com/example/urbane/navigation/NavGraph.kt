@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
+import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 
 import com.example.urbane.ui.admin.users.view.AddUserScreen
 import com.example.urbane.ui.admin.viewmodel.MainViewModel
@@ -136,7 +137,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             }
         }
         composable(Routes.ADMIN_RESIDENCES_ADD) {
-            AddResidenceScreen(){
+            val residencesViewModel = ResidencesViewModel(sessionManager)
+            AddResidenceScreen(residencesViewModel){
                 navController.navigate(Routes.ADMIN_RESIDENCES)
             }
         }
