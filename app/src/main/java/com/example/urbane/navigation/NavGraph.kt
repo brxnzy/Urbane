@@ -20,6 +20,7 @@ import com.example.urbane.ui.auth.view.LoginScreen
 import com.example.urbane.ui.auth.view.RegisterScreen
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
+import com.example.urbane.ui.resident.view.ResidentScreen
 
 @RequiresApi(Build.VERSION_CODES.P)
 @SuppressLint("ViewModelConstructorInComposable", "ComposableDestinationInComposeScope")
@@ -138,6 +139,10 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             AddResidenceScreen(){
                 navController.navigate(Routes.ADMIN_RESIDENCES)
             }
+        }
+
+        composable(Routes.RESIDENT){
+            ResidentScreen(sessionManager)
         }
     }
 }
