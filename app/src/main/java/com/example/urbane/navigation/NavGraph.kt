@@ -29,7 +29,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
     val loginViewModel = LoginViewModel(sessionManager)
-    val mainViewModel = MainViewModel(sessionManager)
 
 
     NavHost(
@@ -142,7 +141,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         }
 
         composable(Routes.RESIDENT){
-            ResidentScreen(sessionManager)
+            ResidentScreen(sessionManager, loginViewModel, navController)
         }
     }
 }
