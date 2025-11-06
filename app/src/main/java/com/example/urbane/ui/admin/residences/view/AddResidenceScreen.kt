@@ -234,16 +234,9 @@ fun AddResidenceScreen(viewModel: ResidencesViewModel,goBack:()->Unit) {
                     }
                 }
             }
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .padding(end = 8.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )}
 
             Spacer(modifier = Modifier.weight(1f))
+
 
             // Botón guardar
             Button(
@@ -257,11 +250,27 @@ fun AddResidenceScreen(viewModel: ResidencesViewModel,goBack:()->Unit) {
                 enabled = state.name.isNotBlank() &&
                         state.type.isNotBlank() &&
                         state.description.isNotBlank() &&
-                        (perteneceResidencial || propietarioSeleccionado != null) || state.isLoading
+                        (perteneceResidencial || propietarioSeleccionado != null) && !state.isLoading
+            ) {Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Icons.Default.Save, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Guardar propiedad", style = MaterialTheme.typography.titleMedium)
+
+                if (!state.isLoading) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Save, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Guardar propiedad", style = MaterialTheme.typography.titleMedium)
+                    }
+                } else {
+                    // Spinner centrado dentro del botón
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+
+                    )
+                }
+            }
             }
         }
 
@@ -305,7 +314,11 @@ fun AddResidenceScreen(viewModel: ResidencesViewModel,goBack:()->Unit) {
                     )
                 },
                 confirmButton = {
-                    TextButton(onClick = { showSuccessDialog = false }) {
+                    TextButton(onClick = {
+                        showSuccessDialog = false
+                        goBack()
+
+                    }) {
                         Text("Aceptar")
                     }
                 }

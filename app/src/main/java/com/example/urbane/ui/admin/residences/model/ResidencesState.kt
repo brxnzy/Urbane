@@ -1,15 +1,14 @@
 package com.example.urbane.ui.admin.residences.model
 
-import android.net.Uri
+import com.example.urbane.data.model.Residence
 
 data class ResidencesState(
-    val name : String = "",
-    val type : String = "",
+    val name: String = "",
+    val type: String = "",
     val description: String ="",
-    val image: Uri? = null,
-    val ownerId: String? = null,
-    val isLoading : Boolean = false,
-    val success : Boolean = false,
+    val residences: List<Residence> = emptyList(),
+    val isLoading: Boolean = false,
+    val success: Boolean = false,
     val errorMessage: String? = null,
 )
 

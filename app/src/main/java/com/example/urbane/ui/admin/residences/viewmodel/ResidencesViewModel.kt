@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.repository.ResidencesRepository
-import com.example.urbane.data.repository.ResidentialRepository
 import com.example.urbane.ui.admin.residences.model.ResidencesIntent
 import com.example.urbane.ui.admin.residences.model.ResidencesState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,9 +60,33 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
         }
     }
 
+    fun loadResidences() {
+        viewModelScope.launch {
+            if (_state.value.residences.isNotEmpty()) return@launch // 👈 evita recargar
+            try {
+                _state.update { it.copy(isLoading = true) }
 
+                val user = sessionManager.sessionFlow.firstOrNull()
+                    ?: throw IllegalStateException("No hay sesión activa")
 
+                val residentialId = user.userData?.residential?.id
+                    ?: throw IllegalStateException("No se encontró el ID del residencial")
+
+                val residences = ResidencesRepository().getResidences(residentialId)
+
+                _state.update {
+                    it.copy(isLoading = false, residences = residences, errorMessage = null)
+                }
+
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+            }
+        }
     }
+
+
+
+}
 
 
 

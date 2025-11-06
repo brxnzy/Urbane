@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import coil.compose.rememberAsyncImagePainter
 import com.example.urbane.data.local.SessionManager
+import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.view.TestScreen
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
@@ -45,7 +46,8 @@ fun AdminMainScaffold(
     navController: NavHostController,
     currentRoute: String,
     loginViewModel: LoginViewModel,
-    sessionManager: SessionManager
+    sessionManager: SessionManager,
+    residencesViewModel: ResidencesViewModel
 
 
     ) {
@@ -105,7 +107,7 @@ fun AdminMainScaffold(
                         modifier = Modifier.padding(16.dp),
                         navController = navController
                     )
-                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(navController,modifier = Modifier.padding(16.dp))
+                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp))
                     Routes.ADMIN_PAYMENTS -> TestScreen()
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }

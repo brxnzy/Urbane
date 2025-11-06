@@ -31,6 +31,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val sessionManager = SessionManager(context)
     val loginViewModel = LoginViewModel(sessionManager)
     val mainViewModel = MainViewModel(sessionManager)
+    val residencesViewModel = ResidencesViewModel(sessionManager)
 
 
     NavHost(
@@ -95,7 +96,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 navController = navController,
                 currentRoute = Routes.ADMIN_USERS,
                 loginViewModel,
-                sessionManager
+                sessionManager,
+                residencesViewModel
 
             )
         }
@@ -105,7 +107,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 navController = navController,
                 currentRoute = Routes.ADMIN_RESIDENCES,
                 loginViewModel,
-                sessionManager
+                sessionManager,
+                residencesViewModel
 
             )
 
@@ -116,7 +119,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 navController = navController,
                 currentRoute = Routes.ADMIN,
                 loginViewModel,
-                sessionManager
+                sessionManager,
+                residencesViewModel
             )
 
         }
@@ -127,7 +131,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 navController = navController,
                 currentRoute = Routes.ADMIN_PAYMENTS,
                 loginViewModel,
-                sessionManager
+                sessionManager,
+                residencesViewModel
             )
         }
 

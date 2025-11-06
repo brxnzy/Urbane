@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Residence(
-    val name:String,
-    val type:String,
+    val name: String,
+    val type: String,
     val description: String,
-    val residentialId:Int
+    val residentialId: Int
 )
