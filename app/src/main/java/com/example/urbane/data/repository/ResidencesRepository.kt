@@ -7,6 +7,7 @@ import com.example.urbane.data.model.Residence
 import com.example.urbane.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import java.util.Objects.isNull
 
 class ResidencesRepository {
@@ -14,7 +15,7 @@ class ResidencesRepository {
     suspend fun createResidence(name:String, type:String, description:String, residentialId:Int){
         try {
             Log.d("ResidencesRepository","intentando crear residencia")
-            val data = Residence(name,type,description,residentialId)
+            val data = Residence(name=name, type=type, description=description, residentialId=residentialId)
             supabase.from("residences").insert(data)
         }catch (e: Exception){
 
@@ -49,10 +50,16 @@ class ResidencesRepository {
                 ) {
                     filter {
                         eq("residentialId", residentialId)
-                        isNull("residentId")
+                        eq("available", true)
+//
+
                     }
+
+
                 }
                 .decodeList<Residence>()
+
+
         } catch (e: Exception) {
             Log.e("ResidencesRepository", "Error en getResidences: $e")
             throw e

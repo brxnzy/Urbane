@@ -99,6 +99,30 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
         }
     }
 
+    fun loadAvailableResidences() {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true) }
+
+                val user = sessionManager.sessionFlow.firstOrNull()
+                    ?: throw IllegalStateException("No hay sesión activa")
+
+                val residentialId = user.userData?.residential?.id
+                    ?: throw IllegalStateException("No se encontró el ID del residencial")
+
+                val residences = ResidencesRepository().getAvailableResidences(residentialId)
+                Log.d("ResidencesVM", "residencias disponibles $residences")
+
+                _state.update {
+                    it.copy(isLoading = false, residences = residences, errorMessage = null)
+                }
+
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+            }
+        }
+    }
+
 
 
 }

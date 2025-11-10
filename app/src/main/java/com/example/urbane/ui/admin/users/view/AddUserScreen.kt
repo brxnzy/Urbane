@@ -1,7 +1,6 @@
 package com.example.urbane.ui.admin.users.view
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -55,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import com.example.urbane.R
 import com.example.urbane.ui.admin.users.model.UsersIntent
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
-import com.example.urbane.ui.auth.model.RegisterIntent
 import com.example.urbane.utils.formatIdCard
 import com.example.urbane.utils.isValidEmail
 import com.example.urbane.utils.isValidIdCard
@@ -63,12 +60,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.text.font.FontWeight
 import com.example.urbane.data.model.Residence
 import com.example.urbane.data.model.Role
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
@@ -93,7 +86,7 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
     val residencesState by residencesViewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        residencesViewModel.loadResidences()
+        residencesViewModel.loadAvailableResidences()
     }
             val roles = listOf(
                 Role(1, stringResource(R.string.administrador)),
@@ -350,6 +343,7 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                                         DropdownMenuItem(
                                             text = { Text(residencia.name) },
                                             onClick = {
+                                                viewModel.processIntent(UsersIntent.ResidenceChanged(residencia.id))
                                                 selectedResidencia = residencia
                                                 expandedResidencia = false
                                             }
