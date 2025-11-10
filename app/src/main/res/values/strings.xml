@@ -30,5 +30,13 @@
     <string name="cuenta_creada_correctamente">Cuenta creada correctamente</string>
     <string name="nuevo_usuario">Nuevo Usuario</string>
     <string name="nueva_residencia">Nueva Residencia</string>
+    <string name="administrador">Administrador</string>
+    <string name="residente">Residente</string>
+    <string name="terreno">Terreno</string>
+    <string name="apartamento">Apartamento</string>
+    <string name="casa">Casa</string>
+    <string name="villa">Villa</string>
+    <string name="local">Local</string>
+    <string name="guardar_usuario">Guardar usuario</string>
 
 </resources>

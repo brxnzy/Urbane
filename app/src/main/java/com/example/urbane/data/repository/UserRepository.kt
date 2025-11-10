@@ -9,12 +9,34 @@ import com.example.urbane.data.model.User
 import com.example.urbane.data.model.UserResidentialRole
 import com.example.urbane.data.remote.supabase
 
+
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
+import io.ktor.client.*
+import io.ktor.client.engine.android.Android
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.firstOrNull
+
+@Serializable
+data class CreateUserRequest(
+    val name: String,
+    val email: String,
+    val id_card: String,
+    val password: String,
+    val role_id: Int,
+    val residence_id: Int? = null,
+    val residential_id: Int
+)
 
 
 class UserRepository(val sessionManager: SessionManager) {
@@ -40,52 +62,59 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
-    suspend fun getCurrentUser(currentUserId: String, currentUserEmail: String): UserResidentialRole? {
+    suspend fun getCurrentUser(
+        currentUserId: String,
+        currentUserEmail: String
+    ): UserResidentialRole? {
         try {
 
-            Log.d("UserRepository","obteniendo datos del usuario, email $currentUserEmail id: $currentUserId")
-            val user = supabase.from("users").select(columns = Columns.list("id", "name", "idCard" , "createdAt")){
-                filter {
-                    eq("id", currentUserId)
-                }
-            }.decodeSingle<User>()
+            Log.d(
+                "UserRepository",
+                "obteniendo datos del usuario, email $currentUserEmail id: $currentUserId"
+            )
+            val user = supabase.from("users")
+                .select(columns = Columns.list("id", "name", "idCard", "createdAt")) {
+                    filter {
+                        eq("id", currentUserId)
+                    }
+                }.decodeSingle<User>()
 
-            Log.d("UserRepository","datos del usuario $user")
+            Log.d("UserRepository", "datos del usuario $user")
 
             // 3. Obtener relación user-residential-role
             val urr = supabase.from("users_residentials_roles")
-                .select(columns = Columns.list("user_id", "residential_id", "role_id")){
+                .select(columns = Columns.list("user_id", "residential_id", "role_id")) {
 
-                filter {
-                    eq("user_id", currentUserId)
-                }
+                    filter {
+                        eq("user_id", currentUserId)
+                    }
                 }
                 .decodeSingle<UrrIds>()
 
 
 
-            Log.d("UserRepository","datos de la tabla relacional $urr")
+            Log.d("UserRepository", "datos de la tabla relacional $urr")
             val residential = supabase.from("residentials")
-                .select(columns = Columns.list("id", "name", "address", "phone", "logoUrl")){
+                .select(columns = Columns.list("id", "name", "address", "phone", "logoUrl")) {
 
-                filter {
-                    eq("id", urr.residential_id)
-                }
+                    filter {
+                        eq("id", urr.residential_id)
+                    }
                 }
                 .decodeSingle<Residential>()
 
-            Log.d("UserRepository","datos del residencial $residential")
+            Log.d("UserRepository", "datos del residencial $residential")
 
             val role = supabase.from("roles")
-                .select(columns = Columns.list("id", "name")){
+                .select(columns = Columns.list("id", "name")) {
 
-                filter {
-                    eq("id", urr.role_id)
-                }
+                    filter {
+                        eq("id", urr.role_id)
+                    }
                 }
                 .decodeSingle<Role>()
 
-            Log.d("UserRepository","datos del rol $role")
+            Log.d("UserRepository", "datos del rol $role")
             val userE = user.copy(email = currentUserEmail)
 
             return UserResidentialRole(
@@ -101,7 +130,50 @@ class UserRepository(val sessionManager: SessionManager) {
     }
 
 
+    suspend fun createUser(
+        name: String,
+        email: String,
+        idCard: String,
+        password: String,
+        roleId: Int=1,
+        residenceId: Int?
+    ) {
+        val client = HttpClient(Android) {
+            install(ContentNegotiation) { json() }
+        }
+
+        try {
+            val user = sessionManager.sessionFlow.firstOrNull()
+                ?: throw IllegalStateException("No hay sesión activa")
+
+            val residentialId = user.userData?.residential?.id
+                ?: throw IllegalStateException("No se encontró el ID del residencial")
+
+            Log.d("UserRepository", "Preparando body y enviando request")
+            val body = CreateUserRequest(name, email, idCard, password, roleId, residenceId, residentialId)
+            Log.d("UserRepository", "Body: $body")
+
+            val response = client.post("https://xeejvlwrklfyoinsmmlu.supabase.co/functions/v1/create-user") {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }
+
+
+
+
+            Log.d("UserRepository", "Respuesta status: ${response.status}")
+            val text = response.bodyAsText()
+            Log.d("UserRepository", "Respuesta body: $text")
+        } catch (e: Throwable) {
+            Log.e("UserRepository", "Error creando el usuario", e)
+        } finally {
+            client.close()
+        }
+    }
 }
+
+
+
 
 @Serializable
 data class UrrIds(

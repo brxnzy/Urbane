@@ -271,10 +271,6 @@ fun RegisterScreen(viewModel: RegisterViewModel,navController: NavController, mo
                                         }else{
                                             Icon(imageVector = Icons.Default.Visibility, contentDescription = null)
                                         }
-
-
-
-
                                     }
                                 },
                                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),

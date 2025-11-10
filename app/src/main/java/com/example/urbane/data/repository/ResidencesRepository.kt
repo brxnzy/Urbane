@@ -7,6 +7,7 @@ import com.example.urbane.data.model.Residence
 import com.example.urbane.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import java.util.Objects.isNull
 
 class ResidencesRepository {
 
@@ -27,7 +28,7 @@ class ResidencesRepository {
         return try {
             supabase
                 .from("residences")
-                .select (columns = Columns.list("name","type","description","residentialId")){
+                .select (){
                     filter {
                         eq("residentialId", residentialId)
                     }
@@ -38,6 +39,26 @@ class ResidencesRepository {
             throw e
         }
     }
+
+    suspend fun getAvailableResidences(residentialId: Int): List<Residence> {
+        return try {
+            supabase
+                .from("residences")
+                .select(
+                    columns = Columns.list()
+                ) {
+                    filter {
+                        eq("residentialId", residentialId)
+                        isNull("residentId")
+                    }
+                }
+                .decodeList<Residence>()
+        } catch (e: Exception) {
+            Log.e("ResidencesRepository", "Error en getResidences: $e")
+            throw e
+        }
+    }
+
 
 
 

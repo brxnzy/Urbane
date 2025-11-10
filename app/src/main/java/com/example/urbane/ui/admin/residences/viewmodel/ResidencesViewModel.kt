@@ -47,22 +47,37 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                 val residentialId = user.userData?.residential?.id
                     ?: throw IllegalStateException("No se encontró el ID del residencial")
 
-                ResidencesRepository().createResidence(_state.value.name,_state.value.type,_state.value.description, residentialId)
+                ResidencesRepository().createResidence(
+                    _state.value.name,
+                    _state.value.type,
+                    _state.value.description,
+                    residentialId
+                )
 
-                _state.update { it.copy(isLoading = false, success = true, name = "", type = "", description = "") }
+                val residences = ResidencesRepository().getResidences(residentialId)
 
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        success = true,
+                        residences = residences,
+                        name = "",
+                        type = "",
+                        description = ""
+                    )
+                }
+
+                loadResidences()
 
             } catch (e: Exception) {
-                Log.e("ResidencesVM","error creando residencias $e")
-                _state.update{it.copy(errorMessage = e.toString())}
-
+                Log.e("ResidencesVM", "error creando residencias $e")
+                _state.update { it.copy(isLoading = false, errorMessage = e.toString()) }
             }
         }
     }
 
     fun loadResidences() {
         viewModelScope.launch {
-            if (_state.value.residences.isNotEmpty()) return@launch // 👈 evita recargar
             try {
                 _state.update { it.copy(isLoading = true) }
 

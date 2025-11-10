@@ -14,9 +14,8 @@ import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
-
 import com.example.urbane.ui.admin.users.view.AddUserScreen
-import com.example.urbane.ui.admin.viewmodel.MainViewModel
+import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.ui.auth.view.LoginScreen
 import com.example.urbane.ui.auth.view.RegisterScreen
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
@@ -30,8 +29,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
     val loginViewModel = LoginViewModel(sessionManager)
-    val mainViewModel = MainViewModel(sessionManager)
     val residencesViewModel = ResidencesViewModel(sessionManager)
+    val usersViewModel = UsersViewModel(sessionManager)
 
 
     NavHost(
@@ -137,7 +136,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         }
 
         composable(Routes.ADMIN_USERS_ADD) {
-            AddUserScreen(){
+            AddUserScreen(usersViewModel, residencesViewModel){
                 navController.navigate(Routes.ADMIN_USERS)
             }
         }

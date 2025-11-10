@@ -40,7 +40,7 @@ fun AddResidenceScreen(viewModel: ResidencesViewModel,goBack:()->Unit) {
     var expandedTipo by remember { mutableStateOf(false) }
     val state by viewModel.state.collectAsState()
 
-    val tiposPropiedad = listOf("Apartamento", "Casa", "Local", "Oficina", "Penthouse")
+    val tiposPropiedad = listOf("Apartamento", "Casa", "Local", "Villa", "Terreno")
 
     Scaffold(
         topBar = {
@@ -127,9 +127,9 @@ fun AddResidenceScreen(viewModel: ResidencesViewModel,goBack:()->Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = if (perteneceResidencial)
-                        MaterialTheme.colorScheme.primaryContainer
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     else
-                        MaterialTheme.colorScheme.surfaceVariant
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 )
             ) {
                 Row(
