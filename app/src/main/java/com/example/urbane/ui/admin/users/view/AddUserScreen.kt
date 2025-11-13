@@ -60,7 +60,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import com.example.urbane.data.model.Residence
 import com.example.urbane.data.model.Role
@@ -74,7 +77,7 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
     var idCardFormat by remember { mutableStateOf(true) }
     var validPassword by remember { mutableStateOf(true) }
     var selectedRol by remember { mutableStateOf<Role?>(null) }
-
+    var showSuccessDialog by remember { mutableStateOf(false) }
     var selectedTipoPropiedad by remember { mutableStateOf("") }
     var selectedResidencia by remember { mutableStateOf<Residence?>(null) }
     var expandedRol by remember { mutableStateOf(false) }
@@ -88,10 +91,16 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
     LaunchedEffect(Unit) {
         residencesViewModel.loadAvailableResidences()
     }
-            val roles = listOf(
-                Role(1, stringResource(R.string.administrador)),
-                Role(2, stringResource(R.string.residente))
+    val roles = listOf(
+                Role(1,"Administrador"),
+                Role(2, "Residente")
             )
+
+    LaunchedEffect(state.success) {
+        if (state.success) {
+            showSuccessDialog = true
+        }
+    }
 
 
     val tiposPropiedad = listOf(stringResource(R.string.casa), stringResource(R.string.apartamento), stringResource(R.string.villa),
@@ -168,7 +177,7 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                 singleLine = true
             )
 
-            // ID Card field
+
             OutlinedTextField(
                 value = TextFieldValue(
                     text = state.idCard,
@@ -270,7 +279,6 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
             }
 
 
-            // Sección de residencia (solo visible para Residente)
             AnimatedVisibility(visible = selectedRol?.name == "Residente") {
                 // contenido visible solo si el rol es Residente
             Column(
@@ -286,7 +294,7 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                             value = selectedTipoPropiedad,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Tipo de propiedad") },
+                            label = { Text(stringResource(R.string.tipo_de_propiedad)) },
                             leadingIcon = { Icon(Icons.Default.Category, contentDescription = null) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTipo) },
                             modifier = Modifier
@@ -320,10 +328,10 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                                 value = selectedResidencia?.name ?: "",
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Residencia") },
+                                label = { Text(stringResource(R.string.residencia)) },
                                 leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedResidencia) },
-                                placeholder = { Text("Selecciona una residencia") },
+                                placeholder = { Text(stringResource(R.string.selecciona_una_residencia)) },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .menuAnchor()
@@ -334,7 +342,7 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                             ) {
                                 if (residenciasFiltradas.isEmpty()) {
                                     DropdownMenuItem(
-                                        text = { Text("No hay residencias disponibles") },
+                                        text = { Text(stringResource(R.string.no_hay_residencias_disponibles)) },
                                         onClick = {},
                                         enabled = false
                                     )
@@ -355,10 +363,41 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                     }
                 }
             }
+            if (showSuccessDialog) {
+                AlertDialog(
+                    onDismissRequest = { showSuccessDialog = false },
+                    icon = {
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    },
+                    title = { Text(stringResource(R.string.usuario_creado)) },
+                    text = {
+                        Text(
+                            stringResource(R.string.el_usuario_ha_sido_creada_exitosamente)
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showSuccessDialog = false
+                            goBack()
 
+                        }) {
+                            Text(stringResource(R.string.aceptar))
+                        }
+                    }
+                )
+            }
+
+            if (state.errorMessage != null){
+                Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
+            }
             Spacer(modifier = Modifier.weight(1f))
 
-            // Submit button
+
             Button(
                 onClick = { viewModel.processIntent(UsersIntent.CreateUser) },
                 modifier = Modifier

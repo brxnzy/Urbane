@@ -2,17 +2,17 @@ package com.example.urbane.data.repository
 
 
 import android.util.Log
+import androidx.compose.ui.res.stringResource
+import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Residential
 import com.example.urbane.data.model.Role
+import com.example.urbane.data.model.UrrIds
 import com.example.urbane.data.model.User
 import com.example.urbane.data.model.UserResidentialRole
 import com.example.urbane.data.remote.supabase
-
-
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
-
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.int
@@ -22,16 +22,18 @@ import io.ktor.client.engine.android.Android
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonObject
 
 @Serializable
 data class CreateUserRequest(
     val name: String,
     val email: String,
-    val id_card: String,
+    val idCard: String,
     val password: String,
     val role_id: Int,
     val residence_id: Int? = null,
@@ -135,52 +137,60 @@ class UserRepository(val sessionManager: SessionManager) {
         email: String,
         idCard: String,
         password: String,
-        roleId: Int=1,
+        roleId: Int = 1,
         residenceId: Int?
-    ) {
+    ): Any? { // null = éxito, texto = error
+
         val client = HttpClient(Android) {
             install(ContentNegotiation) { json() }
         }
 
-        try {
+        return try {
             val user = sessionManager.sessionFlow.firstOrNull()
-                ?: throw IllegalStateException("No hay sesión activa")
+                ?: return "No hay sesión activa"
 
             val residentialId = user.userData?.residential?.id
-                ?: throw IllegalStateException("No se encontró el ID del residencial")
+                ?: return "No se encontró el ID del residencial"
 
-            Log.d("UserRepository", "Preparando body y enviando request")
-            val body = CreateUserRequest(name, email, idCard, password, roleId, residenceId, residentialId)
-            Log.d("UserRepository", "Body: $body")
+            val body =
+                CreateUserRequest(name, email, idCard, password, roleId, residenceId, residentialId)
+            val response =
+                client.post("https://xeejvlwrklfyoinsmmlu.supabase.co/functions/v1/create-user") {
+                    contentType(ContentType.Application.Json)
+                    setBody(body)
+                }
 
-            val response = client.post("https://xeejvlwrklfyoinsmmlu.supabase.co/functions/v1/create-user") {
-                contentType(ContentType.Application.Json)
-                setBody(body)
+            val text = response.bodyAsText()
+            val json = Json.parseToJsonElement(text).jsonObject
+            val success = json["success"]?.jsonPrimitive?.booleanOrNull == true
+
+            if (success) {
+                null
+            } else {
+                val errorMsg = json["error"]?.jsonPrimitive?.content ?: "Error desconocido"
+
+                when {
+                    errorMsg.contains("email", true) ->
+                        R.string.ya_existe_un_usuario_registrado_con_ese_correo_electr_nico
+
+                    errorMsg.contains("Database error creating new user", true) ->
+                        R.string.la_c_dula_ingresada_ya_est_registrada_o_hay_un_dato_duplicado
+
+                    else ->
+                        R.string.no_se_pudo_crear_el_usuario
+                }
             }
 
-
-
-
-            Log.d("UserRepository", "Respuesta status: ${response.status}")
-            val text = response.bodyAsText()
-            Log.d("UserRepository", "Respuesta body: $text")
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             Log.e("UserRepository", "Error creando el usuario", e)
+            "Ocurrió un error inesperado"
         } finally {
             client.close()
         }
     }
+
 }
 
-
-
-
-@Serializable
-data class UrrIds(
-    val user_id: String,
-    val residential_id: Int,
-    val role_id: Int
-)
 
 
 

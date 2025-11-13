@@ -7,6 +7,7 @@ data class ResidencesState(
     val type: String = "",
     val description: String ="",
     val residences: List<Residence> = emptyList(),
+    val availableResidences: List<Residence> = emptyList(),
     val isLoading: Boolean = false,
     val success: Boolean = false,
     val errorMessage: String? = null,

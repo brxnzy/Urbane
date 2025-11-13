@@ -77,7 +77,9 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
     }
 
     fun loadResidences() {
+
         viewModelScope.launch {
+            if (_state.value.residences.isNotEmpty()) return@launch
             try {
                 _state.update { it.copy(isLoading = true) }
 
@@ -101,6 +103,7 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
 
     fun loadAvailableResidences() {
         viewModelScope.launch {
+        if (_state.value.availableResidences.isNotEmpty()) return@launch
             try {
                 _state.update { it.copy(isLoading = true) }
 
@@ -114,7 +117,7 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                 Log.d("ResidencesVM", "residencias disponibles $residences")
 
                 _state.update {
-                    it.copy(isLoading = false, residences = residences, errorMessage = null)
+                    it.copy(isLoading = false, availableResidences  = residences, errorMessage = null)
                 }
 
             } catch (e: Exception) {
@@ -122,7 +125,6 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
             }
         }
     }
-
 
 
 }

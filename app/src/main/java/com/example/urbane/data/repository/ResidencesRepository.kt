@@ -51,22 +51,12 @@ class ResidencesRepository {
                     filter {
                         eq("residentialId", residentialId)
                         eq("available", true)
-//
-
                     }
-
-
                 }
                 .decodeList<Residence>()
-
-
         } catch (e: Exception) {
             Log.e("ResidencesRepository", "Error en getResidences: $e")
             throw e
         }
     }
-
-
-
-
 }

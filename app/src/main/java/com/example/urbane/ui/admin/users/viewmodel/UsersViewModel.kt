@@ -1,5 +1,6 @@
 package com.example.urbane.ui.admin.users.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.local.SessionManager
@@ -36,11 +37,17 @@ class UsersViewModel(val sessionManager: SessionManager) : ViewModel() {
                     sessionManager
                 ).createUser(_state.value.name,_state.value.email,_state.value.idCard,_state.value.password,_state.value.roleId,_state.value.residenceId)
 
-                _state.update { it.copy(isLoading = false, success = true) }
+                if (user == null){
+                _state.update { it.copy(isLoading = false, success = true, errorMessage = null) }
+                }else{
+                    _state.update { it.copy(isLoading = false, success = false, errorMessage = user.toString()) }
+
+                }
 
 
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+                Log.e("UsersVM","Error creando usuario $e")
 
             }
         }

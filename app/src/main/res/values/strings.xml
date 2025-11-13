@@ -22,7 +22,7 @@
     <string name="error_desconocido_al_registrar_usuario">Error desconocido al registrar usuario</string>
     <string name="no_se_pudo_obtener_la_sesi_n_despu_s_del_registro">No se pudo obtener la sesión después del registro</string>
     <string name="ya_existe_un_usuario_registrado_con_ese_correo_electr_nico">Ya existe un usuario registrado con ese correo electrónico</string>
-    <string name="la_c_dula_ingresada_ya_est_registrada_o_hay_un_dato_duplicado">La cédula ingresada ya está registrada o hay un dato duplicado</string>
+    <string name="la_c_dula_ingresada_ya_est_registrada_o_hay_un_dato_duplicado">La cédula ingresada ya está registrada </string>
     <string name="residencias">Residencias</string>
     <string name="pagos">Pagos</string>
     <string name="usuarios">Usuarios</string>
@@ -38,5 +38,12 @@
     <string name="villa">Villa</string>
     <string name="local">Local</string>
     <string name="guardar_usuario">Guardar usuario</string>
+    <string name="usuario_creado">¡Usuario creado!</string>
+    <string name="el_usuario_ha_sido_creada_exitosamente">El usuario ha sido creada exitosamente</string>
+    <string name="no_hay_residencias_disponibles">No hay residencias disponibles</string>
+    <string name="residencia">Residencia</string>
+    <string name="selecciona_una_residencia">Selecciona una residencia</string>
+    <string name="tipo_de_propiedad">Tipo de propiedad</string>
+    <string name="no_se_pudo_crear_el_usuario">No se pudo crear el usuario</string>
 
 </resources>
