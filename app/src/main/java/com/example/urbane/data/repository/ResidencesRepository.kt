@@ -2,15 +2,20 @@ package com.example.urbane.data.repository
 
 
 import android.util.Log
+import com.example.urbane.data.local.SessionManager
 
 import com.example.urbane.data.model.Residence
 import com.example.urbane.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator
-import java.util.Objects.isNull
+import kotlinx.coroutines.flow.firstOrNull
 
-class ResidencesRepository {
+class ResidencesRepository(val sessionManager: SessionManager) {
+
+    suspend fun getResidentialId(): Int? {
+        val user = sessionManager.sessionFlow.firstOrNull()
+        return user?.userData?.residential?.id
+    }
 
     suspend fun createResidence(name:String, type:String, description:String, residentialId:Int){
         try {
@@ -25,8 +30,10 @@ class ResidencesRepository {
     }
 
 
-    suspend fun getResidences(residentialId: Int): List<Residence> {
+    suspend fun getResidences(): List<Residence> {
         return try {
+            val residentialId = getResidentialId() ?: emptyList<Residence>()
+
             supabase
                 .from("residences")
                 .select (){
@@ -43,6 +50,8 @@ class ResidencesRepository {
 
     suspend fun getAvailableResidences(residentialId: Int): List<Residence> {
         return try {
+            val residentialId = getResidentialId() ?: emptyList<Residence>()
+
             supabase
                 .from("residences")
                 .select(

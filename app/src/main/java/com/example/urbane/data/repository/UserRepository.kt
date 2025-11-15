@@ -2,7 +2,6 @@ package com.example.urbane.data.repository
 
 
 import android.util.Log
-import androidx.compose.ui.res.stringResource
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Residential
@@ -13,7 +12,6 @@ import com.example.urbane.data.model.UserResidentialRole
 import com.example.urbane.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
@@ -28,20 +26,18 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
+import com.example.urbane.data.model.CreateUserRequest
 
-@Serializable
-data class CreateUserRequest(
-    val name: String,
-    val email: String,
-    val idCard: String,
-    val password: String,
-    val role_id: Int,
-    val residence_id: Int? = null,
-    val residential_id: Int
-)
+
 
 
 class UserRepository(val sessionManager: SessionManager) {
+
+
+    suspend fun getResidentialId(): Int? {
+        val user = sessionManager.sessionFlow.firstOrNull()
+        return user?.userData?.residential?.id
+    }
 
     suspend fun getUserRole(userId: String): Int? {
         return try {
@@ -139,21 +135,19 @@ class UserRepository(val sessionManager: SessionManager) {
         password: String,
         roleId: Int = 1,
         residenceId: Int?
-    ): Any? { // null = éxito, texto = error
-
+    ): Int? {  // null = éxito, Int = resource error
         val client = HttpClient(Android) {
             install(ContentNegotiation) { json() }
         }
 
         return try {
-            val user = sessionManager.sessionFlow.firstOrNull()
-                ?: return "No hay sesión activa"
 
-            val residentialId = user.userData?.residential?.id
-                ?: return "No se encontró el ID del residencial"
+
+            val residentialId = getResidentialId()
 
             val body =
                 CreateUserRequest(name, email, idCard, password, roleId, residenceId, residentialId)
+
             val response =
                 client.post("https://xeejvlwrklfyoinsmmlu.supabase.co/functions/v1/create-user") {
                     contentType(ContentType.Application.Json)
@@ -167,7 +161,7 @@ class UserRepository(val sessionManager: SessionManager) {
             if (success) {
                 null
             } else {
-                val errorMsg = json["error"]?.jsonPrimitive?.content ?: "Error desconocido"
+                val errorMsg = json["error"]?.jsonPrimitive?.content ?: ""
 
                 when {
                     errorMsg.contains("email", true) ->
@@ -180,16 +174,61 @@ class UserRepository(val sessionManager: SessionManager) {
                         R.string.no_se_pudo_crear_el_usuario
                 }
             }
-
         } catch (e: Exception) {
-            Log.e("UserRepository", "Error creando el usuario", e)
-            "Ocurrió un error inesperado"
+            R.string.error_inesperado
         } finally {
             client.close()
         }
     }
 
+
+    suspend fun getActiveUsers(): List<User> {
+        return try {
+
+            val residentialId = getResidentialId() ?: emptyList<User>()
+
+
+            supabase
+                .from("users_full_info")
+                .select {
+                    filter {
+                        eq("residential_id", residentialId)
+                        eq("active", true)
+                    }
+                }
+                .decodeList<User>()
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error obteniendo los usuarios: $e")
+            emptyList()
+        }
+    }
+
+
+    suspend fun getInactiveUsers(): List<User> {
+        return try {
+            val residentialId = getResidentialId() ?: emptyList<User>()
+
+            supabase
+                .from("users_full_info")
+                .select {
+                    filter {
+                        eq("residential_id", residentialId)
+                        eq("active", false)
+                    }
+                }
+                .decodeList<User>()
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error obteniendo los usuarios inactivos: $e")
+            emptyList()
+        }
+    }
+
 }
+
+
+
 
 
 

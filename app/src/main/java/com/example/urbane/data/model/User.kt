@@ -6,8 +6,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class User(
     val id: String,
-    val email: String? = null,
+    val createdAt: String? = null,
     val name: String,
-    val idCard:String,
-    val createdAt: String
+    val idCard: String? = null,
+    val active: Boolean? = null,
+    val email: String? = null,
+    val residential_id: Int? = null,
+    val role_id: Int? = null,
+    val role_name: String? = null,
+    val residence_id: Int? = null,
+    val residence_name: String? = null,
+    val residence_type: String? = null,
+    val residence_residential_id: Int? = null
 )

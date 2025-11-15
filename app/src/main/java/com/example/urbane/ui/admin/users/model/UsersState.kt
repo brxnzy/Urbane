@@ -1,6 +1,7 @@
 package com.example.urbane.ui.admin.users.model
 
 import com.example.urbane.data.model.Residence
+import com.example.urbane.data.model.User
 
 data class UserState(
     val name: String = "",
@@ -9,6 +10,8 @@ data class UserState(
     val password: String = "",
     val roleId: Int = 0,
     val residenceId: Int? = null,
+    val activeUsers: List<User> = emptyList(),
+    val inactiveUsers: List<User> = emptyList(),
     val isLoading: Boolean = false,
     val success: Boolean = false,
     val errorMessage: String? = null

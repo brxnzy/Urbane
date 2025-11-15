@@ -37,6 +37,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.view.TestScreen
+import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 
@@ -47,7 +48,8 @@ fun AdminMainScaffold(
     currentRoute: String,
     loginViewModel: LoginViewModel,
     sessionManager: SessionManager,
-    residencesViewModel: ResidencesViewModel
+    residencesViewModel: ResidencesViewModel,
+    usersViewModel: UsersViewModel
 
 
     ) {
@@ -104,6 +106,7 @@ fun AdminMainScaffold(
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (currentRoute) {
                     Routes.ADMIN_USERS -> UsersScreen(
+                        usersViewModel,
                         modifier = Modifier.padding(16.dp),
                         navController = navController
                     )

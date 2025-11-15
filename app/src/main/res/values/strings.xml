@@ -45,5 +45,9 @@
     <string name="selecciona_una_residencia">Selecciona una residencia</string>
     <string name="tipo_de_propiedad">Tipo de propiedad</string>
     <string name="no_se_pudo_crear_el_usuario">No se pudo crear el usuario</string>
+    <string name="error_inesperado">Ocurrio un error inesperado</string>
+    <string name="no_hay_sesion_activa">no hay sesion activa\n</string>
+    <string name="no_se_encontro_el_id_del_residencial">no se encontro el id del residencial</string>
+    <string name="error_obteniendo_los_usuarios">Error obteniendo los usuarios</string>
 
 </resources>

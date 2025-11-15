@@ -18,28 +18,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.urbane.data.model.User
 import com.example.urbane.navigation.Routes
+import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 
-data class Usuario(
-    val nombre: String,
-    val activo: Boolean,
-    val tipo: String
-)
 
 @SuppressLint("SuspiciousIndentation", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun UsersScreen(modifier: Modifier = Modifier, navController: NavController) {
+fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navController: NavController) {
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
     var busqueda by remember { mutableStateOf("") }
+    val state by viewmodel.state.collectAsState()
+    LaunchedEffect(Unit) {
+        viewmodel.loadUsers()
+    }
 
-    val usuarios = listOf(
-        Usuario("Juan Pérez", true, "Residente"),
-        Usuario("Ana García", false, "Guardia"),
-        Usuario("Carlos Rodríguez", true, "Residente"),
-        Usuario("Luisa Martínez", true, "Residente"),
-        Usuario("Pedro Sánchez", true, "Guardia"),
-        Usuario("María López", false, "Residente")
-    )
+
 
     val filtros = listOf("Todos", "Residente", "Guardia", "Activo")
 
@@ -58,21 +52,21 @@ fun UsersScreen(modifier: Modifier = Modifier, navController: NavController) {
                 .fillMaxSize()
 
         ) {
-//            OutlinedTextField(
-//                value = busqueda,
-//                onValueChange = { busqueda = it },
-//                modifier = Modifier
-//                    .fillMaxWidth(),
-//                placeholder = { Text("Buscar por nombre...", color = Color.Gray) },
-//                leadingIcon = {
-//                    Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
-//                },
-//                shape = RoundedCornerShape(12.dp),
-//                colors = OutlinedTextFieldDefaults.colors(
-//                    focusedContainerColor = Color.Transparent,
-//                    unfocusedContainerColor = Color.Transparent,
-//                )
-//            )
+            OutlinedTextField(
+                value = busqueda,
+                onValueChange = { busqueda = it },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                placeholder = { Text("Buscar por nombre...", color = Color.Gray) },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                )
+            )
 
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -99,7 +93,7 @@ fun UsersScreen(modifier: Modifier = Modifier, navController: NavController) {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(usuarios) { usuario ->
+                items(state.activeUsers) { usuario ->
                     UsuarioCard(usuario)
                 }
 
@@ -137,7 +131,7 @@ fun UsersScreen(modifier: Modifier = Modifier, navController: NavController) {
 
 
 @Composable
-fun UsuarioCard(usuario: Usuario) {
+fun UsuarioCard(usuario: User) {
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
@@ -157,15 +151,15 @@ fun UsuarioCard(usuario: Usuario) {
                 modifier = Modifier
                     .size(48.dp)
                     .background(
-                        if (usuario.tipo == "Residente") Color(0xFFE3F2FD) else Color(0xFFE8EAF6),
+                        if (usuario.role_name == "resident") Color(0xFFE3F2FD) else Color(0xFFE8EAF6),
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    if (usuario.tipo == "Residente") Icons.Default.Home else Icons.Default.Security,
+                    if (usuario.role_name == "resident") Icons.Default.Home else Icons.Default.Security,
                     contentDescription = null,
-                    tint = if (usuario.tipo == "Residente") Color(0xFF2196F3) else Color(0xFF5C6BC0)
+                    tint = if (usuario.role_name == "resident") Color(0xFF2196F3) else Color(0xFF5C6BC0)
                 )
             }
 
@@ -176,57 +170,15 @@ fun UsuarioCard(usuario: Usuario) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    usuario.nombre,
+                    usuario.name.toString(),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
 
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(
-                                if (usuario.activo) Color(0xFF4CAF50) else Color(0xFFF44336),
-                                CircleShape
-                            )
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        if (usuario.activo) "Activo" else "Inactivo",
-                        fontSize = 14.sp,
-                        color = if (usuario.activo) Color(0xFF4CAF50) else Color(0xFFF44336)
-                    )
-                }
+
             }
 
-            // Acciones
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                IconButton(onClick = { }) {
-                    Icon(
-                        Icons.Default.Visibility,
-                        contentDescription = "Ver",
-                        tint = Color.Gray
-                    )
-                }
-                IconButton(onClick = { }) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = "Editar",
-                        tint = Color.Gray
-                    )
-                }
-                IconButton(onClick = { }) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Eliminar",
-                        tint = Color(0xFFF44336)
-                    )
-                }
-            }
+
         }
     }
 }

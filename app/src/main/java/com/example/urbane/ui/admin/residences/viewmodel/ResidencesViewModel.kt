@@ -12,14 +12,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
 import android.util.Log
-
 
 
 class ResidencesViewModel(private val sessionManager: SessionManager) : ViewModel(){
     private val _state = MutableStateFlow(ResidencesState())
     val state: StateFlow<ResidencesState> = _state.asStateFlow()
+    val residencesRepository = ResidencesRepository(sessionManager)
 
     fun processIntent(intent: ResidencesIntent){
         when(intent){
@@ -47,14 +46,14 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                 val residentialId = user.userData?.residential?.id
                     ?: throw IllegalStateException("No se encontró el ID del residencial")
 
-                ResidencesRepository().createResidence(
+                residencesRepository.createResidence(
                     _state.value.name,
                     _state.value.type,
                     _state.value.description,
                     residentialId
                 )
 
-                val residences = ResidencesRepository().getResidences(residentialId)
+                val residences = residencesRepository.getResidences()
 
                 _state.update {
                     it.copy(
@@ -89,7 +88,7 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                 val residentialId = user.userData?.residential?.id
                     ?: throw IllegalStateException("No se encontró el ID del residencial")
 
-                val residences = ResidencesRepository().getResidences(residentialId)
+                val residences = ResidencesRepository(sessionManager).getResidences()
 
                 _state.update {
                     it.copy(isLoading = false, residences = residences, errorMessage = null)
@@ -113,7 +112,7 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                 val residentialId = user.userData?.residential?.id
                     ?: throw IllegalStateException("No se encontró el ID del residencial")
 
-                val residences = ResidencesRepository().getAvailableResidences(residentialId)
+                val residences = ResidencesRepository(sessionManager).getAvailableResidences(residentialId)
                 Log.d("ResidencesVM", "residencias disponibles $residences")
 
                 _state.update {

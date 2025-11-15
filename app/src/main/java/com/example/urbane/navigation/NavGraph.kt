@@ -96,7 +96,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 currentRoute = Routes.ADMIN_USERS,
                 loginViewModel,
                 sessionManager,
-                residencesViewModel
+                residencesViewModel,
+                usersViewModel
 
             )
         }
@@ -107,7 +108,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 currentRoute = Routes.ADMIN_RESIDENCES,
                 loginViewModel,
                 sessionManager,
-                residencesViewModel
+                residencesViewModel,
+                usersViewModel
+
 
             )
 
@@ -119,7 +122,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 currentRoute = Routes.ADMIN,
                 loginViewModel,
                 sessionManager,
-                residencesViewModel
+                residencesViewModel,
+                usersViewModel
+
             )
 
         }
@@ -131,7 +136,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 currentRoute = Routes.ADMIN_PAYMENTS,
                 loginViewModel,
                 sessionManager,
-                residencesViewModel
+                residencesViewModel,
+                usersViewModel
+
             )
         }
 

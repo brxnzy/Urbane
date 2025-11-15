@@ -412,9 +412,9 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                         state.password.isNotBlank() &&
                         validPassword &&
                         selectedRol != null &&
-                        (selectedRol!!.name != stringResource(R.string.residente) || selectedResidencia != null)
-
+                        (selectedRol?.id != 2 || selectedResidencia != null)
             ) {
+
                 if (!state.isLoading) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Save, contentDescription = null)
