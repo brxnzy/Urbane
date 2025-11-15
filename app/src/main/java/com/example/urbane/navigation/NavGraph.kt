@@ -155,7 +155,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         }
 
         composable(Routes.RESIDENT){
-            ResidentScreen(sessionManager)
+            ResidentScreen(sessionManager, loginViewModel, navController)
         }
     }
 }
