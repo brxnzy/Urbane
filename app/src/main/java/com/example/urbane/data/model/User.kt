@@ -8,6 +8,7 @@ data class User(
     val id: String,
     val createdAt: String? = null,
     val name: String,
+    val photoUrl:String? = null,
     val idCard: String? = null,
     val active: Boolean? = null,
     val email: String? = null,

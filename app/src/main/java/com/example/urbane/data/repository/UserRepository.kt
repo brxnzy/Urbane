@@ -189,7 +189,7 @@ class UserRepository(val sessionManager: SessionManager) {
 
 
             supabase
-                .from("users_full_info")
+                .from("users_view")
                 .select {
                     filter {
                         eq("residential_id", residentialId)

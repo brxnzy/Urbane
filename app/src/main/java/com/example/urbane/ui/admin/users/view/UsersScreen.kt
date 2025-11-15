@@ -1,26 +1,40 @@
 package com.example.urbane.ui.admin.users.view
 
 import android.annotation.SuppressLint
+import android.graphics.BlendModeColorFilter
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.urbane.R
 import com.example.urbane.data.model.User
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
+import com.example.urbane.ui.theme.LightGray
 
 
 @SuppressLint("SuspiciousIndentation", "UnusedMaterial3ScaffoldPaddingParameter")
@@ -34,8 +48,7 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
     }
 
 
-
-    val filtros = listOf("Todos", "Residente", "Guardia", "Activo")
+    val filtros = listOf("Todos", "Administrador", "Residente")
 
     Scaffold(
         floatingActionButton = {
@@ -57,7 +70,7 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                 onValueChange = { busqueda = it },
                 modifier = Modifier
                     .fillMaxWidth(),
-                placeholder = { Text("Buscar por nombre...", color = Color.Gray) },
+                placeholder = { Text(stringResource(R.string.buscar_por_nombre), color = Color.Gray) },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
                 },
@@ -68,13 +81,13 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                 )
             )
 
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxWidth(),
-
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                filtros.forEach { filtro ->
+                items(filtros) { filtro ->
                     FilterChip(
                         selected = filtroSeleccionado == filtro,
                         onClick = { filtroSeleccionado = filtro },
@@ -86,6 +99,7 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                     )
                 }
             }
+
 
             LazyColumn(
                 modifier = Modifier
@@ -99,7 +113,8 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
 
                 item {
                     Column(
-                        modifier = Modifier.padding(vertical = 32.dp)
+                        modifier = Modifier
+                            .padding(vertical = 32.dp)
                             .fillMaxWidth(),
 
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -112,13 +127,13 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            "No se encontraron más usuarios",
+                            stringResource(R.string.no_se_encontraron_m_s_usuarios),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.Gray
                         )
                         Text(
-                            "Intenta ajustar tu búsqueda o filtros.",
+                            stringResource(R.string.intenta_ajustar_tu_b_squeda_o_filtros),
                             fontSize = 14.sp,
                             color = Color.LightGray
                         )
@@ -131,54 +146,81 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
 
 
 @Composable
-fun UsuarioCard(usuario: User) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+fun UsuarioCard(
+    usuario: User,
 
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+//        colors = CardDefaults.cardColors(
+//            containerColor = MaterialTheme.colorScheme.surface
+//        )
     ) {
         Row(
-            modifier = Modifier.padding(16.dp)
-                .fillMaxWidth(),
-
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Avatar
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        if (usuario.role_name == "resident") Color(0xFFE3F2FD) else Color(0xFFE8EAF6),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    if (usuario.role_name == "resident") Icons.Default.Home else Icons.Default.Security,
-                    contentDescription = null,
-                    tint = if (usuario.role_name == "resident") Color(0xFF2196F3) else Color(0xFF5C6BC0)
+            // Foto de perfil o ícono por defecto
+            if (usuario.photoUrl != null && usuario.photoUrl.isNotEmpty()) {
+
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(usuario.photoUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Foto de ${usuario.name}",
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
                 )
+
+            } else {
+
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Usuario sin foto",
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onTertiary
+                    )
+
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Nombre y estado
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    usuario.name.toString(),
+                    text = usuario.name,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
+                Text(
+                    text = usuario.email ?: "Sin correo",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
 
-
+            // Ícono de flecha (opcional, indica que es clickeable)
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Ver detalles",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }

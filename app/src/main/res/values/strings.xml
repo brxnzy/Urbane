@@ -49,5 +49,8 @@
     <string name="no_hay_sesion_activa">no hay sesion activa\n</string>
     <string name="no_se_encontro_el_id_del_residencial">no se encontro el id del residencial</string>
     <string name="error_obteniendo_los_usuarios">Error obteniendo los usuarios</string>
+    <string name="buscar_por_nombre">Buscar por nombre...</string>
+    <string name="no_se_encontraron_m_s_usuarios">No se encontraron más usuarios</string>
+    <string name="intenta_ajustar_tu_b_squeda_o_filtros">Intenta ajustar tu búsqueda o filtros.</string>
 
 </resources>

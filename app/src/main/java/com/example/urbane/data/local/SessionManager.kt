@@ -16,8 +16,7 @@ import kotlinx.serialization.json.Json
 
 class SessionManager(context: Context) {
 
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "auth")
-    private val dataStore = context.dataStore
+    private val dataStore = context.authDataStore
 
     private val USER_ID_KEY = stringPreferencesKey("userId")
     private val EMAIL_KEY = stringPreferencesKey("email")
