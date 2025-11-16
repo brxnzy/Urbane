@@ -33,11 +33,11 @@ import com.example.urbane.data.model.CreateUserRequest
 
 class UserRepository(val sessionManager: SessionManager) {
 
-
     suspend fun getResidentialId(): Int? {
         val user = sessionManager.sessionFlow.firstOrNull()
         return user?.userData?.residential?.id
     }
+
 
     suspend fun getUserRole(userId: String): Int? {
         return try {
@@ -210,7 +210,7 @@ class UserRepository(val sessionManager: SessionManager) {
             val residentialId = getResidentialId() ?: emptyList<User>()
 
             supabase
-                .from("users_full_info")
+                .from("users_view")
                 .select {
                     filter {
                         eq("residential_id", residentialId)
@@ -222,6 +222,27 @@ class UserRepository(val sessionManager: SessionManager) {
         } catch (e: Exception) {
             Log.e("UserRepository", "Error obteniendo los usuarios inactivos: $e")
             emptyList()
+        }
+    }
+
+
+    suspend fun getUserById(id: String): User? {
+        return try {
+            val residentialId = getResidentialId() ?: emptyList<User>()
+
+            supabase
+                .from("users_view")
+                .select {
+                    filter {
+                        eq("residential_id", residentialId)
+                        eq("id", id)
+                    }
+                }
+                .decodeSingle<User>()
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error obteniendo los usuarios inactivos: $e")
+            null
         }
     }
 

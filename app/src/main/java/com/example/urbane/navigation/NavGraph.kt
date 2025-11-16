@@ -8,13 +8,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.view.AddUserScreen
+import com.example.urbane.ui.admin.users.view.UserDetailScreen
+import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.ui.auth.view.LoginScreen
 import com.example.urbane.ui.auth.view.RegisterScreen
@@ -31,6 +35,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val loginViewModel = LoginViewModel(sessionManager)
     val residencesViewModel = ResidencesViewModel(sessionManager)
     val usersViewModel = UsersViewModel(sessionManager)
+    val usersDetailViewModel = UsersDetailViewModel(sessionManager)
 
 
     NavHost(
@@ -157,6 +162,20 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         composable(Routes.RESIDENT){
             ResidentScreen(sessionManager)
         }
+
+        composable(
+            Routes.ADMIN_USERS_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStackEntry ->
+            UserDetailScreen(
+                userId = backStackEntry.arguments?.getString("id") ?: "",
+                viewmodel = usersDetailViewModel,
+                loginViewModel = loginViewModel
+            ){
+                navController.navigate(Routes.ADMIN_USERS)
+            }
+        }
+
     }
 }
 

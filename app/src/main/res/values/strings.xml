@@ -49,8 +49,18 @@
     <string name="no_hay_sesion_activa">no hay sesion activa\n</string>
     <string name="no_se_encontro_el_id_del_residencial">no se encontro el id del residencial</string>
     <string name="error_obteniendo_los_usuarios">Error obteniendo los usuarios</string>
-    <string name="buscar_por_nombre">Buscar por nombre...</string>
     <string name="no_se_encontraron_m_s_usuarios">No se encontraron más usuarios</string>
     <string name="intenta_ajustar_tu_b_squeda_o_filtros">Intenta ajustar tu búsqueda o filtros.</string>
+    <string name="atras">Atras</string>
+    <string name="perfil_de">Perfil de </string>
+    <string name="role_admin">Administrador</string>
+    <string name="role_resident">Residente</string>
+    <string name="rol">Rol</string>
+    <string name="buscar_por_nombre">Buscar por nombre\n</string>
+    <string name="usuario_sin_foto">Usuario sin foto</string>
+    <string name="sin_correo">Sin correo</string>
+    <string name="ver_detalles">Ver detalles</string>
+    <string name="foto_de">Foto de</string>
+
 
 </resources>

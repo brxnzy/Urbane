@@ -92,8 +92,8 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
         residencesViewModel.loadAvailableResidences()
     }
     val roles = listOf(
-                Role(1,"Administrador"),
-                Role(2, "Residente")
+                Role(1, stringResource(R.string.role_admin)),
+                Role(2, stringResource(R.string.role_resident))
             )
 
     LaunchedEffect(state.success) {

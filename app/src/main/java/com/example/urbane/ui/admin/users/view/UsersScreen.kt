@@ -1,9 +1,6 @@
 package com.example.urbane.ui.admin.users.view
 
 import android.annotation.SuppressLint
-import android.graphics.BlendModeColorFilter
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -21,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,7 +30,7 @@ import com.example.urbane.R
 import com.example.urbane.data.model.User
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
-import com.example.urbane.ui.theme.LightGray
+import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 
 @SuppressLint("SuspiciousIndentation", "UnusedMaterial3ScaffoldPaddingParameter")
@@ -43,6 +39,7 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
     var busqueda by remember { mutableStateOf("") }
     val state by viewmodel.state.collectAsState()
+
     LaunchedEffect(Unit) {
         viewmodel.loadUsers()
     }
@@ -108,7 +105,9 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(state.activeUsers) { usuario ->
-                    UsuarioCard(usuario)
+                    UsuarioCard(usuario) {
+                        navController.navigate(Routes.ADMIN_USERS_DETAIL.replace("{id}", usuario.id))
+                    }
                 }
 
                 item {
@@ -148,16 +147,15 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
 @Composable
 fun UsuarioCard(
     usuario: User,
+    detailUser: ()->Unit
 
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth(),
+        onClick = detailUser,
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-//        colors = CardDefaults.cardColors(
-//            containerColor = MaterialTheme.colorScheme.surface
-//        )
     ) {
         Row(
             modifier = Modifier
@@ -174,7 +172,7 @@ fun UsuarioCard(
                         .data(usuario.photoUrl)
                         .crossfade(true)
                         .build(),
-                    contentDescription = "Foto de ${usuario.name}",
+                    contentDescription = stringResource(R.string.foto_de) + " " + usuario.name,
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape),
@@ -185,7 +183,7 @@ fun UsuarioCard(
 
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Usuario sin foto",
+                        contentDescription = stringResource(R.string.usuario_sin_foto),
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.onTertiary
                     )
@@ -194,7 +192,7 @@ fun UsuarioCard(
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = usuario.name,
@@ -206,7 +204,7 @@ fun UsuarioCard(
                 )
 
                 Text(
-                    text = usuario.email ?: "Sin correo",
+                    text = usuario.email ?: stringResource(R.string.sin_correo),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -217,7 +215,7 @@ fun UsuarioCard(
             // Ícono de flecha (opcional, indica que es clickeable)
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Ver detalles",
+                contentDescription = stringResource(R.string.ver_detalles),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
