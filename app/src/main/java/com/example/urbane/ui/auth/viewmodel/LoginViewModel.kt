@@ -86,6 +86,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                     userData
 
                 )
+                _currentUser.update {currentUser}
                 Log.d("LoginVM", "CurrentUser creado: $currentUser")
 
                 sessionManager.saveSession(currentUser)

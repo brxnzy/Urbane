@@ -29,15 +29,18 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Security
@@ -80,6 +83,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.urbane.R
 import com.example.urbane.data.model.User
+import com.example.urbane.ui.admin.users.model.UsersDetailIntent
 import com.example.urbane.ui.admin.users.model.UsersIntent
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import com.example.urbane.utils.getRoleLabelRes
@@ -142,7 +146,9 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,loginViewMo
         state.user != null -> {
             UserDetail(
                 user = state.user!!,
-                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier.padding(paddingValues),
+                viewmodel,
+                loginViewModel
 
             )
         }
@@ -154,8 +160,12 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,loginViewMo
 @Composable
 fun UserDetail(
     user: User,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewmodel: UsersDetailViewModel,
+    loginViewModel: LoginViewModel
 ) {
+    val state by viewmodel.state.collectAsState()
+    val currentUser by loginViewModel.currentUser.collectAsState()
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -203,9 +213,7 @@ fun UserDetail(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Información general
         InfoSection {
-
             UserInfoItem(
                 label = "Cédula",
                 value = user.idCard ?: "No disponible"
@@ -222,7 +230,7 @@ fun UserDetail(
                 valueColor = if (user.active == true)
                     MaterialTheme.colorScheme.primary
                 else
-                    MaterialTheme.colorScheme.error
+                    Color.Red
             )
 
             if (user.role_name == "resident") {
@@ -238,58 +246,96 @@ fun UserDetail(
         }
 
 
-        // ESTE SPACER EMPUJA LOS BOTONES HACIA ABAJO
         Spacer(modifier = Modifier.weight(1f))
-        Button(
-            onClick = { TODO() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-        ) {
+        if (currentUser?.userId != user.id) {
 
-            if (true) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Edit, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Editar", style = MaterialTheme.typography.titleMedium)
+            Button(
+                onClick = { TODO() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+            ) {
+
+                if (true) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Edit, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Editar", style = MaterialTheme.typography.titleMedium)
+                    }
+                } else {
+
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                    )
                 }
-            } else {
-
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp,
-                )
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (user.active == true){
+                Button(
+                    onClick = { viewmodel.processIntent(UsersDetailIntent.DisableUser) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red,
+                        contentColor = Color.White
+                    )
+                ) {
+
+
+                    if (true) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Block, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Deshabilitar", style = MaterialTheme.typography.titleMedium)
+                        }
+                    } else {
+
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                }
+        }else{
+            Button(
+                onClick = { TODO() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Red,
+                    contentColor = Color.White
+                )
+            ) {
+
+
+                if (true) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.DeleteForever, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Eliminar", style = MaterialTheme.typography.titleMedium)
+                    }
+                } else {
+
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
+            }
+
+
+
+
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-        Button(
-            onClick = { TODO() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
-                contentColor = Color.White
-            )
-        ) {
 
-            if (true) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Delete, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Eliminar", style = MaterialTheme.typography.titleMedium)
-                }
-            } else {
 
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp,
-                )
-            }
         }
-
-
 
     }
 }

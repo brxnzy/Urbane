@@ -10,5 +10,7 @@ data class UserDetailState(
 
 
 sealed class UsersDetailIntent {
+    data object DisableUser : UsersDetailIntent()
+
 
 }

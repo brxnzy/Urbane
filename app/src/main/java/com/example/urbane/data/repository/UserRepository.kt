@@ -246,6 +246,27 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
+    suspend fun disableUser(id: String): Boolean {
+        try {
+            Log.d("UserRepository","Deshabilitando al usuario con el id $id")
+            supabase.from("users").update(
+                {
+                    set("active", false)
+                }
+            ) {
+                filter {
+                    eq("id", id)
+                }
+            }
+            return true
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error deshabilitando al usuario: $e")
+            throw e
+        }
+    }
+
+
+
 }
 
 

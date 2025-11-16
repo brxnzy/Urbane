@@ -45,7 +45,7 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
     }
 
 
-    val filtros = listOf("Todos", "Administrador", "Residente")
+    val filtros = listOf("Todos", "Administrador", "Residente","Deshabilitados")
 
     Scaffold(
         floatingActionButton = {
