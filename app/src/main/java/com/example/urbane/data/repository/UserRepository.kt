@@ -2,6 +2,7 @@ package com.example.urbane.data.repository
 
 
 import android.util.Log
+import com.example.urbane.BuildConfig
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Residential
@@ -27,8 +28,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import com.example.urbane.data.model.CreateUserRequest
-
-
+import io.github.jan.supabase.auth.auth
 
 
 class UserRepository(val sessionManager: SessionManager) {
@@ -149,7 +149,7 @@ class UserRepository(val sessionManager: SessionManager) {
                 CreateUserRequest(name, email, idCard, password, roleId, residenceId, residentialId)
 
             val response =
-                client.post("https://xeejvlwrklfyoinsmmlu.supabase.co/functions/v1/create-user") {
+                client.post("${BuildConfig.SUPABASE_URL}/functions/v1/create-user") {
                     contentType(ContentType.Application.Json)
                     setBody(body)
                 }
@@ -182,21 +182,22 @@ class UserRepository(val sessionManager: SessionManager) {
     }
 
 
-    suspend fun getActiveUsers(): List<User> {
+    suspend fun getAllUsers(): List<User> {
         return try {
 
             val residentialId = getResidentialId() ?: emptyList<User>()
 
 
-            supabase
+            val users = supabase
                 .from("users_view")
                 .select {
                     filter {
                         eq("residential_id", residentialId)
-                        eq("active", true)
                     }
                 }
                 .decodeList<User>()
+            Log.d("UserRepository","Usuarios obtenidos $users")
+            users
 
         } catch (e: Exception) {
             Log.e("UserRepository", "Error obteniendo los usuarios: $e")
@@ -205,25 +206,6 @@ class UserRepository(val sessionManager: SessionManager) {
     }
 
 
-    suspend fun getInactiveUsers(): List<User> {
-        return try {
-            val residentialId = getResidentialId() ?: emptyList<User>()
-
-            supabase
-                .from("users_view")
-                .select {
-                    filter {
-                        eq("residential_id", residentialId)
-                        eq("active", false)
-                    }
-                }
-                .decodeList<User>()
-
-        } catch (e: Exception) {
-            Log.e("UserRepository", "Error obteniendo los usuarios inactivos: $e")
-            emptyList()
-        }
-    }
 
 
     suspend fun getUserById(id: String): User? {
@@ -241,29 +223,44 @@ class UserRepository(val sessionManager: SessionManager) {
                 .decodeSingle<User>()
 
         } catch (e: Exception) {
-            Log.e("UserRepository", "Error obteniendo los usuarios inactivos: $e")
+            Log.e("UserRepository", "Error el usuario por su id: $e")
             null
         }
     }
 
     suspend fun disableUser(id: String): Boolean {
-        try {
-            Log.d("UserRepository","Deshabilitando al usuario con el id $id")
-            supabase.from("users").update(
-                {
-                    set("active", false)
-                }
-            ) {
-                filter {
-                    eq("id", id)
-                }
+        return try {
+            val url = "${BuildConfig.SUPABASE_URL}/functions/v1/disable-user"
+
+
+            val response = supabase.httpClient.post(url) {
+                contentType(io.ktor.http.ContentType.Application.Json)
+                setBody("""{ "id": "$id" }""")
             }
-            return true
+
+            response.status.value in 200..299
         } catch (e: Exception) {
             Log.e("UserRepository", "Error deshabilitando al usuario: $e")
             throw e
         }
     }
+
+
+
+    suspend fun isUserDisabled(userId: String): Boolean? {
+        val user = supabase.from("users")
+            .select {
+                filter {
+                    eq("id", userId)
+                }
+            }
+            .decodeSingle<User>()
+
+        Log.d("UserRepository","$user")
+
+        return !user.active!!
+    }
+
 
 
 

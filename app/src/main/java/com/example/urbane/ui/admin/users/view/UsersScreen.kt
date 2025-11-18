@@ -23,7 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urbane.R
@@ -39,6 +41,17 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
     var busqueda by remember { mutableStateOf("") }
     val state by viewmodel.state.collectAsState()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    LaunchedEffect(navBackStackEntry) {
+        snapshotFlow { navBackStackEntry?.lifecycle?.currentState }
+            .collect { state ->
+                if (state == Lifecycle.State.RESUMED) {
+                    viewmodel.loadUsers()
+                }
+            }
+    }
+
 
     LaunchedEffect(Unit) {
         viewmodel.loadUsers()
@@ -46,6 +59,22 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
 
 
     val filtros = listOf("Todos", "Administrador", "Residente","Deshabilitados")
+
+    val usuariosFiltrados = state.users.filter { user ->
+        val cumpleBusqueda = user.name.contains(busqueda, ignoreCase = true)
+
+        val cumpleFiltro = when (filtroSeleccionado) {
+            "Todos" -> user.active == true
+            "Deshabilitados" -> user.active == false
+            "Administrador" -> user.role_name.equals("admin", ignoreCase = true) && user.active == true
+            "Residente" -> user.role_name.equals("resident", ignoreCase = true) && user.active == true
+            else -> true
+        }
+
+        cumpleBusqueda && cumpleFiltro
+    }
+
+
 
     Scaffold(
         floatingActionButton = {
@@ -66,7 +95,8 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                 value = busqueda,
                 onValueChange = { busqueda = it },
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .height(60.dp),
                 placeholder = { Text(stringResource(R.string.buscar_por_nombre), color = Color.Gray) },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
@@ -75,7 +105,8 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                )
+                ),
+                singleLine = true
             )
 
             LazyRow(
@@ -104,7 +135,14 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(state.activeUsers) { usuario ->
+                if (state.isLoading) {
+                    // mostrar skeletons mientras carga
+                    items(5) {
+                        UsuarioCardSkeleton()
+                    }
+                }
+
+                    items(usuariosFiltrados) { usuario ->
                     UsuarioCard(usuario) {
                         navController.navigate(Routes.ADMIN_USERS_DETAIL.replace("{id}", usuario.id))
                     }
@@ -205,6 +243,14 @@ fun UsuarioCard(
 
                 Text(
                     text = usuario.email ?: stringResource(R.string.sin_correo),
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = usuario.id,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

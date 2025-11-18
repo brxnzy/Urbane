@@ -58,6 +58,7 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
                 val result = userRepository.disableUser(id)
 
                 _state.update { it.copy(isLoading = false, success = true) }
+                loadUser(id)
 
             } catch (e: Exception) {
                 Log.e("UsersVM", "Error al deshabilitar usuario", e)

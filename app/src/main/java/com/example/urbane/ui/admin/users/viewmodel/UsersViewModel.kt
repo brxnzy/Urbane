@@ -51,6 +51,8 @@ class UsersViewModel(val sessionManager: SessionManager) : ViewModel() {
 
                 if (user == null) {
                     _state.update { it.copy(isLoading = false,success = true, errorMessage = null) }
+                    loadUsers()
+
                 } else {
                     _state.update { it.copy(isLoading = false, success = false, errorMessage = user.toString()) }
                 }
@@ -71,16 +73,16 @@ class UsersViewModel(val sessionManager: SessionManager) : ViewModel() {
 
     fun loadUsers(){
         viewModelScope.launch {
-            if (_state.value.activeUsers.isNotEmpty()) return@launch
+            if (_state.value.users.isNotEmpty()) return@launch
             try {
                 _state.update { it.copy(isLoading = true) }
 
 
-                val users = userRepository.getActiveUsers()
+                val users = userRepository.getAllUsers()
                 Log.d("UsersVM", "usuarios disponibles activos $users")
 
                 _state.update {
-                    it.copy(isLoading = false, activeUsers = users , errorMessage = null)
+                    it.copy(isLoading = false, users = users , errorMessage = null)
                 }
 
             } catch (e: Exception) {

@@ -20,6 +20,7 @@ import com.example.urbane.ui.admin.users.view.AddUserScreen
 import com.example.urbane.ui.admin.users.view.UserDetailScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
+import com.example.urbane.ui.auth.view.DisabledScreen
 import com.example.urbane.ui.auth.view.LoginScreen
 import com.example.urbane.ui.auth.view.RegisterScreen
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
@@ -162,6 +163,11 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
         composable(Routes.RESIDENT){
             ResidentScreen(sessionManager)
         }
+        composable(Routes.DISABLED){
+            DisabledScreen {
+                navController.navigate(Routes.LOGIN)
+            }
+        }
 
         composable(
             Routes.ADMIN_USERS_DETAIL,
@@ -170,9 +176,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             UserDetailScreen(
                 userId = backStackEntry.arguments?.getString("id") ?: "",
                 viewmodel = usersDetailViewModel,
-                loginViewModel = loginViewModel
+                sessionManager
             ){
-                navController.navigate(Routes.ADMIN_USERS)
+                navController.popBackStack()
             }
         }
 
