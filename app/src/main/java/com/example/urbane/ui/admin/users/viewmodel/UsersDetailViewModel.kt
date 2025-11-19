@@ -21,6 +21,7 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
     fun processIntent(intent: UsersDetailIntent) {
         when (intent) {
             is UsersDetailIntent.DisableUser -> disableUser()
+            is UsersDetailIntent.EnableUser-> enableUser()
 
             else -> {}
 
@@ -68,6 +69,34 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
             }
         }
     }
+
+    private fun enableUser() {
+        viewModelScope.launch {
+            val id = _state.value.user?.id ?: return@launch
+            try {
+                Log.d("UsersVM", "Tratando de habilitar al usuario")
+
+                _state.update { it.copy(isLoading = true, success = null, errorMessage = null) }
+
+                val residenceId = _state.value.residenceId
+                val result = userRepository.enableUser(id, residenceId)
+
+                if (result) {
+                    Log.d("UsersVM", "Usuario habilitado correctamente")
+                    _state.update { it.copy(isLoading = false, success = DetailSuccess.UserEnabled) }
+                    loadUser(id)
+                } else {
+                    Log.d("UsersVM", "No se pudo habilitar al usuario")
+                    _state.update { it.copy(isLoading = false, errorMessage = "Failed to enable user") }
+                }
+
+            } catch (e: Exception) {
+                Log.e("UsersVM", "Error al habilitar usuario", e)
+                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+            }
+        }
+    }
+
 
 
     fun reset() {

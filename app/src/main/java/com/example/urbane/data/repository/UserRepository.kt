@@ -285,12 +285,32 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
+    suspend fun enableUser(id: String, residenceId: Int?): Boolean {
+        return try {
+            if (residenceId != null) {
+                supabase.from("residences").update(
+                    {
+                        set("residentId", id)
+                    }
+                ) {
+                    filter { eq("id", residenceId) }
+                }
+            }
 
+            supabase.from("users").update(
+                {
+                    set("active", true)
+                }
+            ) {
+                filter { eq("id", id) } // filtro necesario
+            }
 
-
-
-
-
+            true
+        } catch (e: Exception) {
+            Log.e("UserRepository", "error habilitando el usuario $e")
+            false
+        }
+    }
 
     suspend fun isUserDisabled(userId: String): Boolean? {
         val user = supabase.from("users")

@@ -65,6 +65,7 @@
     <string name="usuario_editado">Usuario editado!</string>
     <string name="usuario_deshabilitado_correctamente">Usuario deshabilitado correctamente</string>
     <string name="usuario_deshabilitado">Usuario Deshabilitado!</string>
+    <string name="usuario_habilitado">Usuario habilitado!</string>
 
 
 </resources>

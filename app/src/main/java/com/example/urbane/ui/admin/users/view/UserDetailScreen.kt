@@ -59,6 +59,11 @@ import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.User
 import com.example.urbane.ui.admin.users.model.DetailSuccess
 import com.example.urbane.ui.admin.users.model.UsersDetailIntent
+import com.example.urbane.ui.admin.users.view.components.DisabledDialog
+import com.example.urbane.ui.admin.users.view.components.EditDialog
+import com.example.urbane.ui.admin.users.view.components.EnableDialog
+import com.example.urbane.ui.admin.users.view.components.InfoSection
+import com.example.urbane.ui.admin.users.view.components.UserInfoItem
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.utils.getRoleLabelRes
 
@@ -67,6 +72,7 @@ import com.example.urbane.utils.getRoleLabelRes
 sealed class DialogType {
     object EditSuccess : DialogType()
     object DisableSuccess : DialogType()
+    object EnableSuccess: DialogType()
 }
 
 
@@ -84,14 +90,28 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
     }
 
     when (state.success) {
-        DetailSuccess.UserEdited -> dialogToShow = DialogType.EditSuccess
+        DetailSuccess.UserEnabled -> dialogToShow = DialogType.EnableSuccess
         DetailSuccess.UserDisabled -> dialogToShow = DialogType.DisableSuccess
+        DetailSuccess.UserEdited -> dialogToShow = DialogType.EditSuccess
         null -> Unit
     }
 
+    if (state.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(40.dp)
+            )
+        }
+    }
+
+
     when (dialogToShow) {
-        DialogType.EditSuccess -> {
-            EditDialog(
+        DialogType.EnableSuccess -> {
+            EnableDialog(
                 onDismiss = { dialogToShow = null },
                 goBack = goBack
             )
@@ -106,6 +126,7 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
 
         }
         null -> Unit
+        DialogType.EditSuccess -> TODO()
     }
 
 
@@ -313,7 +334,7 @@ fun UserDetail(
         }else{
 
                 Button(
-                    onClick = { TODO() },
+                    onClick ={viewmodel.processIntent(UsersDetailIntent.EnableUser) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -382,106 +403,10 @@ fun UserDetail(
     }
 }
 
-@Composable
-fun InfoSection(content: @Composable ColumnScope.() -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            content = content
-        )
-    }
-}
-
-@Composable
-fun UserInfoItem(
-    label: String,
-    value: String,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = valueColor,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f, fill = false)
-        )
-    }
-}
-
-@Composable
-fun DisabledDialog(goBack: () -> Unit, onDismiss: () -> Unit){
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                Icons.Default.CheckCircle,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp)
-            )
-        },
-        title = { Text(stringResource(R.string.usuario_deshabilitado)) },
-        text = {
-            Text(
-                stringResource(R.string.usuario_deshabilitado_correctamente)
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                onDismiss
-                goBack()
-
-            }) {
-                Text(stringResource(R.string.aceptar))
-            }
-        }
-    )
-}
 
 
-@Composable
-fun EditDialog(goBack: () -> Unit, onDismiss: () -> Unit){
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                Icons.Default.CheckCircle,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp)
-            )
-        },
-        title = { Text(stringResource(R.string.usuario_editado)) },
-        text = {
-            Text(
-                stringResource(R.string.usuario_editado_correctamente)
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                onDismiss
-                goBack()
 
-            }) {
-                Text(stringResource(R.string.aceptar))
-            }
-        }
-    )
-}
+
+
+
+
