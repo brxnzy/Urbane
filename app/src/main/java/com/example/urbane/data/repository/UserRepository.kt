@@ -213,10 +213,10 @@ class UserRepository(val sessionManager: SessionManager) {
 
 
     suspend fun getUserById(id: String): User? {
-        return try {
+         try {
             val residentialId = getResidentialId() ?: emptyList<User>()
 
-            supabase
+            val user = supabase
                 .from("users_view")
                 .select {
                     filter {
@@ -226,10 +226,15 @@ class UserRepository(val sessionManager: SessionManager) {
                 }
                 .decodeSingle<User>()
 
+
+             Log.d("UserRepository","USUARIO POR ID CAPTURADO $user")
+             return user
+
         } catch (e: Exception) {
             Log.e("UserRepository", "Error el usuario por su id: $e")
-            null
+            return null
         }
+
     }
 
     suspend fun disableUser(id: String): Boolean {
@@ -287,6 +292,8 @@ class UserRepository(val sessionManager: SessionManager) {
 
     suspend fun enableUser(id: String, residenceId: Int?): Boolean {
         return try {
+
+            // Si es residente, asignar residencia
             if (residenceId != null) {
                 supabase.from("residences").update(
                     {
@@ -295,17 +302,27 @@ class UserRepository(val sessionManager: SessionManager) {
                 ) {
                     filter { eq("id", residenceId) }
                 }
+
+                supabase.from("users_residentials_roles").update(
+                    {
+                        set("residence_id", residenceId)
+                    }
+                ) {
+                    filter { eq("user_id", id) }   // CORREGIDO
+                }
             }
 
+            // Activar usuario
             supabase.from("users").update(
                 {
                     set("active", true)
                 }
             ) {
-                filter { eq("id", id) } // filtro necesario
+                filter { eq("id", id) }
             }
 
             true
+
         } catch (e: Exception) {
             Log.e("UserRepository", "error habilitando el usuario $e")
             false

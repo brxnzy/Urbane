@@ -177,6 +177,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 userId = backStackEntry.arguments?.getString("id") ?: "",
                 viewmodel = usersDetailViewModel,
                 usersViewModel,
+                residencesViewModel,
                 sessionManager
             ){
                 navController.popBackStack()

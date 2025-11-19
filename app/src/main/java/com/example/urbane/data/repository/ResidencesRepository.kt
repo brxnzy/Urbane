@@ -20,7 +20,7 @@ class ResidencesRepository(val sessionManager: SessionManager) {
     suspend fun createResidence(name:String, type:String, description:String, residentialId:Int){
         try {
             Log.d("ResidencesRepository","intentando crear residencia")
-            val data = Residence(name=name, type=type, description=description, residentialId=residentialId)
+            val data = Residence(name=name, type=type, description=description, available = true, residentialId=residentialId)
             supabase.from("residences").insert(data)
         }catch (e: Exception){
 

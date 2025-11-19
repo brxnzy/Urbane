@@ -89,7 +89,7 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
     val residencesState by residencesViewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        residencesViewModel.loadAvailableResidences()
+        residencesViewModel.loadResidences()
     }
     val roles = listOf(
                 Role(1, stringResource(R.string.role_admin)),
@@ -107,8 +107,9 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
         stringResource(R.string.terreno), stringResource(R.string.local))
 
     val residenciasFiltradas = residencesState.residences.filter {
-        it.type == selectedTipoPropiedad
+        it.available && selectedTipoPropiedad.isNotBlank() && it.type == selectedTipoPropiedad
     }
+
 
     Scaffold(
         topBar = {

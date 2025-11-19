@@ -22,4 +22,5 @@ sealed class DetailSuccess {
     object UserEdited : DetailSuccess()
     object UserEnabled : DetailSuccess()
     object UserDisabled : DetailSuccess()
+
 }

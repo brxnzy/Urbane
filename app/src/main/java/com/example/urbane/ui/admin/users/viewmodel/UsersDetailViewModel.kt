@@ -79,6 +79,7 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
                 _state.update { it.copy(isLoading = true, success = null, errorMessage = null) }
 
                 val residenceId = _state.value.residenceId
+                Log.d("UsersVM","ID DE LA RESIDENCIA $residenceId")
                 val result = userRepository.enableUser(id, residenceId)
 
                 if (result) {
@@ -102,6 +103,11 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
     fun reset() {
         _state.value = UserDetailState()
     }
+
+    fun setResidenceId(id: Int?) {
+        _state.update { it.copy(residenceId = id) }
+    }
+
 
 
 

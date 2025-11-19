@@ -1,9 +1,7 @@
 package com.example.urbane.ui.admin.users.view
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,16 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,9 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -57,11 +50,12 @@ import coil.compose.AsyncImage
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.User
+import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.model.DetailSuccess
 import com.example.urbane.ui.admin.users.model.UsersDetailIntent
 import com.example.urbane.ui.admin.users.view.components.DisabledDialog
-import com.example.urbane.ui.admin.users.view.components.EditDialog
 import com.example.urbane.ui.admin.users.view.components.EnableDialog
+import com.example.urbane.ui.admin.users.view.components.EnableResidentDialog
 import com.example.urbane.ui.admin.users.view.components.InfoSection
 import com.example.urbane.ui.admin.users.view.components.UserInfoItem
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
@@ -73,14 +67,16 @@ sealed class DialogType {
     object EditSuccess : DialogType()
     object DisableSuccess : DialogType()
     object EnableSuccess: DialogType()
+
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewModel: UsersViewModel, sessionManager: SessionManager, goBack:()-> Unit) {
+fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewModel: UsersViewModel,residencesViewModel: ResidencesViewModel, sessionManager: SessionManager, goBack:()-> Unit) {
     val state by viewmodel.state.collectAsState()
     var dialogToShow by remember { mutableStateOf<DialogType?>(null) }
+    var showEnableResidentDialog by remember { mutableStateOf(false) }
 
 
 
@@ -89,45 +85,48 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
         viewmodel.loadUser(userId)
     }
 
-    when (state.success) {
-        DetailSuccess.UserEnabled -> dialogToShow = DialogType.EnableSuccess
-        DetailSuccess.UserDisabled -> dialogToShow = DialogType.DisableSuccess
-        DetailSuccess.UserEdited -> dialogToShow = DialogType.EditSuccess
-        null -> Unit
-    }
 
-    if (state.isLoading) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(40.dp)
-            )
+    LaunchedEffect(state.success) {
+        val success = state.success ?: return@LaunchedEffect
+
+        dialogToShow = when (success) {
+            DetailSuccess.UserEnabled -> DialogType.EnableSuccess
+            DetailSuccess.UserDisabled -> DialogType.DisableSuccess
+            DetailSuccess.UserEdited -> DialogType.EditSuccess
         }
+
+
+        viewmodel.reset()
     }
 
 
     when (dialogToShow) {
-        DialogType.EnableSuccess -> {
-            EnableDialog(
-                onDismiss = { dialogToShow = null },
-                goBack = goBack
-            )
-            viewmodel.reset()
-        }
-        DialogType.DisableSuccess -> {
-            DisabledDialog(
-                onDismiss = { dialogToShow = null },
-                goBack = goBack
-            )
-            viewmodel.reset()
+        DialogType.EnableSuccess -> EnableDialog(
+            onDismiss = { dialogToShow = null },
+            goBack = goBack
+        )
 
-        }
-        null -> Unit
+        DialogType.DisableSuccess -> DisabledDialog(
+            onDismiss = { dialogToShow = null },
+            goBack = goBack
+        )
+
         DialogType.EditSuccess -> TODO()
+
+
+
+        null -> Unit
     }
+
+
+    if (showEnableResidentDialog) {
+        EnableResidentDialog(
+            residencesViewModel = residencesViewModel,
+            usersDetailViewModel = viewmodel,
+            closeDialog = { showEnableResidentDialog = false }
+        )
+    }
+
 
 
 
@@ -136,9 +135,14 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
                 TopAppBar(
                     title = {
                         Text(
-                            text = if(!state.isLoading) stringResource(R.string.perfil_de) + " " + state.user?.name else "",
+                            text = if (!state.isLoading && state.user != null) {
+                                stringResource(R.string.perfil_de) + " " + state.user!!.name
+                            } else {
+                                "" // o un placeholder como "Cargando..."
+                            },
                             style = MaterialTheme.typography.displayMedium
                         )
+
                     },
                     navigationIcon = {
                         IconButton(onClick = {
@@ -171,12 +175,14 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
             }
         }
 
+
         state.user != null -> {
             UserDetail(
                 user = state.user!!,
                 modifier = Modifier.padding(paddingValues),
                 viewmodel,
-                sessionManager
+                sessionManager,
+                onShowEnableResidentDialog = { showEnableResidentDialog = true }
 
             )
         }
@@ -190,7 +196,8 @@ fun UserDetail(
     user: User,
     modifier: Modifier = Modifier,
     viewmodel: UsersDetailViewModel,
-    sessionManager: SessionManager
+    sessionManager: SessionManager,
+    onShowEnableResidentDialog: () -> Unit
 ) {
     val state by viewmodel.state.collectAsState()
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
@@ -202,6 +209,18 @@ fun UserDetail(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+
+        }
 
 
         if (user.photoUrl != null) {
@@ -243,6 +262,10 @@ fun UserDetail(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+
+
+
+
         InfoSection {
             UserInfoItem(
                 label = "Cédula",
@@ -276,7 +299,9 @@ fun UserDetail(
         }
 
 
+
         Spacer(modifier = Modifier.weight(1f))
+
         if (currentUser?.userId != user.id) {
 
 
@@ -302,6 +327,7 @@ fun UserDetail(
                     )
                 }
             }
+
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -334,7 +360,13 @@ fun UserDetail(
         }else{
 
                 Button(
-                    onClick ={viewmodel.processIntent(UsersDetailIntent.EnableUser) },
+                    onClick = {
+                        if (user.role_name == "resident") {
+                            onShowEnableResidentDialog()
+                        } else {
+                            viewmodel.processIntent(UsersDetailIntent.EnableUser)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -384,21 +416,9 @@ fun UserDetail(
                     )
                 }
             }
-
-
-
-
         }
 
-
-
         }
-
-
-
-
-
-
 
     }
 }

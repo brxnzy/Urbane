@@ -66,7 +66,7 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                     )
                 }
 
-                loadResidences()
+                loadResidences(true)
 
             } catch (e: Exception) {
                 Log.e("ResidencesVM", "error creando residencias $e")
@@ -75,10 +75,9 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
         }
     }
 
-    fun loadResidences() {
-
+    fun loadResidences(forceRefresh: Boolean = false) {
         viewModelScope.launch {
-            if (_state.value.residences.isNotEmpty()) return@launch
+            if (!forceRefresh && _state.value.residences.isNotEmpty()) return@launch
             try {
                 _state.update { it.copy(isLoading = true) }
 
@@ -100,30 +99,30 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
         }
     }
 
-    fun loadAvailableResidences() {
-        viewModelScope.launch {
-        if (_state.value.availableResidences.isNotEmpty()) return@launch
-            try {
-                _state.update { it.copy(isLoading = true) }
-
-                val user = sessionManager.sessionFlow.firstOrNull()
-                    ?: throw IllegalStateException("No hay sesión activa")
-
-                val residentialId = user.userData?.residential?.id
-                    ?: throw IllegalStateException("No se encontró el ID del residencial")
-
-                val residences = ResidencesRepository(sessionManager).getAvailableResidences(residentialId)
-                Log.d("ResidencesVM", "residencias disponibles $residences")
-
-                _state.update {
-                    it.copy(isLoading = false, availableResidences  = residences, errorMessage = null)
-                }
-
-            } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
-            }
-        }
-    }
+//    fun loadAvailableResidences() {
+//        viewModelScope.launch {
+//        if (_state.value.availableResidences.isNotEmpty()) return@launch
+//            try {
+//                _state.update { it.copy(isLoading = true) }
+//
+//                val user = sessionManager.sessionFlow.firstOrNull()
+//                    ?: throw IllegalStateException("No hay sesión activa")
+//
+//                val residentialId = user.userData?.residential?.id
+//                    ?: throw IllegalStateException("No se encontró el ID del residencial")
+//
+//                val residences = ResidencesRepository(sessionManager).getAvailableResidences(residentialId)
+//                Log.d("ResidencesVM", "residencias disponibles $residences")
+//
+//                _state.update {
+//                    it.copy(isLoading = false, availableResidences  = residences, errorMessage = null)
+//                }
+//
+//            } catch (e: Exception) {
+//                _state.update { it.copy(isLoading = false, errorMessage = e.message) }
+//            }
+//        }
+//    }
 
 
 }
