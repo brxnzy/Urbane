@@ -38,8 +38,8 @@
     <string name="villa">Villa</string>
     <string name="local">Local</string>
     <string name="guardar_usuario">Guardar usuario</string>
-    <string name="usuario_creado">¡Usuario creado!</string>
-    <string name="el_usuario_ha_sido_creada_exitosamente">El usuario ha sido creada exitosamente</string>
+    <string name="usuario_creado">Usuario creado!</string>
+    <string name="el_usuario_ha_sido_creada_exitosamente">El usuario ha sido creado exitosamente</string>
     <string name="no_hay_residencias_disponibles">No hay residencias disponibles</string>
     <string name="residencia">Residencia</string>
     <string name="selecciona_una_residencia">Selecciona una residencia</string>
@@ -61,6 +61,10 @@
     <string name="sin_correo">Sin correo</string>
     <string name="ver_detalles">Ver detalles</string>
     <string name="foto_de">Foto de</string>
+    <string name="usuario_editado_correctamente">Usuario editado correctamente</string>
+    <string name="usuario_editado">Usuario editado!</string>
+    <string name="usuario_deshabilitado_correctamente">Usuario deshabilitado correctamente</string>
+    <string name="usuario_deshabilitado">Usuario Deshabilitado!</string>
 
 
 </resources>

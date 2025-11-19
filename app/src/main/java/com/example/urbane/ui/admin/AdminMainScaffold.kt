@@ -158,7 +158,7 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
             style = MaterialTheme.typography.titleLarge,
         )
         HorizontalDivider(modifier = Modifier.padding(bottom = 20.dp))
-        DrawerItem("Dashboard", Icons.Outlined.Dashboard, Routes.ADMIN, currentRoute, onDestinationClicked)
+        DrawerItem("Dashboard", Icons.Outlined.Dashboard , Routes.ADMIN, currentRoute, onDestinationClicked)
         DrawerItem("Usuarios", Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
         DrawerItem("Residencias", Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
         DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)

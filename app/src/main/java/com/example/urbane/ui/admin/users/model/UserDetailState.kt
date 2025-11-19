@@ -3,7 +3,7 @@ import com.example.urbane.data.model.User
 
 data class UserDetailState(
     val isLoading: Boolean = false,
-    val success: Boolean = false,
+    val success: DetailSuccess? = null,
     val errorMessage: String? = null,
     val user: User? = null
 )
@@ -13,4 +13,10 @@ sealed class UsersDetailIntent {
     data object DisableUser : UsersDetailIntent()
 
 
+}
+
+
+sealed class DetailSuccess {
+    object UserEdited : DetailSuccess()
+    object UserDisabled : DetailSuccess()
 }

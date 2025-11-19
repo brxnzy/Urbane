@@ -27,7 +27,7 @@ class UsersViewModel(val sessionManager: SessionManager) : ViewModel() {
             is UsersIntent.IdCardChanged -> _state.update { it.copy(idCard = intent.idCard) }
             is UsersIntent.PasswordChanged -> _state.update { it.copy(password = intent.password) }
             is UsersIntent.RoleChanged -> _state.update { it.copy(roleId = intent.roleId) }
-            is UsersIntent.ResidenceChanged -> _state.update { it.copy(residenceId  = intent.residenceId) }
+            is UsersIntent.ResidenceChanged -> _state.update { it.copy(residenceId = intent.residenceId) }
             UsersIntent.CreateUser -> createUser()
         }
     }
@@ -50,11 +50,23 @@ class UsersViewModel(val sessionManager: SessionManager) : ViewModel() {
 
 
                 if (user == null) {
-                    _state.update { it.copy(isLoading = false,success = true, errorMessage = null) }
-                    loadUsers()
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            success = true,
+                            errorMessage = null
+                        )
+                    }
+                    loadUsers(true)
 
                 } else {
-                    _state.update { it.copy(isLoading = false, success = false, errorMessage = user.toString()) }
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            success = false,
+                            errorMessage = user.toString()
+                        )
+                    }
                 }
 
 
@@ -71,26 +83,24 @@ class UsersViewModel(val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-    fun loadUsers(){
+    fun loadUsers(forceRefresh: Boolean = false) {
         viewModelScope.launch {
-            if (_state.value.users.isNotEmpty()) return@launch
+            if (!forceRefresh && _state.value.users.isNotEmpty()) return@launch
+
             try {
                 _state.update { it.copy(isLoading = true) }
 
-
                 val users = userRepository.getAllUsers()
-                Log.d("UsersVM", "usuarios disponibles activos $users")
 
                 _state.update {
-                    it.copy(isLoading = false, users = users , errorMessage = null)
+                    it.copy(isLoading = false, users = users, errorMessage = null)
                 }
 
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, errorMessage = e.message) }
             }
         }
-        }
-
-
     }
+}
+
 

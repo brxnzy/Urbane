@@ -249,16 +249,8 @@ fun UsuarioCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Text(
-                    text = usuario.id,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
             }
 
-            // Ícono de flecha (opcional, indica que es clickeable)
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = stringResource(R.string.ver_detalles),

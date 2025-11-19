@@ -57,7 +57,6 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-
     @RequiresApi(Build.VERSION_CODES.P)
     private fun handleSubmit() {
         viewModelScope.launch {
@@ -83,6 +82,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 Log.d("LoginVM", "$disabled")
                 if (disabled == true){
                     _state.update { it.copy(isLoading = false, disabled = true, errorMessage = null) }
+                    supabase.auth.signOut()
                     return@launch
 
                 }
@@ -156,6 +156,11 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
         }
     }
+
+    fun reset() {
+        _state.value = LoginState()
+    }
+
 
 
 

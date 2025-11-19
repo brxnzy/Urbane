@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -32,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -42,6 +44,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -52,18 +57,58 @@ import coil.compose.AsyncImage
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.User
+import com.example.urbane.ui.admin.users.model.DetailSuccess
 import com.example.urbane.ui.admin.users.model.UsersDetailIntent
+import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.utils.getRoleLabelRes
+
+
+
+sealed class DialogType {
+    object EditSuccess : DialogType()
+    object DisableSuccess : DialogType()
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,sessionManager: SessionManager, goBack:()-> Unit) {
+fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewModel: UsersViewModel, sessionManager: SessionManager, goBack:()-> Unit) {
     val state by viewmodel.state.collectAsState()
+    var dialogToShow by remember { mutableStateOf<DialogType?>(null) }
+
+
 
 
     LaunchedEffect(userId) {
         viewmodel.loadUser(userId)
     }
+
+    when (state.success) {
+        DetailSuccess.UserEdited -> dialogToShow = DialogType.EditSuccess
+        DetailSuccess.UserDisabled -> dialogToShow = DialogType.DisableSuccess
+        null -> Unit
+    }
+
+    when (dialogToShow) {
+        DialogType.EditSuccess -> {
+            EditDialog(
+                onDismiss = { dialogToShow = null },
+                goBack = goBack
+            )
+            viewmodel.reset()
+        }
+        DialogType.DisableSuccess -> {
+            DisabledDialog(
+                onDismiss = { dialogToShow = null },
+                goBack = goBack
+            )
+            viewmodel.reset()
+
+        }
+        null -> Unit
+    }
+
+
 
     Scaffold(
             topBar = {
@@ -75,7 +120,10 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,sessionMana
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { goBack() }) {
+                        IconButton(onClick = {
+                            usersViewModel.loadUsers(true)
+                            goBack()
+                        }) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(R.string.atras),
@@ -325,6 +373,12 @@ fun UserDetail(
 
         }
 
+
+
+
+
+
+
     }
 }
 
@@ -371,3 +425,63 @@ fun UserInfoItem(
     }
 }
 
+@Composable
+fun DisabledDialog(goBack: () -> Unit, onDismiss: () -> Unit){
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(48.dp)
+            )
+        },
+        title = { Text(stringResource(R.string.usuario_deshabilitado)) },
+        text = {
+            Text(
+                stringResource(R.string.usuario_deshabilitado_correctamente)
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onDismiss
+                goBack()
+
+            }) {
+                Text(stringResource(R.string.aceptar))
+            }
+        }
+    )
+}
+
+
+@Composable
+fun EditDialog(goBack: () -> Unit, onDismiss: () -> Unit){
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(48.dp)
+            )
+        },
+        title = { Text(stringResource(R.string.usuario_editado)) },
+        text = {
+            Text(
+                stringResource(R.string.usuario_editado_correctamente)
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onDismiss
+                goBack()
+
+            }) {
+                Text(stringResource(R.string.aceptar))
+            }
+        }
+    )
+}

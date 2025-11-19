@@ -29,6 +29,10 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import com.example.urbane.data.model.CreateUserRequest
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.buildJsonObject
 
 
 class UserRepository(val sessionManager: SessionManager) {
@@ -230,20 +234,61 @@ class UserRepository(val sessionManager: SessionManager) {
 
     suspend fun disableUser(id: String): Boolean {
         return try {
-            val url = "${BuildConfig.SUPABASE_URL}/functions/v1/disable-user"
+            Log.d("UserRepository","Id del user para deshabilitarlo $id")
+            val roles = supabase
+                .from("users_residentials_roles")
+                .select()
+                {
+                    filter {
+                        eq("user_id", id)
+                    }
+                }
+                .decodeList<UrrIds>()
 
-
-            val response = supabase.httpClient.post(url) {
-                contentType(io.ktor.http.ContentType.Application.Json)
-                setBody("""{ "id": "$id" }""")
+            if (roles.isEmpty()) {
+                Log.e("UserRepository", "No se encontró el rol del usuario")
+                return false
             }
 
-            response.status.value in 200..299
+            val role = roles.first()
+            val roleId = role.role_id
+
+
+            val residentialId = role.residential_id
+            Log.d("UserRepository", "Role del usuario $roleId y rol del residencial $residentialId")
+
+            // 2. Si es residente (role_id = 2)
+            if (roleId == 2) {
+                supabase.postgrest.rpc(
+                    "reset_user_residential_role",
+                    mapOf("uid" to id)
+                )
+            }
+
+
+            supabase.from("users")
+                .update(
+                    {
+                        set("active", false)
+                    }
+                ) {
+                    filter {
+                        eq("id", id)
+                    }
+                }
+
+            true
+
         } catch (e: Exception) {
-            Log.e("UserRepository", "Error deshabilitando al usuario: $e")
-            throw e
+            Log.e("UserRepository", "Error al deshabilitar usuario $e")
+            false
         }
     }
+
+
+
+
+
 
 
 

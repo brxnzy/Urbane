@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.repository.UserRepository
+import com.example.urbane.ui.admin.users.model.DetailSuccess
 import com.example.urbane.ui.admin.users.model.UserDetailState
 import com.example.urbane.ui.admin.users.model.UsersDetailIntent
+import com.example.urbane.ui.auth.model.LoginState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -53,11 +55,11 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
             try {
                 Log.d("UsersVM", "Tratando de deshabilitar al usuario")
 
-                _state.update { it.copy(isLoading = true, success = false, errorMessage = null) }
+                _state.update { it.copy(isLoading = true, success = null, errorMessage = null) }
 
-                val result = userRepository.disableUser(id)
+                userRepository.disableUser(id)
 
-                _state.update { it.copy(isLoading = false, success = true) }
+                _state.update { it.copy(isLoading = false, success = DetailSuccess.UserDisabled) }
                 loadUser(id)
 
             } catch (e: Exception) {
@@ -67,6 +69,10 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
+
+    fun reset() {
+        _state.value = UserDetailState()
+    }
 
 
 

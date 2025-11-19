@@ -73,7 +73,8 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
     }
 
     if (state.disabled) {
-        LaunchedEffect(state.disabled) {
+        LaunchedEffect(Unit) {
+            viewModel.reset()
             navController.navigate(Routes.DISABLED) {
                 popUpTo(Routes.LOGIN) { inclusive = true }
             }
@@ -194,7 +195,7 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
 //                }
 
 
-            Text("${state.disabled}")
+
             Text("No tienes una cuenta?",
                 fontSize = 18.sp,
                 style = MaterialTheme.typography.bodyMedium,
