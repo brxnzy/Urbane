@@ -63,6 +63,7 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
                 _state.update { it.copy(isLoading = false, success = DetailSuccess.UserDisabled) }
                 loadUser(id)
 
+
             } catch (e: Exception) {
                 Log.e("UsersVM", "Error al deshabilitar usuario", e)
                 _state.update { it.copy(isLoading = false, errorMessage = e.message) }

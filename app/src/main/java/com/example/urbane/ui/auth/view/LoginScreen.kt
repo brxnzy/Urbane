@@ -190,9 +190,9 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
                 )
             }
 
-//                if (state.errorMessage != null) {
-//                    Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
-//                }
+                if (state.errorMessage != null) {
+                    Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
+                }
 
 
 

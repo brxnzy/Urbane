@@ -54,7 +54,7 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
 
 
     LaunchedEffect(Unit) {
-        viewmodel.loadUsers()
+        viewmodel.loadUsers(true)
     }
 
 
@@ -136,7 +136,6 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (state.isLoading) {
-                    // mostrar skeletons mientras carga
                     items(5) {
                         UsuarioCardSkeleton()
                     }

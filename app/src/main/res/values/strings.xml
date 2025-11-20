@@ -67,6 +67,7 @@
     <string name="usuario_deshabilitado">Usuario Deshabilitado!</string>
     <string name="usuario_habilitado">Usuario habilitado!</string>
     <string name="reclamos">Reclamos</string>
+    <string name="sin_tipo">Sin tipo</string>
 
 
 </resources>

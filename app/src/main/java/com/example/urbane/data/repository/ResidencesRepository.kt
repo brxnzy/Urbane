@@ -22,7 +22,8 @@ class ResidencesRepository(val sessionManager: SessionManager) {
         try {
             val residentialId = getResidentialId()
             Log.d("ResidencesRepository","intentando crear residencia")
-            val data = Residence(name =name, type =type, description =description, available = true, residentialId =residentialId)
+            val data = Residence(name =name, type =type, description =description, available = true, residentialId =residentialId, ownerId = ownerId)
+            Log.d("ResidencesRepository","DATOS A INSERTAR $data")
             supabase.from("residences").insert(data)
         }catch (e: Exception){
 

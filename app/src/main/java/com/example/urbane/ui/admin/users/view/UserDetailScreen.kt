@@ -262,9 +262,6 @@ fun UserDetail(
         Spacer(modifier = Modifier.height(32.dp))
 
 
-
-
-
         InfoSection {
             UserInfoItem(
                 label = "Cédula",
@@ -327,9 +324,7 @@ fun UserDetail(
                 }
             }
 
-
             Spacer(modifier = Modifier.height(12.dp))
-
                 Button(
                     onClick = { viewmodel.processIntent(UsersDetailIntent.DisableUser) },
                     modifier = Modifier

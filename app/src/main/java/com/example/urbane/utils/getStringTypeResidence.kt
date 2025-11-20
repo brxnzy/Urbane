@@ -11,6 +11,7 @@ fun getTipoPropiedadLabelRes(tipo: String?): Int {
         "Villa" -> R.string.villa
         "Terreno" -> R.string.terreno
         "Local" -> R.string.local
-        else -> "Sin tipo"
-    } as Int
+        else -> R.string.sin_tipo
+    }
 }
+
