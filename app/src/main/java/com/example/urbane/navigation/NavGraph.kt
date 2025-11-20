@@ -15,6 +15,10 @@ import androidx.navigation.navArgument
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
+import com.example.urbane.ui.admin.claims.view.ClaimsScreen
+import com.example.urbane.ui.admin.residences.model.ResidencesDetailSuccess
+import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
+import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.view.AddUserScreen
 import com.example.urbane.ui.admin.users.view.UserDetailScreen
@@ -37,6 +41,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val residencesViewModel = ResidencesViewModel(sessionManager)
     val usersViewModel = UsersViewModel(sessionManager)
     val usersDetailViewModel = UsersDetailViewModel(sessionManager)
+    val residencesDetailViewModel = ResidencesDetailViewModel(sessionManager)
 
 
     NavHost(
@@ -60,7 +65,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 }
             }
         }
-
         composable(Routes.REGISTER) {
             val registerViewModel = RegisterViewModel()
             RegisterScreen(
@@ -70,7 +74,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 toLogin = { navController.navigate(Routes.LOGIN) }
             )
         }
-
         composable(Routes.LOGIN) {
             LoginScreen(
                 loginViewModel,
@@ -95,7 +98,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 }
             )
         }
-
         composable(Routes.ADMIN_USERS) {
             AdminMainScaffold(
                 navController = navController,
@@ -107,7 +109,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
 
             )
         }
-
         composable(Routes.ADMIN_RESIDENCES) {
             AdminMainScaffold(
                 navController = navController,
@@ -121,7 +122,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             )
 
         }
-
         composable(Routes.ADMIN) {
             AdminMainScaffold(
                 navController = navController,
@@ -134,8 +134,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             )
 
         }
-
-
         composable(Routes.ADMIN_PAYMENTS) {
             AdminMainScaffold(
                 navController = navController,
@@ -147,19 +145,28 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
 
             )
         }
+        composable(Routes.ADMIN_CLAIMS) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_CLAIMS,
+                loginViewModel,
+                sessionManager,
+                residencesViewModel,
+                usersViewModel
 
+            )
+        }
         composable(Routes.ADMIN_USERS_ADD) {
             AddUserScreen(usersViewModel, residencesViewModel){
-                navController.navigate(Routes.ADMIN_USERS)
+                navController.popBackStack()
             }
         }
         composable(Routes.ADMIN_RESIDENCES_ADD) {
             val residencesViewModel = ResidencesViewModel(sessionManager)
             AddResidenceScreen(residencesViewModel){
-                navController.navigate(Routes.ADMIN_RESIDENCES)
+                navController.popBackStack()
             }
         }
-
         composable(Routes.RESIDENT){
             ResidentScreen(sessionManager)
         }
@@ -168,7 +175,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 navController.navigate(Routes.LOGIN)
             }
         }
-
         composable(
             Routes.ADMIN_USERS_DETAIL,
             arguments = listOf(navArgument("id") { type = NavType.StringType })
@@ -183,6 +189,18 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 navController.popBackStack()
             }
         }
+        composable(
+            Routes.ADMIN_RESIDENCES_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { backStackEntry ->
+            ResidencesDetailScreen(
+                residenceId = backStackEntry.arguments?.getInt("id") ?: 0,
+                viewmodel = residencesDetailViewModel,
+            ){
+                navController.popBackStack()
+            }
+        }
+
 
     }
 }

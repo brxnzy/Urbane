@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-class UsersViewModel(val sessionManager: SessionManager) : ViewModel() {
+class UsersViewModel (val sessionManager: SessionManager) : ViewModel() {
 
     private val _state = MutableStateFlow(UserState())
     val state = _state.asStateFlow()
@@ -57,6 +57,7 @@ class UsersViewModel(val sessionManager: SessionManager) : ViewModel() {
                             errorMessage = null
                         )
                     }
+
                     loadUsers(true)
 
                 } else {
@@ -101,6 +102,8 @@ class UsersViewModel(val sessionManager: SessionManager) : ViewModel() {
             }
         }
     }
+
+
 }
 
 

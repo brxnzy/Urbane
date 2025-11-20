@@ -210,6 +210,31 @@ class UserRepository(val sessionManager: SessionManager) {
     }
 
 
+    suspend fun getOwners(): List<User> {
+        return try {
+
+            val residentialId = getResidentialId() ?: emptyList<User>()
+
+
+            val users = supabase
+                .from("users_view")
+                .select {
+                    filter {
+                        eq("residential_id", residentialId)
+                        eq("role_name","owner")
+                    }
+                }
+                .decodeList<User>()
+            Log.d("UserRepository","Usuarios obtenidos $users")
+            users
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error obteniendo los usuarios: $e")
+            emptyList()
+        }
+    }
+
+
 
 
     suspend fun getUserById(id: String): User? {
@@ -298,6 +323,7 @@ class UserRepository(val sessionManager: SessionManager) {
                 supabase.from("residences").update(
                     {
                         set("residentId", id)
+                        set("available", false)
                     }
                 ) {
                     filter { eq("id", residenceId) }

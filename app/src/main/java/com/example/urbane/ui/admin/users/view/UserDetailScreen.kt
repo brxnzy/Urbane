@@ -60,7 +60,7 @@ import com.example.urbane.ui.admin.users.view.components.InfoSection
 import com.example.urbane.ui.admin.users.view.components.UserInfoItem
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.utils.getRoleLabelRes
-
+import com.example.urbane.utils.getTipoPropiedadLabelRes
 
 
 sealed class DialogType {
@@ -78,12 +78,11 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
     var dialogToShow by remember { mutableStateOf<DialogType?>(null) }
     var showEnableResidentDialog by remember { mutableStateOf(false) }
 
-
-
-
     LaunchedEffect(userId) {
         viewmodel.loadUser(userId)
     }
+
+
 
 
     LaunchedEffect(state.success) {
@@ -95,7 +94,7 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
             DetailSuccess.UserEdited -> DialogType.EditSuccess
         }
 
-
+        usersViewModel.loadUsers(true)
         viewmodel.reset()
     }
 
@@ -293,7 +292,7 @@ fun UserDetail(
                 )
                 UserInfoItem(
                     label = "Tipo",
-                    value = user.residence_type ?: "No disponible"
+                    value = stringResource(getTipoPropiedadLabelRes(user.residence_type))
                 )
             }
         }

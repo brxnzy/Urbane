@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 @Composable
 fun UsuarioCardSkeleton() {
-    // Animación de opacidad
+
     val infiniteTransition = rememberInfiniteTransition()
     val alpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,

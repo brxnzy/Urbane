@@ -12,15 +12,17 @@ import kotlinx.coroutines.flow.firstOrNull
 
 class ResidencesRepository(val sessionManager: SessionManager) {
 
+
     suspend fun getResidentialId(): Int? {
         val user = sessionManager.sessionFlow.firstOrNull()
         return user?.userData?.residential?.id
     }
 
-    suspend fun createResidence(name:String, type:String, description:String, residentialId:Int){
+    suspend fun createResidence(name:String, type:String, description:String, ownerId:String? = null){
         try {
+            val residentialId = getResidentialId()
             Log.d("ResidencesRepository","intentando crear residencia")
-            val data = Residence(name=name, type=type, description=description, available = true, residentialId=residentialId)
+            val data = Residence(name =name, type =type, description =description, available = true, residentialId =residentialId)
             supabase.from("residences").insert(data)
         }catch (e: Exception){
 
@@ -31,10 +33,10 @@ class ResidencesRepository(val sessionManager: SessionManager) {
 
 
     suspend fun getResidences(): List<Residence> {
-        return try {
+        try {
             val residentialId = getResidentialId() ?: emptyList<Residence>()
 
-            supabase
+            val residences = supabase
                 .from("residences")
                 .select (){
                     filter {
@@ -42,6 +44,24 @@ class ResidencesRepository(val sessionManager: SessionManager) {
                     }
                 }
                 .decodeList<Residence>()
+
+            return residences
+        } catch (e: Exception) {
+            Log.e("ResidencesRepository", "Error en getResidences: $e")
+            throw e
+        }
+    }
+
+    suspend fun getResidenceById(id: Int): Residence {
+        return try {
+            supabase
+                .from("residences")
+                .select (){
+                    filter {
+                        eq("id", id)
+                    }
+                }
+                .decodeSingle<Residence>()
         } catch (e: Exception) {
             Log.e("ResidencesRepository", "Error en getResidences: $e")
             throw e

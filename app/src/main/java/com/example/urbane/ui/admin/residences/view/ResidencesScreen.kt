@@ -92,7 +92,7 @@ fun ResidencesScreen(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { /* aquí podrías navegar a detalle */ },
+                                    .clickable { },
                                 elevation = CardDefaults.cardElevation(2.dp)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {

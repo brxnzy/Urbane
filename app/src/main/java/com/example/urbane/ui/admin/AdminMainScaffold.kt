@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.ReportProblem
 import androidx.compose.material3.*
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -35,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import coil.compose.rememberAsyncImagePainter
 import com.example.urbane.data.local.SessionManager
+import com.example.urbane.ui.admin.claims.view.ClaimsScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.view.TestScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
@@ -83,6 +85,7 @@ fun AdminMainScaffold(
                             Routes.ADMIN_USERS -> stringResource(R.string.usuarios)
                             Routes.ADMIN_PAYMENTS -> stringResource(R.string.pagos)
                             Routes.ADMIN_RESIDENCES -> stringResource(R.string.residencias)
+                            Routes.ADMIN_CLAIMS -> stringResource(R.string.reclamos)
                             Routes.ADMIN -> "Dashboard"
                             else -> "Panel Admin"
                         }, style = MaterialTheme.typography.displayMedium)
@@ -111,6 +114,7 @@ fun AdminMainScaffold(
                         navController = navController
                     )
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp))
+                    Routes.ADMIN_CLAIMS-> ClaimsScreen()
                     Routes.ADMIN_PAYMENTS -> TestScreen()
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
@@ -161,6 +165,7 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
         DrawerItem("Dashboard", Icons.Outlined.Dashboard , Routes.ADMIN, currentRoute, onDestinationClicked)
         DrawerItem("Usuarios", Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
         DrawerItem("Residencias", Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
+        DrawerItem("Reclamos",Icons.Outlined.ReportProblem, Routes.ADMIN_CLAIMS, currentRoute, onDestinationClicked)
         DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
 
     }
