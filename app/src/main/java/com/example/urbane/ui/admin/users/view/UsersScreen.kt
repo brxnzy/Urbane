@@ -32,9 +32,6 @@ import com.example.urbane.R
 import com.example.urbane.data.model.User
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
-import com.example.urbane.ui.auth.viewmodel.LoginViewModel
-
-
 @SuppressLint("SuspiciousIndentation", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navController: NavController) {
@@ -52,11 +49,9 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
             }
     }
 
-
     LaunchedEffect(Unit) {
         viewmodel.loadUsers(true)
     }
-
 
     val filtros = listOf("Todos", "Administrador", "Residente","Deshabilitados")
 

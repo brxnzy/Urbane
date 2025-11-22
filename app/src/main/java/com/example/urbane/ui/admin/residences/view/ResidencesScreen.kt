@@ -91,7 +91,7 @@ fun ResidencesScreen(
 
         coincideNombre && coincideTipo && coincideEstado
     }
-
+                
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(

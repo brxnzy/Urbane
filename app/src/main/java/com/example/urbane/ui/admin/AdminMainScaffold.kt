@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Payments
@@ -37,6 +38,7 @@ import androidx.compose.ui.res.painterResource
 import coil.compose.rememberAsyncImagePainter
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.admin.claims.view.ClaimsScreen
+import com.example.urbane.ui.admin.contracts.view.ContractsScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.view.TestScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
@@ -86,6 +88,7 @@ fun AdminMainScaffold(
                             Routes.ADMIN_PAYMENTS -> stringResource(R.string.pagos)
                             Routes.ADMIN_RESIDENCES -> stringResource(R.string.residencias)
                             Routes.ADMIN_CLAIMS -> stringResource(R.string.reclamos)
+                            Routes.ADMIN_CONTRACTS -> stringResource(R.string.contratos)
                             Routes.ADMIN -> "Dashboard"
                             else -> "Panel Admin"
                         }, style = MaterialTheme.typography.displayMedium)
@@ -116,6 +119,7 @@ fun AdminMainScaffold(
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp))
                     Routes.ADMIN_CLAIMS-> ClaimsScreen()
                     Routes.ADMIN_PAYMENTS -> TestScreen()
+                    Routes.ADMIN_CONTRACTS -> ContractsScreen()
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
             }
@@ -144,13 +148,16 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
                 painter = rememberAsyncImagePainter(user.userData.residential.logoUrl),
                 contentDescription = "Logo del residencial",
                 modifier = Modifier
-                    .padding(start = 10.dp).size(100.dp)
+                    .padding(start = 10.dp)
+                    .size(100.dp)
             )
         } else {
         Image(
             painter = painterResource(R.drawable.logo),
             contentDescription = null,
-            modifier = Modifier.size(60.dp).padding(start = 15.dp)
+            modifier = Modifier
+                .size(60.dp)
+                .padding(start = 15.dp)
         )
 
     }
@@ -163,10 +170,11 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
         )
         HorizontalDivider(modifier = Modifier.padding(bottom = 20.dp))
         DrawerItem("Dashboard", Icons.Outlined.Dashboard , Routes.ADMIN, currentRoute, onDestinationClicked)
-        DrawerItem("Usuarios", Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
-        DrawerItem("Residencias", Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
+        DrawerItem(stringResource(R.string.usuarios), Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
+        DrawerItem(stringResource(R.string.residencias), Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
         DrawerItem("Reclamos",Icons.Outlined.ReportProblem, Routes.ADMIN_CLAIMS, currentRoute, onDestinationClicked)
         DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
+        DrawerItem(stringResource(R.string.contratos), Icons.Outlined.Assignment, Routes.ADMIN_CONTRACTS, currentRoute, onDestinationClicked)
 
     }
 
@@ -177,7 +185,9 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
             {popUpTo(0) { inclusive = true }
                 launchSingleTop = true } }},
 
-            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Red,
                 contentColor = Color.White

@@ -411,7 +411,12 @@ fun PropietarioBottomSheet(
                 1 -> CrearPropietarioTab(
                     viewModel = viewModel,
                     state = state,
-                    onPropietarioCreated = { onDismiss() }
+                    onPropietarioCreated = {
+                        // Recargar la lista de propietarios
+                        viewModel.processIntent(ResidencesIntent.LoadOwners)
+                        // Cambiar al tab de buscar
+                        selectedTab = 0
+                    }
                 )
             }
         }
@@ -581,7 +586,7 @@ fun BuscarPropietarioTab(
 @Composable
 fun CrearPropietarioTab(
     viewModel: ResidencesViewModel,
-    state:  ResidencesState,
+    state: ResidencesState,
     onPropietarioCreated: () -> Unit
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
@@ -640,7 +645,6 @@ fun CrearPropietarioTab(
             singleLine = true,
             enabled = !state.isLoading
         )
-        
 
         OutlinedTextField(
             value = state.ownerEmail,
@@ -656,8 +660,6 @@ fun CrearPropietarioTab(
             singleLine = true,
             enabled = !state.isLoading
         )
-
-
 
         OutlinedTextField(
             value = state.ownerPassword,
@@ -689,9 +691,11 @@ fun CrearPropietarioTab(
             enabled = !state.isLoading
         )
 
-        
-        if (!validPassword){
-            Text(stringResource(R.string.la_contrase_a_debe_contener_al_menos_8_caracteres), color = Color.Red)
+        if (!validPassword) {
+            Text(
+                stringResource(R.string.la_contrase_a_debe_contener_al_menos_8_caracteres),
+                color = Color.Red
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -752,7 +756,6 @@ fun CrearPropietarioTab(
         }
     }
 }
-
 @Composable
 fun AnimatedVisibility(
     visible: Boolean,

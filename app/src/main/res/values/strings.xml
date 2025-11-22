@@ -68,6 +68,7 @@
     <string name="usuario_habilitado">Usuario habilitado!</string>
     <string name="reclamos">Reclamos</string>
     <string name="sin_tipo">Sin tipo</string>
+    <string name="contratos">Contratos</string>
 
 
 </resources>
