@@ -35,20 +35,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.urbane.data.model.Residence
+import com.example.urbane.utils.getResidenceIcon
 import com.example.urbane.utils.getTipoPropiedadLabelRes
 
 
-@Composable
-fun getResidenceIcon(type: String): ImageVector {
-    return when (type.lowercase()) {
-        "casa" -> Icons.Default.Home
-        "apartamento".trim() -> Icons.Default.Apartment
-        "local", "local comercial" -> Icons.Default.Storefront
-        "villa" -> Icons.Default.HolidayVillage
-        "terreno" -> Icons.Default.Terrain
-        else -> Icons.Default.Home
-    }
-}
+
 
 @Composable
 fun ResidenceCard(
