@@ -72,7 +72,7 @@ fun ResidencesScreen(
     val tiposPropiedad = listOf("Apartamento", "Casa", "Villa", "Terreno", "Local")
 
     LaunchedEffect(Unit) {
-        viewModel.loadResidences(true)
+        viewModel.loadResidences()
     }
 
     val residenciasFiltradas = state.residences.filter { residence ->

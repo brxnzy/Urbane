@@ -65,36 +65,6 @@ fun EnableDialog(goBack: () -> Unit, onDismiss: () -> Unit){
 }
 
 
-@Composable
-fun EditDialog(goBack: () -> Unit, onDismiss: () -> Unit){
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                Icons.Default.CheckCircle,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp)
-            )
-        },
-        title = { Text(stringResource(R.string.usuario_editado)) },
-        text = {
-            Text(
-                stringResource(R.string.usuario_editado_correctamente)
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                goBack()
-                onDismiss
-
-            }) {
-                Text(stringResource(R.string.aceptar))
-            }
-        }
-    )
-}
-
 
 @Composable
 fun DisabledDialog(goBack: () -> Unit, onDismiss: () -> Unit){
@@ -265,3 +235,6 @@ fun EnableResidentDialog(
         }
     )
 }
+
+
+

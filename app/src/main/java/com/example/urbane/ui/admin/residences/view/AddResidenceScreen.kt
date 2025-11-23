@@ -353,7 +353,7 @@ fun AddResidenceScreen(
                         onClick = {
                             showSuccessDialog = false
                             viewModel.clearSuccess()
-                            viewModel.loadResidences(true)
+                            viewModel.loadResidences()
                             goBack()
                         }
                     ) {

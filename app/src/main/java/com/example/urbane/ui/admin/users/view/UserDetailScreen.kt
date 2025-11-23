@@ -54,6 +54,7 @@ import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.model.DetailSuccess
 import com.example.urbane.ui.admin.users.model.UsersDetailIntent
 import com.example.urbane.ui.admin.users.view.components.DisabledDialog
+import com.example.urbane.ui.admin.users.view.components.EditUserDialog
 import com.example.urbane.ui.admin.users.view.components.EnableDialog
 import com.example.urbane.ui.admin.users.view.components.EnableResidentDialog
 import com.example.urbane.ui.admin.users.view.components.InfoSection
@@ -75,11 +76,15 @@ sealed class DialogType {
 @Composable
 fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewModel: UsersViewModel,residencesViewModel: ResidencesViewModel, sessionManager: SessionManager, goBack:()-> Unit) {
     val state by viewmodel.state.collectAsState()
+    val residencesState by residencesViewModel.state.collectAsState()
     var dialogToShow by remember { mutableStateOf<DialogType?>(null) }
     var showEnableResidentDialog by remember { mutableStateOf(false) }
+    var showEditResidentDialog by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(userId) {
         viewmodel.loadUser(userId)
+        residencesViewModel.loadResidences()
     }
 
 
@@ -125,6 +130,17 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
             closeDialog = { showEnableResidentDialog = false }
         )
     }
+
+    if (showEditResidentDialog) {
+        EditUserDialog(
+            state.user!!,
+            residencesState.residences,
+            onDismiss = { showEditResidentDialog = false },
+            onConfirm = null
+        )
+    }
+
+
 
 
 
@@ -181,8 +197,8 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
                 modifier = Modifier.padding(paddingValues),
                 viewmodel,
                 sessionManager,
-                onShowEnableResidentDialog = { showEnableResidentDialog = true }
-
+                onShowEnableResidentDialog = { showEnableResidentDialog = true },
+                onShowEditResidentDialog = { showEditResidentDialog = true}
             )
         }
     }
@@ -196,7 +212,8 @@ fun UserDetail(
     modifier: Modifier = Modifier,
     viewmodel: UsersDetailViewModel,
     sessionManager: SessionManager,
-    onShowEnableResidentDialog: () -> Unit
+    onShowEnableResidentDialog: () -> Unit,
+    onShowEditResidentDialog:() -> Unit
 ) {
     val state by viewmodel.state.collectAsState()
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
@@ -303,7 +320,7 @@ fun UserDetail(
 
             if (user.active == true){
             Button(
-                onClick = { TODO() },
+                onClick = { onShowEditResidentDialog() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -357,6 +374,7 @@ fun UserDetail(
                     onClick = {
                         if (user.role_name == "resident") {
                             onShowEnableResidentDialog()
+                           
                         } else {
                             viewmodel.processIntent(UsersDetailIntent.EnableUser)
                         }

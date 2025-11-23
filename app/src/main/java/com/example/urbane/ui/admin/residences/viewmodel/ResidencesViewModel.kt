@@ -91,7 +91,7 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                     )
                 }
 
-                loadResidences(true)
+                loadResidences()
 
             } catch (e: Exception) {
                 Log.e("ResidencesVM", "Error creando residencia: $e")
@@ -105,14 +105,8 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
         }
     }
 
-    fun loadResidences(forceRefresh: Boolean = false) {
+    fun loadResidences() {
         viewModelScope.launch {
-            Log.d("ResidencesVM", "loadResidences called - forceRefresh: $forceRefresh")
-
-            if (!forceRefresh && _state.value.residences.isNotEmpty()) {
-                Log.d("ResidencesVM", "Skipping load - using cache")
-                return@launch
-            }
 
             try {
                 _state.update { it.copy(isLoading = true, errorMessage = null) }

@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.urbane.BuildConfig
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
+import com.example.urbane.data.model.Contract
 import com.example.urbane.data.model.Residential
 import com.example.urbane.data.model.Role
 import com.example.urbane.data.model.UrrIds
@@ -31,8 +32,10 @@ import com.example.urbane.data.model.CreateUserRequest
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.rpc
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.buildJsonObject
+import java.util.Date
 
 
 class UserRepository(val sessionManager: SessionManager) {
@@ -307,6 +310,21 @@ class UserRepository(val sessionManager: SessionManager) {
                     }
                 }
 
+            val today = java.time.LocalDate.now().toString()
+
+            supabase.from("contracts")
+                .update(
+                    {
+                        set("status", "FINALIZADO")
+                        set("endDate", today)
+                    }
+                ){
+                    filter {
+                        eq("residentId", id)
+                        eq("status", "activo")
+                    }
+                }
+
             true
 
         } catch (e: Exception) {
@@ -317,6 +335,8 @@ class UserRepository(val sessionManager: SessionManager) {
 
     suspend fun enableUser(id: String, residenceId: Int?): Boolean {
         return try {
+            val today = java.time.LocalDate.now().toString()
+            val residentialId = getResidentialId() ?: emptyList<User>()
 
             // Si es residente, asignar residencia
             if (residenceId != null) {
@@ -336,6 +356,13 @@ class UserRepository(val sessionManager: SessionManager) {
                 ) {
                     filter { eq("user_id", id) }   // CORREGIDO
                 }
+
+                val today = java.time.LocalDate.now().toString()
+
+                val data = Contract(residentId = id, residenceId = residenceId, startDate = today, residentialId = residentialId as Int)
+               supabase.from("contracts")
+                    .insert(data)
+
             }
 
             // Activar usuario
@@ -346,6 +373,9 @@ class UserRepository(val sessionManager: SessionManager) {
             ) {
                 filter { eq("id", id) }
             }
+
+
+
 
             true
 
