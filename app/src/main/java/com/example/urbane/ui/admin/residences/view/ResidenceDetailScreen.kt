@@ -246,7 +246,7 @@ fun ResidenceDetail(
 
         if (!isEditing) {
             Text(
-                text = residence.name ?: "Sin nombre",
+                text = residence.name,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center
@@ -279,6 +279,8 @@ fun ResidenceDetail(
                     )
 
                     ExposedDropdownMenuBox(
+
+
                         expanded = expandedTipo,
                         onExpandedChange = { onExpandedTipoChange(it) }
                     ) {
@@ -341,12 +343,12 @@ fun ResidenceDetail(
 
             UserInfoItem(
                 label = "Propietario",
-                value = residence.ownerId ?: "Sin propietario"
+                value = residence.ownerName ?: "Sin propietario"
             )
 
             UserInfoItem(
                 label = "Residente",
-                value = residence.residentId ?: "Sin residente"
+                value = residence.residentName ?: "Sin residente"
             )
         }
 

@@ -10,6 +10,8 @@ data class Residence(
     val description: String,
     val available: Boolean,
     val residentialId: Int?,
+    val ownerName:String? = null,
+    val residentName:String? = null,
     val ownerId: String? = null,
     val residentId: String? = null
 )

@@ -56,7 +56,7 @@ class ResidencesRepository(val sessionManager: SessionManager) {
     suspend fun getResidenceById(id: Int): Residence {
         return try {
             supabase
-                .from("residences")
+                .from("residences_view")
                 .select (){
                     filter {
                         eq("id", id)
@@ -74,7 +74,7 @@ class ResidencesRepository(val sessionManager: SessionManager) {
             val residentialId = getResidentialId() ?: emptyList<Residence>()
 
             supabase
-                .from("residences")
+                .from("residences_view")
                 .select(
                     columns = Columns.list()
                 ) {
