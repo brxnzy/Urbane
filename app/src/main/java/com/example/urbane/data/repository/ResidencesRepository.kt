@@ -18,11 +18,11 @@ class ResidencesRepository(val sessionManager: SessionManager) {
         return user?.userData?.residential?.id
     }
 
-    suspend fun createResidence(name:String, type:String, description:String, ownerId:String? = null){
+    suspend fun createResidence(name:String, type:String, description:String){
         try {
             val residentialId = getResidentialId()
             Log.d("ResidencesRepository","intentando crear residencia")
-            val data = Residence(name =name, type =type, description =description, available = true, residentialId =residentialId, ownerId = ownerId)
+            val data = Residence(name =name, type =type, description =description, available = true, residentialId =residentialId)
             Log.d("ResidencesRepository","DATOS A INSERTAR $data")
             supabase.from("residences").insert(data)
         }catch (e: Exception){

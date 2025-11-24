@@ -37,13 +37,6 @@ import com.example.urbane.utils.formatIdCard
 import com.example.urbane.utils.isValidEmail
 import com.example.urbane.utils.isValidIdCard
 
-data class Propietario(
-    val id: String,
-    val nombre: String,
-    val cedula: String,
-    val correo: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddResidenceScreen(
@@ -160,122 +153,7 @@ fun AddResidenceScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // Switch: ¿Pertenece al residencial?
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "¿Pertenece al residencial?",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = if (perteneceResidencial)
-                                "Propiedad del residencial - Sin propietario"
-                            else
-                                "Requiere asignar un propietario",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = perteneceResidencial,
-                        onCheckedChange = {
-                            perteneceResidencial = it
-                            if (it) {
-                                viewModel.processIntent(ResidencesIntent.ClearSelectedOwner)
-                            }
-                        },
-                        enabled = !state.isLoading
-                    )
-                }
-            }
 
-            // Sección de propietario
-            AnimatedVisibility(visible = !perteneceResidencial) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            "Propietario",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-
-                        if (selectedOwner != null) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                                    .padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        selectedOwner.name,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Text(
-                                        selectedOwner.email.toString(),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                IconButton(
-                                    onClick = {
-                                        viewModel.processIntent(ResidencesIntent.ClearSelectedOwner)
-                                    },
-                                    enabled = !state.isLoading
-                                ) {
-                                    Icon(Icons.Default.Close, contentDescription = "Remover")
-                                }
-                            }
-                        } else {
-                            Button(
-                                onClick = { showBottomSheet = true },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondary
-                                ),
-                                enabled = !state.isLoading
-                            ) {
-                                Icon(Icons.Default.PersonAdd, contentDescription = null)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Asignar propietario")
-                            }
-                        }
-                    }
-                }
-            }
 
             Spacer(modifier = Modifier.weight(1f))
 

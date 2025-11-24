@@ -77,7 +77,6 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                     _state.value.name,
                     _state.value.type,
                     _state.value.description,
-                    _state.value.selectedOwnerId
                 )
 
                 _state.update {

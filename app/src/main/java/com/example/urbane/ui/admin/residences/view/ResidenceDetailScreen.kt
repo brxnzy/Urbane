@@ -225,7 +225,7 @@ fun ResidenceDetail(
     onEvictClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    val hasOccupants = residence.ownerId != null || residence.residentId != null
+    val hasOccupants = residence.residentId != null
     val tiposPropiedad = listOf("Apartamento", "Casa", "Local", "Villa", "Terreno")
 
     Column(
@@ -341,10 +341,6 @@ fun ResidenceDetail(
                     Color(0xFFFF9800)
             )
 
-            UserInfoItem(
-                label = "Propietario",
-                value = residence.ownerName ?: "Sin propietario"
-            )
 
             UserInfoItem(
                 label = "Residente",

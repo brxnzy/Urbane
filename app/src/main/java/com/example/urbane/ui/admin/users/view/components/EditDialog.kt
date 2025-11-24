@@ -50,7 +50,6 @@ fun EditUserDialog(
     val roles = listOf(
         Role(1, stringResource(R.string.role_admin)),
         Role(2, stringResource(R.string.role_resident)),
-        Role(3, stringResource(R.string.role_owner))
     )
 
     val residenciasFiltradas = remember(residences, newRole, selectedTipoPropiedad) {
@@ -61,11 +60,7 @@ fun EditUserDialog(
                         it.type == selectedTipoPropiedad
             }
 
-            3 -> residences.filter { // OWNER
-                it.ownerId == null &&
-                        selectedTipoPropiedad.isNotBlank() &&
-                        it.type == selectedTipoPropiedad
-            }
+
 
             else -> emptyList()
         }
@@ -150,23 +145,7 @@ fun EditUserDialog(
                     Spacer(Modifier.height(12.dp))
                     Text("Selecciona las propiedades a asignar como dueño")
 
-                    val residenciasSinOwner = residences.filter { it.ownerId == null }
 
-                    if (residenciasSinOwner.isEmpty()) {
-                        Text("No hay propiedades sin dueño disponibles")
-                    } else {
-                        OwnerResidencesCheckboxList(
-                            residencias = residenciasSinOwner,
-                            selectedItems = selectedOwnerResidences,
-                            onToggle = { residenceId, checked ->
-                                selectedOwnerResidences = if (checked) {
-                                    selectedOwnerResidences + residenceId
-                                } else {
-                                    selectedOwnerResidences - residenceId
-                                }
-                            }
-                        )
-                    }
                 }
 
                 Spacer(Modifier.height(12.dp))
