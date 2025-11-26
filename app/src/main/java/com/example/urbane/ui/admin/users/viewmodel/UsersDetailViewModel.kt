@@ -1,4 +1,5 @@
 package com.example.urbane.ui.admin.users.viewmodel
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,6 +23,7 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
         when (intent) {
             is UsersDetailIntent.DisableUser -> disableUser()
             is UsersDetailIntent.EnableUser-> enableUser()
+            is UsersDetailIntent.EditUser-> editUserRole(intent.newRoleId ,intent.residenceId)
 
             else -> {}
 
@@ -32,7 +34,7 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
     fun loadUser(id: String){
         _state.update { it.copy(isLoading = true, user = null, errorMessage = null) }
         viewModelScope.launch {
-            if (_state.value.user != null) return@launch
+//            if (_state.value.user != null) return@launch
             try {
                 _state.update { it.copy(isLoading = true) }
 
@@ -100,9 +102,50 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
     }
 
 
+    private fun editUserRole(newRoleId: Int, residenceId: String?) {
+        viewModelScope.launch {
+            val id = _state.value.user?.id ?: return@launch
+            Log.d("UsersVM", "Editando rol: userId=${id}, newRoleId=$newRoleId, residenceId=$residenceId")
+
+            try {
+            _state.update { it.copy(isLoading = true, success = null, errorMessage = null) }
+
+                val result = userRepository.updateUserRole(
+                    userId = id,
+                    newRoleId = newRoleId,
+                    residenceId = residenceId?.toIntOrNull()
+                )
+
+                if (result) {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        success = DetailSuccess.UserEdited
+                    )
+                    loadUser(id)
+
+                } else {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        errorMessage = "No se pudo actualizar el rol del usuario"
+                    )
+                }
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    errorMessage = e.message ?: "Error desconocido"
+                )
+            }
+        }
+    }
+
 
     fun reset() {
         _state.value = UserDetailState()
+    }
+
+    fun resetSuccess() {
+        _state.update{it.copy(success = null )}
     }
 
     fun setResidenceId(id: Int?) {

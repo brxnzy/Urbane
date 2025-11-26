@@ -1,7 +1,7 @@
 package com.example.urbane.ui.admin.users.view.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -22,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,21 +28,22 @@ import com.example.urbane.R
 import com.example.urbane.data.model.Residence
 import com.example.urbane.data.model.Role
 import com.example.urbane.data.model.User
+import com.example.urbane.ui.admin.users.model.UsersDetailIntent
+import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditUserDialog(
     user: User,
     residences: List<Residence>,
     onDismiss: () -> Unit,
-    onConfirm: ((Int, String?, Set<String>) -> Unit)?
+    viewModel: UsersDetailViewModel,
+    onConfirm: ((Int, String?, Set<String>) -> Unit)
 ) {
 
     var newRole by remember { mutableStateOf<Int?>(null) }
     var selectedTipoPropiedad by remember { mutableStateOf("") }
     var selectedResidenceId by remember { mutableStateOf<String?>(null) }
-    var selectedOwnerResidences by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    // ESTO FALTABA
     var expandedRol by remember { mutableStateOf(false) }
 
     val roles = listOf(
@@ -59,9 +58,6 @@ fun EditUserDialog(
                         selectedTipoPropiedad.isNotBlank() &&
                         it.type == selectedTipoPropiedad
             }
-
-
-
             else -> emptyList()
         }
     }
@@ -71,12 +67,10 @@ fun EditUserDialog(
         title = { Text("Editar usuario") },
         text = {
             Column {
-
                 ExposedDropdownMenuBox(
                     expanded = expandedRol,
                     onExpandedChange = { expandedRol = it }
                 ) {
-
                     OutlinedTextField(
                         value = roles.firstOrNull { it.id == newRole }?.name ?: "",
                         onValueChange = {},
@@ -96,7 +90,7 @@ fun EditUserDialog(
                         onDismissRequest = { expandedRol = false }
                     ) {
                         roles
-                            .filter { it.id != user.role_id }       // AQUÍ FILTRAS EL ROL ACTUAL
+                            .filter { it.id != user.role_id }
                             .forEach { rol ->
                                 DropdownMenuItem(
                                     text = { Text(rol.name) },
@@ -106,7 +100,6 @@ fun EditUserDialog(
 
                                         selectedTipoPropiedad = ""
                                         selectedResidenceId = null
-                                        selectedOwnerResidences = emptySet()
                                     }
                                 )
                             }
@@ -138,16 +131,6 @@ fun EditUserDialog(
                     }
                 }
 
-                // --------------------------
-                // OWNER
-                // --------------------------
-                if (newRole == 3) {
-                    Spacer(Modifier.height(12.dp))
-                    Text("Selecciona las propiedades a asignar como dueño")
-
-
-                }
-
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = getMensajeTransicion(
@@ -162,16 +145,14 @@ fun EditUserDialog(
             Button(
                 onClick = {
                     val finalRoleId: Int = newRole ?: user.role_id ?: return@Button
-                    onConfirm?.invoke(
-                        finalRoleId,
-                        selectedResidenceId,
-                        selectedOwnerResidences
-                    )
-                },
+                    Log.d("EditDialog", "onConfirm ejecutado. role=$finalRoleId res=$selectedResidenceId")
+                    viewModel.processIntent(UsersDetailIntent.EditUser(finalRoleId,selectedResidenceId))
+                    onDismiss()
+                }
+,
                 enabled = isValidSelectionRoleBased(
                     roleId = newRole,
-                    selectedResidenceId = selectedResidenceId,
-                    selectedOwnerResidences = selectedOwnerResidences
+                    selectedResidenceId = selectedResidenceId
                 )
             ) {
                 Text("Guardar")
@@ -186,84 +167,27 @@ fun EditUserDialog(
 }
 
 
-// Validar que la selección sea válida
 private fun isValidSelectionRoleBased(
     roleId: Int?,
-    selectedResidenceId: String?,
-    selectedOwnerResidences: Set<String>
+    selectedResidenceId: String?
 ): Boolean {
     return when (roleId) {
-        1 -> true                              // admin
-        2 -> selectedResidenceId != null       // resident necesita 1 residencia
-        3 -> selectedOwnerResidences.isNotEmpty() // owner necesita >=1 checkbox
+        1 -> true
+        2 -> selectedResidenceId != null
         else -> false
     }
 }
 
 
-// Mensaje informativo según la transición
 private fun getMensajeTransicion(currentRole: String, newRole: String): String {
     return when {
         currentRole == "admin" && newRole == "resident" ->
             "Se asignará una propiedad disponible al usuario"
 
-        currentRole == "admin" && newRole == "owner" ->
-            "Se asignarán propiedades sin dueño al usuario"
-
         currentRole == "resident" && newRole == "admin" ->
             "Se liberará la propiedad actual del residente"
 
-        currentRole == "resident" && newRole == "owner" ->
-            "Se liberará su propiedad actual y se asignarán propiedades como dueño"
-
-        currentRole == "owner" && newRole == "admin" ->
-            "Se removerá como dueño de todas sus propiedades"
-
-        currentRole == "owner" && newRole == "resident" ->
-            "Se removerá como dueño y se asignará una propiedad disponible como residente"
-
         else -> ""
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DropdownMenuRoles(
-    selected: String,
-    roles: List<Role>,
-    onSelect: (Int) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        OutlinedTextField(
-            value = selected.ifBlank { "Seleccionar rol" },
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Rol") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor()
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            roles.forEach { rol ->
-                DropdownMenuItem(
-                    text = { Text(rol.name) },
-                    onClick = {
-                        onSelect(rol.id)
-                        expanded = false
-                    }
-                )
-            }
-        }
     }
 }
 
@@ -347,30 +271,6 @@ fun DropdownMenuResidencias(
                         expanded = false
                     }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun OwnerResidencesCheckboxList(
-    residencias: List<Residence>,
-    selectedItems: Set<String>,
-    onToggle: (String, Boolean) -> Unit
-) {
-    Column {
-        residencias.forEach { res ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Checkbox(
-                    checked = selectedItems.contains(res.id.toString()),
-                    onCheckedChange = { checked ->
-                        onToggle(res.id.toString(), checked)
-                    }
-                )
-                Text(text = "${res.name} - ${res.type}")
             }
         }
     }

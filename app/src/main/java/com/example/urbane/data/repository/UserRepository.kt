@@ -29,10 +29,12 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import com.example.urbane.data.model.CreateUserRequest
+import com.example.urbane.data.model.Residence
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.rpc
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.buildJsonObject
 import java.util.Date
@@ -365,7 +367,6 @@ class UserRepository(val sessionManager: SessionManager) {
 
             }
 
-            // Activar usuario
             supabase.from("users").update(
                 {
                     set("active", true)
@@ -373,9 +374,6 @@ class UserRepository(val sessionManager: SessionManager) {
             ) {
                 filter { eq("id", id) }
             }
-
-
-
 
             true
 
@@ -398,6 +396,62 @@ class UserRepository(val sessionManager: SessionManager) {
 
         return !user.active!!
     }
+
+    suspend fun updateUserRole(userId: String, newRoleId: Int, residenceId: Int?): Boolean {
+        try {
+            if (newRoleId == 2) {
+
+                if (residenceId == null) {
+                    return false
+                }
+
+                 supabase.from("residences").update(
+                    {
+                        set("residentId", userId)
+                        set("available", false)
+
+                    }
+                ) {
+                     filter { eq("id", residenceId) }
+                 }
+
+
+                supabase.from("users_residentials_roles").update(
+                    {
+                        set("residence_id", residenceId)
+                        set("role_id", newRoleId)
+                    }
+                ){
+                    filter { eq("user_id", userId) }
+                }
+
+                return true
+            }
+
+
+
+            supabase.postgrest.rpc("reset_user_residential_role",
+                mapOf("uid" to userId)
+            )
+
+            supabase.from("users_residentials_roles").update(
+                {
+                    set("role_id", newRoleId)
+
+                }
+                ){
+                        filter { eq("user_id", userId) }
+            }
+
+            return true
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error editando el rol del usuario $e")
+            return  false
+        }
+    }
+
+
 
 
 

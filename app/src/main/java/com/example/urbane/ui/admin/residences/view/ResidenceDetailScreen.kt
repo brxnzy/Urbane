@@ -319,7 +319,7 @@ fun ResidenceDetail(
                         value = editedDescription,
                         onValueChange = onDescriptionChange,
                         label = { Text("Descripción") },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                         minLines = 1,
                         maxLines = 3,
                         leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) }
@@ -382,9 +382,7 @@ fun ResidenceDetail(
                 }
             }
         } else {
-            // Botones normales
             if (hasOccupants) {
-                // Si tiene ocupantes: mostrar Editar y Desalojar
                 Button(
                     onClick = onEditClick,
                     modifier = Modifier
@@ -417,7 +415,6 @@ fun ResidenceDetail(
                     }
                 }
             } else {
-                // Si NO tiene ocupantes: mostrar Editar y Eliminar
                 Button(
                     onClick = onEditClick,
                     modifier = Modifier

@@ -13,8 +13,10 @@ data class UserDetailState(
 sealed class UsersDetailIntent {
     data object DisableUser : UsersDetailIntent()
     data object EnableUser: UsersDetailIntent()
-
-
+    data class EditUser(
+        val newRoleId: Int,
+        val residenceId: String?
+    ) : UsersDetailIntent()
 }
 
 

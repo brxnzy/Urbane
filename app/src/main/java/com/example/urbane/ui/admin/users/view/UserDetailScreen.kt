@@ -1,5 +1,6 @@
 package com.example.urbane.ui.admin.users.view
 
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -68,7 +72,6 @@ sealed class DialogType {
     object EditSuccess : DialogType()
     object DisableSuccess : DialogType()
     object EnableSuccess: DialogType()
-
 }
 
 
@@ -77,50 +80,56 @@ sealed class DialogType {
 fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewModel: UsersViewModel,residencesViewModel: ResidencesViewModel, sessionManager: SessionManager, goBack:()-> Unit) {
     val state by viewmodel.state.collectAsState()
     val residencesState by residencesViewModel.state.collectAsState()
-    var dialogToShow by remember { mutableStateOf<DialogType?>(null) }
     var showEnableResidentDialog by remember { mutableStateOf(false) }
     var showEditResidentDialog by remember { mutableStateOf(false) }
-
+    val snackbarHostState = remember { SnackbarHostState() }
+    val usuarioDeshabilitado = stringResource(R.string.usuario_deshabilitado_correctamente)
+    val usuarioHabilitado = stringResource(R.string.usuario_habilitado)
+    val usuarioEditado = stringResource(R.string.usuario_editado_correctamente)
 
     LaunchedEffect(userId) {
         viewmodel.loadUser(userId)
         residencesViewModel.loadResidences()
     }
 
+    LaunchedEffect(state.success, state.isLoading) {
+        if (state.success != null && !state.isLoading) {
+            when (state.success) {
+                DetailSuccess.UserEnabled -> {
+                    snackbarHostState.showSnackbar(
+                        message = usuarioHabilitado,
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Short
 
+                    )
+                    viewmodel.resetSuccess()
+                }
 
+                DetailSuccess.UserDisabled -> {
+                    snackbarHostState.showSnackbar(
+                        message = usuarioDeshabilitado,
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Short
+                    )
+                    viewmodel.resetSuccess()
+                }
 
-    LaunchedEffect(state.success) {
-        val success = state.success ?: return@LaunchedEffect
+                DetailSuccess.UserEdited -> {
+                    snackbarHostState.showSnackbar(
+                        message = usuarioEditado ,
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Short
+                    )
 
-        dialogToShow = when (success) {
-            DetailSuccess.UserEnabled -> DialogType.EnableSuccess
-            DetailSuccess.UserDisabled -> DialogType.DisableSuccess
-            DetailSuccess.UserEdited -> DialogType.EditSuccess
+                    viewmodel.resetSuccess()
+                }
+
+                null -> TODO()
+            }
         }
-
-        usersViewModel.loadUsers(true)
-        viewmodel.reset()
     }
 
 
-    when (dialogToShow) {
-        DialogType.EnableSuccess -> EnableDialog(
-            onDismiss = { dialogToShow = null },
-            goBack = goBack
-        )
-
-        DialogType.DisableSuccess -> DisabledDialog(
-            onDismiss = { dialogToShow = null },
-            goBack = goBack
-        )
-
-        DialogType.EditSuccess -> TODO()
-
-
-
-        null -> Unit
-    }
 
 
     if (showEnableResidentDialog) {
@@ -133,10 +142,19 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
 
     if (showEditResidentDialog) {
         EditUserDialog(
-            state.user!!,
-            residencesState.residences,
+            user = state.user!!,
+            residences = residencesState.residences,
             onDismiss = { showEditResidentDialog = false },
-            onConfirm = null
+            viewModel = viewmodel,
+            onConfirm = { newRoleId, residenceId, _ ->
+                viewmodel.processIntent(
+                    UsersDetailIntent.EditUser(
+                        newRoleId = newRoleId,
+                        residenceId = residenceId
+                    )
+                )
+                showEditResidentDialog = false
+            }
         )
     }
 
@@ -145,7 +163,10 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
 
 
 
+
+
     Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
                     title = {
