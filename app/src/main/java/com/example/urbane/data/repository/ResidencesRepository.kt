@@ -69,24 +69,10 @@ class ResidencesRepository(val sessionManager: SessionManager) {
         }
     }
 
-    suspend fun getAvailableResidences(residentialId: Int): List<Residence> {
-        return try {
-            val residentialId = getResidentialId() ?: emptyList<Residence>()
+//    suspend fun vacateResidence(id:Int, residentId):Residence {
+//        try {
+//
+//        }
 
-            supabase
-                .from("residences_view")
-                .select(
-                    columns = Columns.list()
-                ) {
-                    filter {
-                        eq("residentialId", residentialId)
-                        eq("available", true)
-                    }
-                }
-                .decodeList<Residence>()
-        } catch (e: Exception) {
-            Log.e("ResidencesRepository", "Error en getResidences: $e")
-            throw e
-        }
-    }
+
 }

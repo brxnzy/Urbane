@@ -317,13 +317,13 @@ class UserRepository(val sessionManager: SessionManager) {
             supabase.from("contracts")
                 .update(
                     {
-                        set("status", "FINALIZADO")
+                        set("active", false)
                         set("endDate", today)
                     }
                 ){
                     filter {
                         eq("residentId", id)
-                        eq("status", "activo")
+                        eq("active", true)
                     }
                 }
 
@@ -337,6 +337,7 @@ class UserRepository(val sessionManager: SessionManager) {
 
     suspend fun enableUser(id: String, residenceId: Int?): Boolean {
         return try {
+
             val today = java.time.LocalDate.now().toString()
             val residentialId = getResidentialId() ?: emptyList<User>()
 
@@ -359,7 +360,6 @@ class UserRepository(val sessionManager: SessionManager) {
                     filter { eq("user_id", id) }   // CORREGIDO
                 }
 
-                val today = java.time.LocalDate.now().toString()
 
                 val data = Contract(residentId = id, residenceId = residenceId, startDate = today, residentialId = residentialId as Int)
                supabase.from("contracts")
@@ -399,7 +399,10 @@ class UserRepository(val sessionManager: SessionManager) {
 
     suspend fun updateUserRole(userId: String, newRoleId: Int, residenceId: Int?): Boolean {
         try {
+            val today = java.time.LocalDate.now().toString()
+
             if (newRoleId == 2) {
+            val residentialId = getResidentialId() ?: emptyList<User>()
 
                 if (residenceId == null) {
                     return false
@@ -424,6 +427,9 @@ class UserRepository(val sessionManager: SessionManager) {
                 ){
                     filter { eq("user_id", userId) }
                 }
+                val data = Contract(residentId = userId, residenceId = residenceId, startDate = today, residentialId = residentialId as Int)
+                supabase.from("contracts")
+                    .insert(data)
 
                 return true
             }
@@ -442,6 +448,19 @@ class UserRepository(val sessionManager: SessionManager) {
                 ){
                         filter { eq("user_id", userId) }
             }
+
+            supabase.from("contracts")
+                .update(
+                    {
+                        set("active", false)
+                        set("endDate", today)
+                    }
+                ){
+                    filter {
+                        eq("residentId", userId)
+                        eq("active", true)
+                    }
+                }
 
             return true
 
