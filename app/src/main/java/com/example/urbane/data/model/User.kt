@@ -9,5 +9,7 @@ data class User(
     val email: String? = null,
     val name: String,
     val idCard:String,
+    val phone: String? = null,
+    val apartment: String? = null,
     val createdAt: String
 )
