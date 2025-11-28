@@ -58,7 +58,7 @@ class SessionManager(context: Context) {
         dataStore.edit { it.clear() }
     }
 
-
 }
 
+}
 

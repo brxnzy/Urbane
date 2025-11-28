@@ -167,8 +167,13 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
     fun onLogoutClicked(toLogin: () -> Unit) {
         viewModelScope.launch {
+            try {
+
         performLogout()
         toLogin()
+            }catch (e:Exception){
+                Log.e("LOGOUT",e.toString())
+            }
         }
     }
 
