@@ -1,3 +1,4 @@
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +19,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.urbane.ui.admin.residences.model.ResidencesIntent
+import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
+import com.example.urbane.ui.auth.model.RegisterIntent
 
 data class Propietario(
     val id: String,
@@ -28,17 +32,15 @@ data class Propietario(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddResidenceScreen(goBack:()->Unit) {
-    var nombrePropiedad by remember { mutableStateOf("") }
-    var tipoPropiedad by remember { mutableStateOf("") }
-    var direccion by remember { mutableStateOf("") }
+fun AddResidenceScreen(viewModel: ResidencesViewModel,goBack:()->Unit) {
     var perteneceResidencial by remember { mutableStateOf(false) }
     var propietarioSeleccionado by remember { mutableStateOf<Propietario?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var expandedTipo by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
 
-    val tiposPropiedad = listOf("Apartamento", "Casa", "Local", "Oficina", "Penthouse")
+    val tiposPropiedad = listOf("Apartamento", "Casa", "Local", "Villa", "Terreno")
 
     Scaffold(
         topBar = {
@@ -48,8 +50,10 @@ fun AddResidenceScreen(goBack:()->Unit) {
                     IconButton(onClick = { goBack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
-
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
 
 
             )}
@@ -64,22 +68,22 @@ fun AddResidenceScreen(goBack:()->Unit) {
         ) {
             // Nombre de la propiedad
             OutlinedTextField(
-                value = nombrePropiedad,
-                onValueChange = { nombrePropiedad = it },
-                label = { Text("Nombre o número de propiedad") },
+                value = state.name,
+                onValueChange = { viewModel.processIntent(ResidencesIntent.NameChanged(it)) },
+                label = { Text("Nombre de la propiedad") },
                 leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
-            // Tipo de propiedad - Dropdown
+
             ExposedDropdownMenuBox(
                 expanded = expandedTipo,
                 onExpandedChange = { expandedTipo = it }
             ) {
                 OutlinedTextField(
-                    value = tipoPropiedad,
-                    onValueChange = {},
+                    value = state.type, // bind con el estado del ViewModel
+                    onValueChange = {}, // no editable manualmente
                     readOnly = true,
                     label = { Text("Tipo de propiedad") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTipo) },
@@ -96,7 +100,8 @@ fun AddResidenceScreen(goBack:()->Unit) {
                         DropdownMenuItem(
                             text = { Text(tipo) },
                             onClick = {
-                                tipoPropiedad = tipo
+                                // enviar el intent al ViewModel
+                                viewModel.processIntent(ResidencesIntent.TypeChanged(tipo))
                                 expandedTipo = false
                             }
                         )
@@ -104,12 +109,12 @@ fun AddResidenceScreen(goBack:()->Unit) {
                 }
             }
 
-            // Dirección
+
             OutlinedTextField(
-                value = direccion,
-                onValueChange = { direccion = it },
-                label = { Text("Dirección o bloque") },
-                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
+                value = state.description,
+                onValueChange = { viewModel.processIntent(ResidencesIntent.DescriptionChanged(it) )},
+                label = { Text("Description") },
+                leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
                 maxLines = 3
@@ -122,9 +127,9 @@ fun AddResidenceScreen(goBack:()->Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = if (perteneceResidencial)
-                        MaterialTheme.colorScheme.primaryContainer
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     else
-                        MaterialTheme.colorScheme.surfaceVariant
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 )
             ) {
                 Row(
@@ -158,6 +163,8 @@ fun AddResidenceScreen(goBack:()->Unit) {
                     )
                 }
             }
+
+
 
             // Sección de propietario
             AnimatedVisibility(visible = !perteneceResidencial) {
@@ -230,25 +237,50 @@ fun AddResidenceScreen(goBack:()->Unit) {
 
             Spacer(modifier = Modifier.weight(1f))
 
+
             // Botón guardar
             Button(
                 onClick = {
-                    showSuccessDialog = true
+                    viewModel.processIntent(ResidencesIntent.CreateResidence)
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = nombrePropiedad.isNotBlank() &&
-                        tipoPropiedad.isNotBlank() &&
-                        direccion.isNotBlank() &&
-                        (perteneceResidencial || propietarioSeleccionado != null)
+                enabled = state.name.isNotBlank() &&
+                        state.type.isNotBlank() &&
+                        state.description.isNotBlank() &&
+                        (perteneceResidencial || propietarioSeleccionado != null) && !state.isLoading
+            ) {Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Icons.Default.Save, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Guardar propiedad", style = MaterialTheme.typography.titleMedium)
+
+                if (!state.isLoading) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Save, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Guardar propiedad", style = MaterialTheme.typography.titleMedium)
+                    }
+                } else {
+                    // Spinner centrado dentro del botón
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+
+                    )
+                }
+            }
             }
         }
 
+
+        LaunchedEffect(state.success) {
+            if (state.success) {
+                showSuccessDialog = true
+            }
+
+        }
         // Bottom Sheet para seleccionar/crear propietario
         if (showBottomSheet) {
             PropietarioBottomSheet(
@@ -282,7 +314,11 @@ fun AddResidenceScreen(goBack:()->Unit) {
                     )
                 },
                 confirmButton = {
-                    TextButton(onClick = { showSuccessDialog = false }) {
+                    TextButton(onClick = {
+                        showSuccessDialog = false
+                        goBack()
+
+                    }) {
                         Text("Aceptar")
                     }
                 }
@@ -333,7 +369,6 @@ fun PropietarioBottomSheet(
 fun BuscarPropietarioTab(onPropietarioSelected: (Propietario) -> Unit) {
     var searchQuery by remember { mutableStateOf("") }
 
-    // Lista de ejemplo
     val propietariosEjemplo = remember {
         listOf(
             Propietario("1", "Juan Pérez", "001-1234567-8", "juan@email.com"),
