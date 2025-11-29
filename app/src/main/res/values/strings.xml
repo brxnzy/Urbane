@@ -17,7 +17,7 @@
     <string name="la_contrase_a_debe_contener_al_menos_8_caracteres">La contraseña debe contener al menos 8 caracteres</string>
     <string name="ya_tienes_una_cuenta">¿Ya tienes una cuenta?</string>
     <string name="loguearse">Loguearse</string>
-    <string name="credenciales_invalidas_o_cuenta_inexistente">Credenciales incorrectos</string>
+    <string name="credenciales_invalidas_o_cuenta_inexistente">Credenciales incorrectas</string>
     <string name="sin_conexi_n_a_internet_verifica_tu_red_e_int_ntalo_de_nuevo">Sin conexión a internet. Verifica tu red e inténtalo de nuevo</string>
     <string name="error_desconocido_al_registrar_usuario">Error desconocido al registrar usuario</string>
     <string name="no_se_pudo_obtener_la_sesi_n_despu_s_del_registro">No se pudo obtener la sesión después del registro</string>
@@ -38,8 +38,8 @@
     <string name="villa">Villa</string>
     <string name="local">Local</string>
     <string name="guardar_usuario">Guardar usuario</string>
-    <string name="usuario_creado">¡Usuario creado!</string>
-    <string name="el_usuario_ha_sido_creada_exitosamente">El usuario ha sido creada exitosamente</string>
+    <string name="usuario_creado">Usuario creado!</string>
+    <string name="el_usuario_ha_sido_creada_exitosamente">El usuario ha sido creado exitosamente</string>
     <string name="no_hay_residencias_disponibles">No hay residencias disponibles</string>
     <string name="residencia">Residencia</string>
     <string name="selecciona_una_residencia">Selecciona una residencia</string>
@@ -49,8 +49,27 @@
     <string name="no_hay_sesion_activa">no hay sesion activa\n</string>
     <string name="no_se_encontro_el_id_del_residencial">no se encontro el id del residencial</string>
     <string name="error_obteniendo_los_usuarios">Error obteniendo los usuarios</string>
-    <string name="buscar_por_nombre">Buscar por nombre...</string>
     <string name="no_se_encontraron_m_s_usuarios">No se encontraron más usuarios</string>
     <string name="intenta_ajustar_tu_b_squeda_o_filtros">Intenta ajustar tu búsqueda o filtros.</string>
+    <string name="atras">Atras</string>
+    <string name="perfil_de">Perfil de </string>
+    <string name="role_admin">Administrador</string>
+    <string name="role_resident">Residente</string>
+    <string name="rol">Rol</string>
+    <string name="buscar_por_nombre">Buscar por nombre\n</string>
+    <string name="usuario_sin_foto">Usuario sin foto</string>
+    <string name="sin_correo">Sin correo</string>
+    <string name="ver_detalles">Ver detalles</string>
+    <string name="foto_de">Foto de</string>
+    <string name="usuario_editado_correctamente">Usuario editado correctamente</string>
+    <string name="usuario_editado">Usuario editado!</string>
+    <string name="usuario_deshabilitado_correctamente">Usuario deshabilitado correctamente</string>
+    <string name="usuario_deshabilitado">Usuario Deshabilitado!</string>
+    <string name="usuario_habilitado">Usuario habilitado!</string>
+    <string name="reclamos">Reclamos</string>
+    <string name="sin_tipo">Sin tipo</string>
+    <string name="contratos">Contratos</string>
+    <string name="role_owner">Propietario</string>
+
 
 </resources>

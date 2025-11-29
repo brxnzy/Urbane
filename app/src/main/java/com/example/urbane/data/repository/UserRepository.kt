@@ -2,8 +2,10 @@ package com.example.urbane.data.repository
 
 
 import android.util.Log
+import com.example.urbane.BuildConfig
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
+import com.example.urbane.data.model.Contract
 import com.example.urbane.data.model.Residential
 import com.example.urbane.data.model.Role
 import com.example.urbane.data.model.UrrIds
@@ -27,17 +29,24 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import com.example.urbane.data.model.CreateUserRequest
-
-
+import com.example.urbane.data.model.Residence
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
+import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.buildJsonObject
+import java.util.Date
 
 
 class UserRepository(val sessionManager: SessionManager) {
-
 
     suspend fun getResidentialId(): Int? {
         val user = sessionManager.sessionFlow.firstOrNull()
         return user?.userData?.residential?.id
     }
+
 
     suspend fun getUserRole(userId: String): Int? {
         return try {
@@ -149,7 +158,7 @@ class UserRepository(val sessionManager: SessionManager) {
                 CreateUserRequest(name, email, idCard, password, roleId, residenceId, residentialId)
 
             val response =
-                client.post("https://xeejvlwrklfyoinsmmlu.supabase.co/functions/v1/create-user") {
+                client.post("${BuildConfig.SUPABASE_URL}/functions/v1/create-user") {
                     contentType(ContentType.Application.Json)
                     setBody(body)
                 }
@@ -182,21 +191,22 @@ class UserRepository(val sessionManager: SessionManager) {
     }
 
 
-    suspend fun getActiveUsers(): List<User> {
+    suspend fun getAllUsers(): List<User> {
         return try {
 
             val residentialId = getResidentialId() ?: emptyList<User>()
 
 
-            supabase
+            val users = supabase
                 .from("users_view")
                 .select {
                     filter {
                         eq("residential_id", residentialId)
-                        eq("active", true)
                     }
                 }
                 .decodeList<User>()
+            Log.d("UserRepository","Usuarios obtenidos $users")
+            users
 
         } catch (e: Exception) {
             Log.e("UserRepository", "Error obteniendo los usuarios: $e")
@@ -205,25 +215,265 @@ class UserRepository(val sessionManager: SessionManager) {
     }
 
 
-    suspend fun getInactiveUsers(): List<User> {
+    suspend fun getOwners(): List<User> {
         return try {
+
             val residentialId = getResidentialId() ?: emptyList<User>()
 
-            supabase
-                .from("users_full_info")
+
+            val users = supabase
+                .from("users_view")
                 .select {
                     filter {
                         eq("residential_id", residentialId)
-                        eq("active", false)
+                        eq("role_name","owner")
                     }
                 }
                 .decodeList<User>()
+            Log.d("UserRepository","Usuarios obtenidos $users")
+            users
 
         } catch (e: Exception) {
-            Log.e("UserRepository", "Error obteniendo los usuarios inactivos: $e")
+            Log.e("UserRepository", "Error obteniendo los usuarios: $e")
             emptyList()
         }
     }
+
+
+
+
+    suspend fun getUserById(id: String): User? {
+         try {
+            val residentialId = getResidentialId() ?: emptyList<User>()
+
+            val user = supabase
+                .from("users_view")
+                .select {
+                    filter {
+                        eq("residential_id", residentialId)
+                        eq("id", id)
+                    }
+                }
+                .decodeSingle<User>()
+
+
+             Log.d("UserRepository","USUARIO POR ID CAPTURADO $user")
+             return user
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error el usuario por su id: $e")
+            return null
+        }
+
+    }
+
+    suspend fun disableUser(id: String): Boolean {
+        return try {
+            Log.d("UserRepository","Id del user para deshabilitarlo $id")
+            val roles = supabase
+                .from("users_residentials_roles")
+                .select()
+                {
+                    filter {
+                        eq("user_id", id)
+                    }
+                }
+                .decodeList<UrrIds>()
+
+            if (roles.isEmpty()) {
+                Log.e("UserRepository", "No se encontró el rol del usuario")
+                return false
+            }
+
+            val role = roles.first()
+            val roleId = role.role_id
+
+
+            val residentialId = role.residential_id
+            Log.d("UserRepository", "Role del usuario $roleId y rol del residencial $residentialId")
+
+            // 2. Si es residente (role_id = 2)
+            if (roleId == 2) {
+                supabase.postgrest.rpc(
+                    "reset_user_residential_role",
+                    mapOf("uid" to id)
+                )
+            }
+
+
+            supabase.from("users")
+                .update(
+                    {
+                        set("active", false)
+                    }
+                ) {
+                    filter {
+                        eq("id", id)
+                    }
+                }
+
+            val today = java.time.LocalDate.now().toString()
+
+            supabase.from("contracts")
+                .update(
+                    {
+                        set("active", false)
+                        set("endDate", today)
+                    }
+                ){
+                    filter {
+                        eq("residentId", id)
+                        eq("active", true)
+                    }
+                }
+
+            true
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error al deshabilitar usuario $e")
+            false
+        }
+    }
+
+    suspend fun enableUser(id: String, residenceId: Int?): Boolean {
+        return try {
+
+            val today = java.time.LocalDate.now().toString()
+            val residentialId = getResidentialId() ?: emptyList<User>()
+
+            // Si es residente, asignar residencia
+            if (residenceId != null) {
+                supabase.from("residences").update(
+                    {
+                        set("residentId", id)
+                        set("available", false)
+                    }
+                ) {
+                    filter { eq("id", residenceId) }
+                }
+
+                supabase.from("users_residentials_roles").update(
+                    {
+                        set("residence_id", residenceId)
+                    }
+                ) {
+                    filter { eq("user_id", id) }   // CORREGIDO
+                }
+
+
+                val data = Contract(residentId = id, residenceId = residenceId, startDate = today, residentialId = residentialId as Int)
+               supabase.from("contracts")
+                    .insert(data)
+
+            }
+
+            supabase.from("users").update(
+                {
+                    set("active", true)
+                }
+            ) {
+                filter { eq("id", id) }
+            }
+
+            true
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "error habilitando el usuario $e")
+            false
+        }
+    }
+
+    suspend fun isUserDisabled(userId: String): Boolean? {
+        val user = supabase.from("users")
+            .select {
+                filter {
+                    eq("id", userId)
+                }
+            }
+            .decodeSingle<User>()
+
+        Log.d("UserRepository","$user")
+
+        return !user.active!!
+    }
+
+    suspend fun updateUserRole(userId: String, newRoleId: Int, residenceId: Int?): Boolean {
+        try {
+            val today = java.time.LocalDate.now().toString()
+
+            if (newRoleId == 2) {
+            val residentialId = getResidentialId() ?: emptyList<User>()
+
+                if (residenceId == null) {
+                    return false
+                }
+
+                 supabase.from("residences").update(
+                    {
+                        set("residentId", userId)
+                        set("available", false)
+
+                    }
+                ) {
+                     filter { eq("id", residenceId) }
+                 }
+
+
+                supabase.from("users_residentials_roles").update(
+                    {
+                        set("residence_id", residenceId)
+                        set("role_id", newRoleId)
+                    }
+                ){
+                    filter { eq("user_id", userId) }
+                }
+                val data = Contract(residentId = userId, residenceId = residenceId, startDate = today, residentialId = residentialId as Int)
+                supabase.from("contracts")
+                    .insert(data)
+
+                return true
+            }
+
+
+
+            supabase.postgrest.rpc("reset_user_residential_role",
+                mapOf("uid" to userId)
+            )
+
+            supabase.from("users_residentials_roles").update(
+                {
+                    set("role_id", newRoleId)
+
+                }
+                ){
+                        filter { eq("user_id", userId) }
+            }
+
+            supabase.from("contracts")
+                .update(
+                    {
+                        set("active", false)
+                        set("endDate", today)
+                    }
+                ){
+                    filter {
+                        eq("residentId", userId)
+                        eq("active", true)
+                    }
+                }
+
+            return true
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error editando el rol del usuario $e")
+            return  false
+        }
+    }
+
+
+
+
+
 
 }
 

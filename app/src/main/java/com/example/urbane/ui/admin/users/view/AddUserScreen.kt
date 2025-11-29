@@ -68,6 +68,7 @@ import androidx.compose.runtime.LaunchedEffect
 import com.example.urbane.data.model.Residence
 import com.example.urbane.data.model.Role
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
+import com.example.urbane.utils.getTipoPropiedadLabelRes
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,11 +90,11 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
     val residencesState by residencesViewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        residencesViewModel.loadAvailableResidences()
+        residencesViewModel.loadResidences()
     }
     val roles = listOf(
-                Role(1,"Administrador"),
-                Role(2, "Residente")
+                Role(1, stringResource(R.string.role_admin)),
+                Role(2, stringResource(R.string.role_resident))
             )
 
     LaunchedEffect(state.success) {
@@ -103,12 +104,12 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
     }
 
 
-    val tiposPropiedad = listOf(stringResource(R.string.casa), stringResource(R.string.apartamento), stringResource(R.string.villa),
-        stringResource(R.string.terreno), stringResource(R.string.local))
+    val tiposPropiedad = listOf("Apartamento", "Casa", "Local", "Villa", "Terreno")
 
     val residenciasFiltradas = residencesState.residences.filter {
-        it.type == selectedTipoPropiedad
+        it.available && selectedTipoPropiedad.isNotBlank() && it.type == selectedTipoPropiedad
     }
+
 
     Scaffold(
         topBar = {
@@ -307,10 +308,10 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                         ) {
                             tiposPropiedad.forEach { tipo ->
                                 DropdownMenuItem(
-                                    text = { Text(tipo) },
+                                    text = { Text(text = stringResource(getTipoPropiedadLabelRes(tipo))) },
                                     onClick = {
                                         selectedTipoPropiedad = tipo
-                                        selectedResidencia = null // Reset residencia al cambiar tipo
+                                        selectedResidencia = null
                                         expandedTipo = false
                                     }
                                 )
