@@ -402,7 +402,7 @@ class UserRepository(val sessionManager: SessionManager) {
             val today = java.time.LocalDate.now().toString()
 
             if (newRoleId == 2) {
-            val residentialId = getResidentialId() ?: emptyList<User>()
+                val residentialId = getResidentialId() ?: emptyList<User>()
 
                 if (residenceId == null) {
                     return false

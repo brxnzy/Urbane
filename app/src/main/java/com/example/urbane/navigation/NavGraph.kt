@@ -5,6 +5,13 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -15,8 +22,6 @@ import androidx.navigation.navArgument
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
-import com.example.urbane.ui.admin.claims.view.ClaimsScreen
-import com.example.urbane.ui.admin.residences.model.ResidencesDetailSuccess
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
@@ -105,22 +110,41 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
+                usersViewModel,
 
-            )
+                )
         }
+// En tu NavGraph
         composable(Routes.ADMIN_RESIDENCES) {
+            // Crear un estado derivado que se limpia automáticamente
+            var residenceDeleted by remember { mutableStateOf(false) }
+
+            // Leer el savedStateHandle solo una vez
+            DisposableEffect(Unit) {
+                val deleted = navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Boolean>("residenceDeleted") ?: false
+
+                if (deleted) {
+                    residenceDeleted = true
+                    // Limpiar inmediatamente después de leer
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.remove<Boolean>("residenceDeleted")
+                }
+
+                onDispose { }
+            }
+
             AdminMainScaffold(
                 navController = navController,
                 currentRoute = Routes.ADMIN_RESIDENCES,
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
-
-
+                usersViewModel,
+                showResidenceDeletedMessage = residenceDeleted
             )
-
         }
         composable(Routes.ADMIN) {
             AdminMainScaffold(
@@ -129,9 +153,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
+                usersViewModel,
 
-            )
+                )
 
         }
         composable(Routes.ADMIN_PAYMENTS) {
@@ -141,9 +165,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
+                usersViewModel,
 
-            )
+                )
         }
         composable(Routes.ADMIN_CLAIMS) {
             AdminMainScaffold(
@@ -152,9 +176,21 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
+                usersViewModel,
 
-            )
+                )
+        }
+
+        composable(Routes.ADMIN_CONTRACTS) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_CONTRACTS,
+                loginViewModel,
+                sessionManager,
+                residencesViewModel,
+                usersViewModel,
+
+                )
         }
         composable(Routes.ADMIN_USERS_ADD) {
             AddUserScreen(usersViewModel, residencesViewModel){
@@ -196,10 +232,19 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             ResidencesDetailScreen(
                 residenceId = backStackEntry.arguments?.getInt("id") ?: 0,
                 viewmodel = residencesDetailViewModel,
-            ){
+            ){showDeleteMessage ->
+                if (showDeleteMessage) {
+                    // Pasar el flag a la pantalla anterior
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("residenceDeleted", true)
+                }
                 navController.popBackStack()
             }
         }
+
+
+
 
 
     }

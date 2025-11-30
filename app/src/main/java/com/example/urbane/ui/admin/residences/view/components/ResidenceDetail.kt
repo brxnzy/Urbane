@@ -1,11 +1,36 @@
-package com.example.urbane.ui.admin.residences.view
+package com.example.urbane.ui.admin.residences.view.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -13,214 +38,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.urbane.data.model.Residence
-import com.example.urbane.ui.admin.residences.model.ResidencesDetailIntent
-import com.example.urbane.ui.admin.residences.model.ResidencesDetailSuccess
-import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
+import com.example.urbane.ui.admin.users.view.components.InfoSection
+import com.example.urbane.ui.admin.users.view.components.UserInfoItem
 import com.example.urbane.utils.getResidenceIcon
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ResidencesDetailScreen(
-    residenceId: Int,
-    viewmodel: ResidencesDetailViewModel,
-    goBack: (showDeleteMessage: Boolean) -> Unit // Cambiado para pasar parámetro
-) {
-    val state by viewmodel.state.collectAsState()
-    var isEditing by remember { mutableStateOf(false) }
-    var expandedTipo by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    // Mensajes de snackbar
-    val residenciaEditada = "Residencia editada exitosamente"
-    val residenciaDesalojada = "Residencia desalojada exitosamente"
-
-    LaunchedEffect(residenceId) {
-        viewmodel.loadResidence(residenceId)
-    }
-
-    // Manejar los success states con snackbar (sin el delete)
-    LaunchedEffect(state.success, state.isLoading) {
-        if (state.success != null && !state.isLoading) {
-            when (state.success) {
-                ResidencesDetailSuccess.ResidenceEdited -> {
-                    snackbarHostState.showSnackbar(
-                        message = residenciaEditada,
-                        withDismissAction = true,
-                        duration = SnackbarDuration.Short
-                    )
-                    isEditing = false
-                    viewmodel.resetSuccess()
-                }
-
-                ResidencesDetailSuccess.ResidenceDeleted -> {
-                    // Navegar hacia atrás con el flag de eliminación
-                    goBack(true)
-                }
-
-                ResidencesDetailSuccess.ResidenceVacated -> {
-                    snackbarHostState.showSnackbar(
-                        message = residenciaDesalojada,
-                        withDismissAction = true,
-                        duration = SnackbarDuration.Short
-                    )
-                    viewmodel.resetSuccess()
-                }
-
-                null -> {}
-            }
-        }
-    }
-
-    // Diálogo de confirmación para eliminar
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = Color.Red,
-                    modifier = Modifier.size(32.dp)
-                )
-            },
-            title = {
-                Text(
-                    text = "¿Eliminar residencia?",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            },
-            text = {
-                Text(
-                    text = "¿Estás seguro que quieres eliminar esta residencia? Esta acción no se puede deshacer.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showDeleteDialog = false
-                        viewmodel.processIntent(
-                            ResidencesDetailIntent.DeleteResidence(id = residenceId)
-                        )
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text("Eliminar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
-                }
-            }
-        )
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (!state.isLoading && state.residence != null) {
-                            "Detalle de ${state.residence!!.name}"
-                        } else {
-                            "Detalle de Residencia"
-                        },
-                        style = MaterialTheme.typography.displayMedium
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { goBack(false) }) { // Sin mensaje al volver normal
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Atrás",
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }
-    ) { paddingValues ->
-
-        when {
-            state.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            state.errorMessage != null -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Error: ${state.errorMessage}")
-                }
-            }
-
-            state.residence != null -> {
-                ResidenceDetail(
-                    residence = state.residence!!,
-                    modifier = Modifier.padding(paddingValues),
-                    isEditing = isEditing,
-                    editedName = state.editedName,
-                    editedType = state.editedType,
-                    editedDescription = state.editedDescription,
-                    expandedTipo = expandedTipo,
-                    hasChanges = state.hasChanges,
-                    onNameChange = { viewmodel.processIntent(ResidencesDetailIntent.UpdateName(it)) },
-                    onTypeChange = { viewmodel.processIntent(ResidencesDetailIntent.UpdateType(it)) },
-                    onDescriptionChange = { viewmodel.processIntent(ResidencesDetailIntent.UpdateDescription(it)) },
-                    onExpandedTipoChange = { expandedTipo = it },
-                    onEditClick = { isEditing = true },
-                    onCancelEdit = {
-                        isEditing = false
-                        // Restaurar valores originales
-                        viewmodel.processIntent(ResidencesDetailIntent.UpdateName(state.originalName))
-                        viewmodel.processIntent(ResidencesDetailIntent.UpdateType(state.originalType))
-                        viewmodel.processIntent(ResidencesDetailIntent.UpdateDescription(state.originalDescription))
-                    },
-                    onSaveEdit = {
-                        viewmodel.processIntent(
-                            ResidencesDetailIntent.EditResidence(
-                                id = residenceId,
-                                name = state.editedName,
-                                type = state.editedType,
-                                description = state.editedDescription
-                            )
-                        )
-                    },
-                    onEvictClick = {
-                        state.residence?.residentId?.let { residentId ->
-                            viewmodel.processIntent(
-                                ResidencesDetailIntent.VacateResidence(
-                                    id = residenceId,
-                                    residentId = residentId
-                                )
-                            )
-                        }
-                    },
-                    onDeleteClick = {
-                        showDeleteDialog = true
-                    }
-                )
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -298,7 +119,7 @@ fun ResidenceDetail(
 
                     ExposedDropdownMenuBox(
                         expanded = expandedTipo,
-                        onExpandedChange = onExpandedTipoChange
+                        onExpandedChange = { onExpandedTipoChange(it) }
                     ) {
                         OutlinedTextField(
                             value = editedType,
@@ -373,7 +194,7 @@ fun ResidenceDetail(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = hasChanges
+                enabled = hasChanges // Solo habilitado si hay cambios
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Save, contentDescription = null)
@@ -466,39 +287,3 @@ fun ResidenceDetail(
     }
 }
 
-@Composable
-fun InfoSection(content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            content = content
-        )
-    }
-}
-
-@Composable
-fun UserInfoItem(
-    label: String,
-    value: String,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = valueColor,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}

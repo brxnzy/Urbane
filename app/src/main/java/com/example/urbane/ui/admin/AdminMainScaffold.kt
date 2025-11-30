@@ -31,7 +31,6 @@ import com.example.urbane.R
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.users.view.UsersScreen
 import com.example.urbane.ui.admin.residences.view.ResidencesScreen
-import com.example.urbane.ui.admin.payments.PaymentsScreen
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -53,10 +52,11 @@ fun AdminMainScaffold(
     loginViewModel: LoginViewModel,
     sessionManager: SessionManager,
     residencesViewModel: ResidencesViewModel,
-    usersViewModel: UsersViewModel
+    usersViewModel: UsersViewModel,
+    showResidenceDeletedMessage: Boolean = false
 
 
-    ) {
+) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -116,7 +116,7 @@ fun AdminMainScaffold(
                         modifier = Modifier.padding(16.dp),
                         navController = navController
                     )
-                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp))
+                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp), showResidenceDeletedMessage)
                     Routes.ADMIN_CLAIMS-> ClaimsScreen()
                     Routes.ADMIN_PAYMENTS -> TestScreen()
                     Routes.ADMIN_CONTRACTS -> ContractsScreen()

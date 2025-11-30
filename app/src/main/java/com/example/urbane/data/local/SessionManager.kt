@@ -60,5 +60,5 @@ class SessionManager(context: Context) {
 
 }
 
-}
+
 
