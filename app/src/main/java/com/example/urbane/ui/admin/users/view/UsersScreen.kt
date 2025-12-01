@@ -51,7 +51,7 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
     }
 
     LaunchedEffect(Unit) {
-        viewmodel.loadUsers(true)
+        viewmodel.loadUsers()
     }
 
     val filtros = listOf("Todos", "Administrador", "Residente","Deshabilitados")

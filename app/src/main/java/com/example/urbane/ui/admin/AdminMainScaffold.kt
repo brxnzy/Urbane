@@ -38,6 +38,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.admin.claims.view.ClaimsScreen
 import com.example.urbane.ui.admin.contracts.view.ContractsScreen
+import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.view.TestScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
@@ -53,6 +54,7 @@ fun AdminMainScaffold(
     sessionManager: SessionManager,
     residencesViewModel: ResidencesViewModel,
     usersViewModel: UsersViewModel,
+    contractsViewModel: ContractsViewModel,
     showResidenceDeletedMessage: Boolean = false
 
 
@@ -66,7 +68,7 @@ fun AdminMainScaffold(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(290.dp)
+                    .width(270.dp)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
                 DrawerContent(sessionManager,navController,loginViewModel,currentRoute) { route ->
@@ -119,7 +121,7 @@ fun AdminMainScaffold(
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp), showResidenceDeletedMessage)
                     Routes.ADMIN_CLAIMS-> ClaimsScreen()
                     Routes.ADMIN_PAYMENTS -> TestScreen()
-                    Routes.ADMIN_CONTRACTS -> ContractsScreen()
+                    Routes.ADMIN_CONTRACTS -> ContractsScreen(contractsViewModel)
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
             }

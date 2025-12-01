@@ -22,6 +22,7 @@ import androidx.navigation.navArgument
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
+import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
@@ -47,6 +48,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val usersViewModel = UsersViewModel(sessionManager)
     val usersDetailViewModel = UsersDetailViewModel(sessionManager)
     val residencesDetailViewModel = ResidencesDetailViewModel(sessionManager)
+    val contractsViewModel = ContractsViewModel(sessionManager)
+
 
 
     NavHost(
@@ -111,6 +114,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
+                contractsViewModel
 
                 )
         }
@@ -143,6 +147,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
+                contractsViewModel,
                 showResidenceDeletedMessage = residenceDeleted
             )
         }
@@ -154,6 +159,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
+                contractsViewModel
+
 
                 )
 
@@ -166,6 +173,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
+                contractsViewModel
+
 
                 )
         }
@@ -177,6 +186,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
+                contractsViewModel
+
 
                 )
         }
@@ -189,6 +200,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
+                contractsViewModel
+
 
                 )
         }

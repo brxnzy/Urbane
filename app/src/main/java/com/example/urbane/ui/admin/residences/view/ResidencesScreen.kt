@@ -68,7 +68,6 @@ fun ResidencesScreen(
     var filtroMenuExpandido by remember { mutableStateOf(false) }
     val tiposPropiedad = listOf("Apartamento", "Casa", "Villa", "Terreno", "Local")
     val snackbarHostState = remember { SnackbarHostState() }
-    var showDeleteMessage by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadResidences()

@@ -20,6 +20,10 @@ class UsersViewModel (val sessionManager: SessionManager) : ViewModel() {
     val state = _state.asStateFlow()
     val userRepository = UserRepository(sessionManager)
 
+    init {
+        loadUsers()
+    }
+
     fun processIntent(intent: UsersIntent) {
         when (intent) {
             is UsersIntent.NameChanged -> _state.update { it.copy(name = intent.name) }
@@ -58,7 +62,7 @@ class UsersViewModel (val sessionManager: SessionManager) : ViewModel() {
                         )
                     }
 
-                    loadUsers(true)
+                    loadUsers()
 
                 } else {
                     _state.update {
@@ -84,10 +88,8 @@ class UsersViewModel (val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-    fun loadUsers(forceRefresh: Boolean = false) {
+    fun loadUsers() {
         viewModelScope.launch {
-            if (!forceRefresh && _state.value.users.isNotEmpty()) return@launch
-
             try {
                 _state.update { it.copy(isLoading = true) }
 

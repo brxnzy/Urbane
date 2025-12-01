@@ -182,7 +182,7 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
                     },
                     navigationIcon = {
                         IconButton(onClick = {
-                            usersViewModel.loadUsers(true)
+                            usersViewModel.loadUsers()
                             goBack()
                         }) {
                             Icon(

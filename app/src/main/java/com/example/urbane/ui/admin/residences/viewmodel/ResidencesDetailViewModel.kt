@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ResidencesDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
-
     private val _state = MutableStateFlow(ResidencesDetailState())
     val state = _state.asStateFlow()
     val residenceRepository = ResidencesRepository(sessionManager)
@@ -130,6 +129,8 @@ class ResidencesDetailViewModel(val sessionManager: SessionManager) : ViewModel(
         viewModelScope.launch {
             try {
                 val updatedResidence = residenceRepository.vacateResidence(id, residentId)
+                Log.d("ResidencesVM", "Residencia desalojada exitosamente $updatedResidence")
+
 
                 _state.update {
                     it.copy(

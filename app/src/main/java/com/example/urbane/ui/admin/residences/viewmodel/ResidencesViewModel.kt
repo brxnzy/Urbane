@@ -28,8 +28,6 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
             is ResidencesIntent.DescriptionChanged -> _state.update { it.copy(description = intent.description) }
             is ResidencesIntent.NameChanged -> _state.update { it.copy(name = intent.name) }
             is ResidencesIntent.TypeChanged -> _state.update { it.copy(type = intent.type) }
-
-            // Intents de propietario
             is ResidencesIntent.OwnerNameChanged -> _state.update { it.copy(ownerName = intent.ownerName) }
             is ResidencesIntent.OwnerEmailChanged -> _state.update { it.copy(ownerEmail = intent.ownerEmail) }
             is ResidencesIntent.OwnerIdCardChanged -> _state.update { it.copy(ownerIdCard = intent.ownerIdCard) }

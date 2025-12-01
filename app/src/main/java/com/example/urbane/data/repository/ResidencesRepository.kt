@@ -69,7 +69,6 @@ class ResidencesRepository(val sessionManager: SessionManager) {
         try {
             val today = java.time.LocalDate.now().toString()
 
-            // 1. Resetear el rol residencial del usuario
             supabase.postgrest.rpc(
                 "reset_user_residential_role",
                 mapOf("uid" to residentId)
@@ -99,7 +98,6 @@ class ResidencesRepository(val sessionManager: SessionManager) {
                     }
                 }
 
-            // 3. Obtener y retornar la residencia actualizada
             return getResidenceById(id)
 
         } catch (e: Exception) {
