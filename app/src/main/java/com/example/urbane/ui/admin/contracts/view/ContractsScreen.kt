@@ -11,17 +11,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import com.example.urbane.navigation.Routes
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.urbane.ui.admin.contracts.view.components.ContractCard
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContractsScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
     viewModel: ContractsViewModel,
-    onContractClick: (Int) -> Unit = {},
-    modifier: Modifier = Modifier
+
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -101,8 +103,7 @@ fun ContractsScreen(
                         ) { contract ->
                             ContractCard(
                                 contract = contract,
-                                onClick = {
-                                    contract.id?.let { onContractClick(it) }
+                                onClick = {navController.navigate(Routes.ADMIN_CONTRACTS_DETAIL.replace("{id}", contract.id.toString()))
                                 }
                             )
                         }

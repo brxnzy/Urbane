@@ -22,6 +22,8 @@ import androidx.navigation.navArgument
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
+import com.example.urbane.ui.admin.contracts.view.ContractDetailScreen
+import com.example.urbane.ui.admin.contracts.viewmodel.ContractsDetailViewModel
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
@@ -49,6 +51,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val usersDetailViewModel = UsersDetailViewModel(sessionManager)
     val residencesDetailViewModel = ResidencesDetailViewModel(sessionManager)
     val contractsViewModel = ContractsViewModel(sessionManager)
+    val contractsDetailViewModel = ContractsDetailViewModel(sessionManager)
 
 
 
@@ -238,6 +241,18 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 navController.popBackStack()
             }
         }
+
+        composable(
+            Routes.ADMIN_CONTRACTS_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStackEntry ->
+            ContractDetailScreen(
+                contractId = backStackEntry.arguments?.getString("id") ?: "",
+                viewmodel = contractsDetailViewModel,
+
+
+            )
+        }
         composable(
             Routes.ADMIN_RESIDENCES_DETAIL,
             arguments = listOf(navArgument("id") { type = NavType.IntType })
@@ -247,7 +262,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 viewmodel = residencesDetailViewModel,
             ){showDeleteMessage ->
                 if (showDeleteMessage) {
-                    // Pasar el flag a la pantalla anterior
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("residenceDeleted", true)
@@ -255,11 +269,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 navController.popBackStack()
             }
         }
-
-
-
-
-
     }
 }
 

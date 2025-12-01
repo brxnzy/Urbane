@@ -121,7 +121,7 @@ fun AdminMainScaffold(
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp), showResidenceDeletedMessage)
                     Routes.ADMIN_CLAIMS-> ClaimsScreen()
                     Routes.ADMIN_PAYMENTS -> TestScreen()
-                    Routes.ADMIN_CONTRACTS -> ContractsScreen(contractsViewModel)
+                    Routes.ADMIN_CONTRACTS -> ContractsScreen(modifier = Modifier.padding(16.dp),navController, contractsViewModel)
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
             }

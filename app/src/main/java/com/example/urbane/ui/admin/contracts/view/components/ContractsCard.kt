@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.urbane.R
 import com.example.urbane.data.model.Contract
@@ -28,9 +29,9 @@ import java.util.*
 
 @Composable
 fun ContractCard(
+    modifier: Modifier = Modifier,
     contract: Contract,
     onClick: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier

@@ -18,4 +18,21 @@ class ContractsRepository(val sessionManager: SessionManager) {
             throw e
         }
     }
+
+
+    suspend fun getContractById(id: Int): Contract{
+        try {
+            val residentialId = getResidentialId(sessionManager) ?: emptyList<String>()
+            val contract = supabase.from("contracts_view").select{
+                filter {
+                    eq("residentialId",residentialId)
+                    eq("id",id)
+                }
+            }.decodeSingle<Contract>()
+            return contract
+        }catch (e: Exception){
+            Log.d("ContractsRepository", "Error al obtener el contrato por id: ${e.message}")
+            throw e
+        }
+    }
 }
