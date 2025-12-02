@@ -35,4 +35,19 @@ class ContractsRepository(val sessionManager: SessionManager) {
             throw e
         }
     }
+
+    suspend fun updateContractConditions(contractId: Int, conditions: String): Boolean {
+        return try {
+            supabase.from("contracts").update({
+                set("conditions", conditions)
+            }) {
+                filter {
+                    eq("id", contractId)
+                }
+            }
+            true
+        } catch (e: Exception) {
+            throw Exception("Error actualizando condiciones: ${e.message}")
+        }
+    }
 }

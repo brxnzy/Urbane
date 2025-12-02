@@ -249,9 +249,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             ContractDetailScreen(
                 contractId = backStackEntry.arguments?.getString("id") ?: "",
                 viewmodel = contractsDetailViewModel,
-
-
-            )
+            ){
+                navController.popBackStack()
+            }
         }
         composable(
             Routes.ADMIN_RESIDENCES_DETAIL,
