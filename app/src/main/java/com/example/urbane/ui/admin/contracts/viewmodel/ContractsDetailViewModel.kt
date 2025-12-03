@@ -58,8 +58,8 @@ class ContractsDetailViewModel(val sessionManager: SessionManager) : ViewModel()
 
     fun handleIntent(intent: ContractsDetailIntent) {
         when (intent) {
-            is ContractsDetailIntent.UpdateConditions ->
-                updateConditions(intent.contractId, intent.conditions)
+            is ContractsDetailIntent.UpdateContract ->
+                updateContract(intent.contractId, intent.conditions, intent.amount)
 
             is ContractsDetailIntent.AddService ->
                 addServiceToContract(intent.contractId, intent.serviceId)
@@ -72,12 +72,12 @@ class ContractsDetailViewModel(val sessionManager: SessionManager) : ViewModel()
     }
 
 
-    private fun updateConditions(contractId: Int, conditions: String) {
+    private fun updateContract(contractId: Int, conditions: String, amount: Double) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null, success = null) }
 
             try {
-                contractsRepository.updateContractConditions(contractId, conditions)
+                contractsRepository.updateContract(contractId, conditions, amount)
                 val updatedContract = contractsRepository.getContractById(contractId)
 
                 _state.update {

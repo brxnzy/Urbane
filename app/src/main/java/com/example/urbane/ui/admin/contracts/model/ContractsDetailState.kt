@@ -14,12 +14,16 @@ data class ContractsDetailState(
 )
 
 sealed class ContractsDetailIntent {
-    data class UpdateConditions(val contractId: Int, val conditions: String) : ContractsDetailIntent()
+    data class UpdateContract(
+        val contractId: Int,
+        val conditions: String,
+        val amount: Double
+    ) : ContractsDetailIntent()
+
     data class AddService(val contractId: Int, val serviceId: Int) : ContractsDetailIntent()
     data class RemoveService(val contractId: Int, val contractServiceId: Int) : ContractsDetailIntent()
     object ClearMessages : ContractsDetailIntent()
 }
-
 
 sealed class ContractsDetailSuccess {
     object UpdateContract : ContractsDetailSuccess()

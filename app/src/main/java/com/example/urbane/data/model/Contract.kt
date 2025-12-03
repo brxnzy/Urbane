@@ -10,6 +10,8 @@ data class Contract(
     val residenceId: Int,
     val startDate: String,
     val endDate: String? = null,
+    val amount: Double? = null,
+    val active:Boolean? = null,
     val conditions: String? = null,
     val residentName: String? = null,
     val residentPhotoUrl: String? = null,

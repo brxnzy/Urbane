@@ -5,7 +5,7 @@ import com.example.urbane.data.model.Contract
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
-class ContractsRepository(val sessionManager: SessionManager) {
+class   ContractsRepository(val sessionManager: SessionManager) {
     suspend fun getContracts(): List<Contract>{
         try {
             val residentialId = getResidentialId(sessionManager) ?: emptyList<String>()
@@ -36,10 +36,11 @@ class ContractsRepository(val sessionManager: SessionManager) {
         }
     }
 
-    suspend fun updateContractConditions(contractId: Int, conditions: String): Boolean {
+    suspend fun updateContract(contractId: Int, conditions: String, amount: Double): Boolean {
         return try {
             supabase.from("contracts").update({
                 set("conditions", conditions)
+                set("amount", amount)
             }) {
                 filter {
                     eq("id", contractId)
@@ -47,7 +48,7 @@ class ContractsRepository(val sessionManager: SessionManager) {
             }
             true
         } catch (e: Exception) {
-            throw Exception("Error actualizando condiciones: ${e.message}")
+            throw Exception("Error actualizando contrato: ${e.message}")
         }
     }
 }
