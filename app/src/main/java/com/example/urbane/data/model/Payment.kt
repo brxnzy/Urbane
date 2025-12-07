@@ -15,11 +15,3 @@ data class Payment(
     val paymentTransactions: List<PaymentTransaction> = emptyList()
 )
 
-@Serializable
-data class PaymentTransaction(
-    val id: String,
-    val paymentId: String,
-    val amount: Double,
-    val method: String,
-    val createdAt: String
-)

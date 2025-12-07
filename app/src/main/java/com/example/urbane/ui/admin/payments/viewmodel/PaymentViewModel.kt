@@ -103,7 +103,7 @@ class PaymentsViewModel(
 
                 // Filtrar solo los que están "pending" o "partial"
                 val pendingPayments = allPayments.filter {
-                    it.status == "pending" || it.status == "partial"
+                    it.status == "Pendiente" || it.status == "Parcial"
                 }
 
                 _state.update {
@@ -195,9 +195,9 @@ class PaymentsViewModel(
             try {
                 _state.update { it.copy(isLoading = true) }
 
-                val selectedPayments = _state.value.selectedPayments.values.toList()
+                val selected = _state.value.selectedPayments.values.toList()
 
-                if (selectedPayments.isEmpty()) {
+                if (selected.isEmpty()) {
                     _state.update {
                         it.copy(
                             isLoading = false,
@@ -207,10 +207,8 @@ class PaymentsViewModel(
                     return@launch
                 }
 
-                Log.d("PaymentsViewModel", "Registrando ${selectedPayments.size} pagos...")
-
-                // TODO: Implementar la lógica de registro en el repository
-                // paymentRepository.registerPayments(selectedPayments)
+                // Llamas directo al repository, TÚ NO REGISTRAS UNO POR UNO
+                paymentRepository.registerPayment(selected)
 
                 _state.update {
                     it.copy(
@@ -220,13 +218,13 @@ class PaymentsViewModel(
                     )
                 }
 
-                // Recargar pagos pendientes
+                // refrescar los pendientes del residente elegido
                 _state.value.selectedResident?.let { resident ->
                     loadPendingPayments(resident.id)
                 }
 
             } catch (e: Exception) {
-                Log.e("PaymentsViewModel", "Error registering payments: $e")
+                Log.e("PaymentsViewModel", "Error registerPayments: $e")
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -236,6 +234,7 @@ class PaymentsViewModel(
             }
         }
     }
+
 
     // Limpiar la selección de residente
     private fun clearResidentSelection() {
