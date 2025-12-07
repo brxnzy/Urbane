@@ -147,8 +147,8 @@ fun ContractCard(
 fun StatusBadge(status: ContractStatus) {
     val (backgroundColor, textColor) = when (status) {
         ContractStatus.ACTIVE -> Color(0xFFD1FAE5) to Color(0xFF065F46)
-        ContractStatus.PENDING -> Color(0xFFFED7AA) to Color(0xFF92400E)
-        ContractStatus.FINALIZED -> Color(0xFFE5E7EB) to Color(0xFF374151)
+        ContractStatus.FINALIZED -> Color(0xFFFEE2E2) to Color(0xFFB91C1C)
+
     }
 
     Surface(
@@ -159,7 +159,6 @@ fun StatusBadge(status: ContractStatus) {
         Text(
             text = when (status) {
                 ContractStatus.ACTIVE -> "Activo"
-                ContractStatus.PENDING -> "Pendiente"
                 ContractStatus.FINALIZED -> "Finalizado"
             },
             style = MaterialTheme.typography.labelSmall,
@@ -189,10 +188,10 @@ private fun getContractStatus(contract: Contract): ContractStatus {
     val startDate = try {
         val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         Calendar.getInstance().apply {
-            time = format.parse(contract.startDate) ?: return ContractStatus.PENDING
+            time = format.parse(contract.startDate) ?: return ContractStatus.FINALIZED
         }
     } catch (e: Exception) {
-        return ContractStatus.PENDING
+        return ContractStatus.FINALIZED
     }
 
     val endDate = contract.endDate?.let {
@@ -207,7 +206,6 @@ private fun getContractStatus(contract: Contract): ContractStatus {
     }
 
     return when {
-        today.before(startDate) -> ContractStatus.PENDING
         endDate == null -> ContractStatus.ACTIVE
         today.after(endDate) -> ContractStatus.FINALIZED
         else -> ContractStatus.ACTIVE
@@ -216,6 +214,5 @@ private fun getContractStatus(contract: Contract): ContractStatus {
 
 enum class ContractStatus {
     ACTIVE,
-    PENDING,
     FINALIZED
 }

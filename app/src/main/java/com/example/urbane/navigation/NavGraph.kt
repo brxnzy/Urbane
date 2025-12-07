@@ -25,6 +25,7 @@ import com.example.urbane.ui.admin.AdminMainScaffold
 import com.example.urbane.ui.admin.contracts.view.ContractDetailScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsDetailViewModel
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
+import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
@@ -52,6 +53,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val residencesDetailViewModel = ResidencesDetailViewModel(sessionManager)
     val contractsViewModel = ContractsViewModel(sessionManager)
     val contractsDetailViewModel = ContractsDetailViewModel(sessionManager)
+    val paymentsViewModel = PaymentsViewModel(sessionManager)
+
 
 
 
@@ -117,7 +120,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
-                contractsViewModel
+                contractsViewModel,
+                paymentsViewModel
 
                 )
         }
@@ -151,6 +155,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 residencesViewModel,
                 usersViewModel,
                 contractsViewModel,
+                paymentsViewModel,
                 showResidenceDeletedMessage = residenceDeleted
             )
         }
@@ -162,7 +167,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
-                contractsViewModel
+                contractsViewModel,
+                paymentsViewModel
+
 
 
                 )
@@ -176,7 +183,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
-                contractsViewModel
+                contractsViewModel,
+                paymentsViewModel
+
 
 
                 )
@@ -189,7 +198,9 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
-                contractsViewModel
+                contractsViewModel,
+                paymentsViewModel
+
 
 
                 )
@@ -203,7 +214,11 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
-                contractsViewModel
+                contractsViewModel,
+                paymentsViewModel
+
+
+
 
 
                 )

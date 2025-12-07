@@ -201,6 +201,31 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
+    suspend fun getResidents(): List<User> {
+        return try {
+            val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
+            val users = supabase
+                .from("users_view")
+                .select {
+                    filter {
+                        eq("residential_id", residentialId)
+                        eq("role_name","resident")
+                        eq( "active", true)
+                    }
+                }
+                .decodeList<User>()
+            Log.d("UserRepository","Usuarios obtenidos $users")
+            users
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error obteniendo los usuarios: $e")
+            emptyList()
+        }
+    }
+
+
+
+
 
     suspend fun getOwners(): List<User> {
         return try {

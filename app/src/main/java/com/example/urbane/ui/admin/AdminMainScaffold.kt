@@ -1,5 +1,6 @@
 package com.example.urbane.ui.admin
 
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,8 +40,9 @@ import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.admin.claims.view.ClaimsScreen
 import com.example.urbane.ui.admin.contracts.view.ContractsScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
+import com.example.urbane.ui.admin.payments.view.PaymentsScreen
+import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
-import com.example.urbane.ui.admin.users.view.TestScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
@@ -55,6 +57,7 @@ fun AdminMainScaffold(
     residencesViewModel: ResidencesViewModel,
     usersViewModel: UsersViewModel,
     contractsViewModel: ContractsViewModel,
+    paymentsViewModel: PaymentsViewModel,
     showResidenceDeletedMessage: Boolean = false
 
 
@@ -120,7 +123,7 @@ fun AdminMainScaffold(
                     )
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp), showResidenceDeletedMessage)
                     Routes.ADMIN_CLAIMS-> ClaimsScreen()
-                    Routes.ADMIN_PAYMENTS -> TestScreen()
+                    Routes.ADMIN_PAYMENTS -> PaymentsScreen(paymentsViewModel)
                     Routes.ADMIN_CONTRACTS -> ContractsScreen(modifier = Modifier.padding(16.dp),navController, contractsViewModel)
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
