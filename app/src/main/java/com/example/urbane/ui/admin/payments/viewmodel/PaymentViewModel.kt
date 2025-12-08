@@ -44,6 +44,33 @@ class PaymentsViewModel(
         }
     }
 
+    fun loadAllPayments() {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true) }
+
+                val payments = paymentRepository.getAllPayments()
+
+                _state.update {
+                    it.copy(
+                        allPayments = payments,
+                        isLoading = false,
+                        errorMessage = null
+                    )
+                }
+
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message ?: "Error cargando pagos"
+                    )
+                }
+            }
+        }
+    }
+
+
     // Cargar residentes
     fun loadResidents() {
         viewModelScope.launch {
@@ -160,7 +187,6 @@ class PaymentsViewModel(
         }
     }
 
-    // Actualizar el monto a pagar de un pago seleccionado
     private fun updatePaymentAmount(paymentId: Int, newAmount: Float) {
         _state.update { currentState ->
             val currentSelections = currentState.selectedPayments.toMutableMap()
@@ -235,8 +261,6 @@ class PaymentsViewModel(
         }
     }
 
-
-    // Limpiar la selección de residente
     private fun clearResidentSelection() {
         _state.update {
             it.copy(

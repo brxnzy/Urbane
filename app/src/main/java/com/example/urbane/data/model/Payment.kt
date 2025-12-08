@@ -12,6 +12,7 @@ data class Payment(
     val paidAmount: Float,
     val status: String,
     val createdAt: String,
-    val paymentTransactions: List<PaymentTransaction> = emptyList()
+    val paymentTransactions: List<PaymentTransaction> = emptyList(),
+    val resident: UserMinimal? = null
 )
 

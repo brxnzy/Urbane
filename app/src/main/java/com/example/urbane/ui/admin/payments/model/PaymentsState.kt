@@ -19,7 +19,8 @@ data class PaymentsState(
     val residents: List<User> = emptyList(),
     val selectedResident: User? = null,
     val pendingPayments: List<Payment> = emptyList(), // USA Payment directamente
-    val selectedPayments: Map<Int, SelectedPayment> = emptyMap(), // Key = paymentId (Int)
+    val selectedPayments: Map<Int, SelectedPayment> = emptyMap(),
+    val allPayments: List<Payment> = emptyList(),
     val errorMessage: String? = null,
     val success: Boolean = false
 )
