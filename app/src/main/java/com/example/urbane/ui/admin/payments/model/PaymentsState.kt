@@ -1,7 +1,10 @@
 package com.example.urbane.ui.admin.payments.model
 
+import android.content.Context
+import com.example.urbane.data.model.InvoiceData
 import com.example.urbane.data.model.User
 import com.example.urbane.data.model.Payment
+import com.example.urbane.data.model.TransactionDetail
 
 data class SelectedPayment(
     val paymentId: Int,           // ID del pago original
@@ -22,8 +25,17 @@ data class PaymentsState(
     val selectedPayments: Map<Int, SelectedPayment> = emptyMap(),
     val allPayments: List<Payment> = emptyList(),
     val errorMessage: String? = null,
-    val success: Boolean = false
+    val success: PaymentSuccess? = null,
+    val transactionDetail: TransactionDetail? = null
 )
+
+
+sealed class PaymentSuccess {
+    data class InvoiceGenerated(
+        val invoice: InvoiceData
+    ) : PaymentSuccess()
+}
+
 
 // Intents completos
 sealed class PaymentsIntent {
@@ -37,5 +49,5 @@ sealed class PaymentsIntent {
     data class UpdatePaymentAmount(val paymentId: Int, val newAmount: Float) : PaymentsIntent()
 
     // Nuevo: Registrar todos los pagos seleccionados
-    object RegisterPayments : PaymentsIntent()
+    object RegisterPayments  :PaymentsIntent()
 }

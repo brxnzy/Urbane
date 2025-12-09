@@ -283,7 +283,10 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 }
                 navController.popBackStack()
             }
+
         }
+
+
     }
 }
 

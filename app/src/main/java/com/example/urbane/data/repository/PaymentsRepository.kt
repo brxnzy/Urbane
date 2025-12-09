@@ -1,16 +1,33 @@
 package com.example.urbane.data.repository
 
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
 import android.util.Log
 import com.example.urbane.data.local.SessionManager
+import com.example.urbane.data.model.InvoiceData
 import com.example.urbane.data.model.Payment
 import com.example.urbane.data.model.PaymentTransaction
+import com.example.urbane.data.model.Service
+import com.example.urbane.data.model.TransactionDetail
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.ui.admin.payments.model.SelectedPayment
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.storage.storage
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.float
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
+import java.io.FileOutputStream
+import java.time.Instant
 
 
 class PaymentRepository (
@@ -54,18 +71,51 @@ class PaymentRepository (
         }
     }
 
-    suspend fun registerPayment(payments: List<SelectedPayment>) {
-        val residentialId = getResidentialId(sessionManager) ?:0
+    suspend fun registerPayment(payments: List<SelectedPayment>): List<Int> {
+
+        Log.d("PaymentsRepo", "⏳ INICIO registerPayment")
+        Log.d("PaymentsRepo", "📌 Cantidad de pagos recibidos: ${payments.size}")
+
+        val residentialId = getResidentialId(sessionManager) ?: 0
+        Log.d("PaymentsRepo", "🏢 residentialId: $residentialId")
+
+        val transactionIds = mutableListOf<Int>()
+
+        payments.forEachIndexed { index, p ->
+
+            Log.d("PaymentsRepo", "➡️ Procesando pago #$index")
+            Log.d("PaymentsRepo", "   paymentId: ${p.paymentId}")
+            Log.d("PaymentsRepo", "   montoPagar: ${p.montoPagar}")
+            Log.d("PaymentsRepo", "   montoTotal: ${p.montoTotal}")
+            Log.d("PaymentsRepo", "   montoPendiente: ${p.montoPendiente}")
+
+            val transactionData = PaymentTransaction(
+                paymentId = p.paymentId,
+                amount = p.montoPagar,
+                method = "Efectivo",
+                residentialId = residentialId
+            )
+
+            Log.d("PaymentsRepo", "🚀 Insertando en payments_transactions: $transactionData")
+
+            val inserted = supabase.from("payments_transactions")
+                .insert(transactionData) {
+                    select()
+                }
+                .decodeSingle<JsonObject>()
+
+            val transactionId = inserted["id"]!!.jsonPrimitive.int
+            transactionIds.add(transactionId)
+
+            Log.d("PaymentsRepo", "✅ transactionId generado: $transactionId")
 
 
-        payments.forEach { p ->
-            val transactionData = PaymentTransaction(paymentId = p.paymentId, amount = p.montoPagar, method = "Efectivo", residentialId = residentialId)
-            supabase.from("payments_transactions")
-                .insert(transactionData)
 
-            val paidAmount = p.montoTotal - p.montoPendiente   // lo ya pagado
-            val nuevoPaidAmount = paidAmount + p.montoPagar    // sumas lo que acaba de pagar
+            Log.d("PaymentsRepo", "✅ transactionId generado: $transactionId")
 
+            // ✅ Cálculo correcto del acumulado
+            val paidAmount = p.montoTotal - p.montoPendiente
+            val nuevoPaidAmount = paidAmount + p.montoPagar
             val nuevoPendiente = p.montoTotal - nuevoPaidAmount
 
             val nuevoStatus = when {
@@ -74,24 +124,31 @@ class PaymentRepository (
                 else -> "Pendiente"
             }
 
-            val updateData = mapOf(
-                "paidAmount" to nuevoPaidAmount,
-                "status" to nuevoStatus
-            )
+            Log.d("PaymentsRepo", "🧮 paidAmount viejo: $paidAmount")
+            Log.d("PaymentsRepo", "🧮 nuevoPaidAmount: $nuevoPaidAmount")
+            Log.d("PaymentsRepo", "🧮 nuevoPendiente: $nuevoPendiente")
+            Log.d("PaymentsRepo", "🧾 nuevoStatus: $nuevoStatus")
+
+            Log.d("PaymentsRepo", "🔄 Actualizando payment id ${p.paymentId}")
 
             supabase.from("payments")
-                .update(
-                    {
+                .update({
                     set("paidAmount", nuevoPaidAmount)
                     set("status", nuevoStatus)
-                    }
-                ) {
-                    filter {
-                        eq("id", p.paymentId)
-                    }
+                }) {
+                    filter { eq("id", p.paymentId) }
                 }
+
+            Log.d("PaymentsRepo", "✅ Payment ${p.paymentId} actualizado correctamente")
         }
+
+        Log.d("PaymentsRepo", "🏁 FIN registerPayment")
+        Log.d("PaymentsRepo", "📦 Transaction IDs finales: $transactionIds")
+
+        return transactionIds
     }
+
+
 
     suspend fun getAllPayments(): List<Payment> {
         return try {
@@ -148,8 +205,221 @@ class PaymentRepository (
         } catch (e: Exception) {
             throw IllegalStateException("Error obteniendo transacciones de pago: $e")
         }
+    }
+
+    @SuppressLint("SuspiciousIndentation")
+    suspend fun getTransactionDetailById(transactionId: Int): TransactionDetail {
+        try {
+            val residentialId = getResidentialId(sessionManager)
+                ?: throw IllegalStateException("No hay residentialId")
+
+            // 1. Transaction → Payment → Resident
+            val data = supabase.from("payments_transactions").select(
+                Columns.raw(
+                    """
+                id,
+                amount,
+                payment:payments(
+                    id,
+                    month,
+                    year,
+                    amount,
+                    paidAmount,
+                    status,
+                    resident:users(id, name)
+                )
+                """
+                )
+            ) {
+                filter {
+                    eq("residentialId", residentialId)
+                    eq("id", transactionId)
+                }
+            }.decodeSingle<JsonObject>()
+
+            val payment = data["payment"]?.jsonObject
+                ?: throw IllegalStateException("Payment no encontrado")
+
+            val resident = payment["resident"]?.jsonObject
+                ?: throw IllegalStateException("Resident no encontrado")
+
+            val paymentId = payment["id"]!!.jsonPrimitive.int
+            val residentId = resident["id"]!!.jsonPrimitive.content
+
+            // 2. Contract por residentId
+            val contractData = supabase.from("contracts").select(
+                Columns.raw(
+                    """
+                id,
+                amount
+                """
+                )
+            ) {
+                filter {
+                    eq("residentId", residentId)
+                    eq("active", true)
+                }
+            }.decodeSingleOrNull<JsonObject>() // ✅ EVITA CRASH
+
+            val contractId = contractData?.get("id")?.jsonPrimitive?.int
+            val contractAmount = contractData?.get("amount")?.jsonPrimitive?.float
+
+            // 3. Servicios del contrato (si hay contrato)
+            val services = if (contractId != null) {
+                val servicesData = supabase.from("contract_services").select(
+                    Columns.raw(
+                        """
+                    service:services(id, name, price)
+                    """
+                    )
+                ) {
+                    filter {
+                        eq("contractId", contractId)
+                    }
+                }.decodeList<JsonObject>()
+
+                servicesData.mapNotNull { item ->
+                    val service = item["service"]?.jsonObject ?: return@mapNotNull null
+                    Service(
+                        id = service["id"]!!.jsonPrimitive.int,
+                        name = service["name"]!!.jsonPrimitive.content,
+                        price = service["price"]!!.jsonPrimitive.float
+                    )
+                }
+            } else {
+                emptyList()
+            }
+            
+            // 4. Resultado final
+            return TransactionDetail(
+                transactionId = data["id"]?.jsonPrimitive?.int,
+                transactionAmount = data["amount"]?.jsonPrimitive?.float,
+                paymentId = paymentId,
+                residentId = residentId,
+                month = payment["month"]?.jsonPrimitive?.int,
+                year = payment["year"]?.jsonPrimitive?.int,
+                paymentStatus = payment["status"]?.jsonPrimitive?.content,
+                paymentAmount = payment["amount"]?.jsonPrimitive?.float,
+                paidAmount = payment["paidAmount"]?.jsonPrimitive?.float,
+                residentName = resident["name"]?.jsonPrimitive?.content,
+                contractAmount = contractAmount,
+                services = services
+            )
+
+
+        } catch (e: Exception) {
+            throw IllegalStateException("Error obteniendo detalle de transacción: $e")
+        }
+    }
+
+    suspend fun buildInvoiceFromTransactions(
+        transactionIds: List<Int>
+    ): InvoiceData {
+
+        val lines = mutableListOf<TransactionDetail>()
+
+        transactionIds.forEach { id ->
+            val detail = getTransactionDetailById(id)
+            lines.add(detail)
+        }
+
+        val totalAmount = lines.sumOf { (it.paymentAmount ?: 0f).toDouble() }.toFloat()
+
+        val totalPaid = lines.sumOf { (it.transactionAmount ?: 0f).toDouble() }.toFloat()
+
+        val totalRemaining = lines.sumOf {
+            val total = it.paymentAmount ?: 0f
+            val paid = it.paidAmount ?: 0f
+            (total - paid).toDouble()
+        }.toFloat()
+
+        Log.d("PaymentRepository", "buildInvoiceFromTransactions: $lines")
+
+
+        val first = lines.firstOrNull()
+
+        return InvoiceData(
+            invoiceId = System.currentTimeMillis().toString(),
+            createdAt = Instant.now().toString(),
+            residentId = first?.residentId,
+            residentName = first?.residentName,
+            lines = lines,
+            totalAmount = totalAmount,
+            totalPaid = totalPaid,
+            totalRemaining = totalRemaining
+        )
+    }
+
+
+    suspend fun generateAndUploadInvoice(
+        context: Context,
+        invoice: InvoiceData
+    ) :String {
+
+        // 1. Generar PDF local
+        val pdfDocument = PdfDocument()
+        val paint = Paint()
+
+        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+        val page = pdfDocument.startPage(pageInfo)
+        val canvas = page.canvas
+
+        var y = 40
+        paint.textSize = 16f
+        canvas.drawText("FACTURA DE PAGO", 200f, y.toFloat(), paint)
+
+        y += 25
+        paint.textSize = 12f
+        canvas.drawText("Factura: ${invoice.invoiceId}", 40f, y.toFloat(), paint)
+        y += 20
+        canvas.drawText("Fecha: ${invoice.createdAt}", 40f, y.toFloat(), paint)
+        y += 20
+        canvas.drawText("Residente: ${invoice.residentName}", 40f, y.toFloat(), paint)
+
+        y += 30
+        canvas.drawText("DETALLE:", 40f, y.toFloat(), paint)
+        y += 20
+
+        invoice.lines.forEach {
+            val line =
+                "Mes ${it.month}/${it.year} - Pagado: ${it.transactionAmount} - Estado: ${it.paymentStatus}"
+            canvas.drawText(line, 40f, y.toFloat(), paint)
+            y += 18
+        }
+
+        y += 25
+        canvas.drawText("TOTAL PAGADO: ${invoice.totalPaid}", 40f, y.toFloat(), paint)
+        y += 20
+        canvas.drawText("TOTAL RESTANTE: ${invoice.totalRemaining}", 40f, y.toFloat(), paint)
+
+        pdfDocument.finishPage(page)
+
+        val file = File(
+            context.cacheDir,
+            "factura_${invoice.invoiceId}.pdf"
+        )
+
+        FileOutputStream(file).use {
+            pdfDocument.writeTo(it)
+        }
+
+        pdfDocument.close()
+
+        val bytes = file.readBytes()
+        val path = "factura_${invoice.invoiceId}.pdf"
+
+        supabase.storage.from("invoices").upload(path = path,
+            data = bytes,
+        )
+
+        return supabase.storage
+            .from("invoices")
+            .publicUrl(path)
+
 
     }
+
+
 
 
 }

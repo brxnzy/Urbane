@@ -6,6 +6,5 @@ import kotlinx.serialization.Serializable
     data class Service(
         val id: Int,
         val name: String,
-        val price: Double,
-        val description: String? = null
+        val price: Float,
     )

@@ -1,16 +1,24 @@
 package com.example.urbane.ui.admin.payments.viewmodel
 
+import android.content.Context
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.local.SessionManager
+import com.example.urbane.data.model.InvoiceData
 import com.example.urbane.data.repository.PaymentRepository
 import com.example.urbane.data.repository.UserRepository
 import com.example.urbane.data.model.User
 import com.example.urbane.data.model.Payment
+import com.example.urbane.data.remote.supabase
 import com.example.urbane.ui.admin.payments.model.*
+import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 
 class PaymentsViewModel(
@@ -43,6 +51,17 @@ class PaymentsViewModel(
             }
         }
     }
+
+    fun generateInvoicePdf(context: Context, invoice: InvoiceData) {
+        viewModelScope.launch {
+            try {
+            paymentRepository.generateAndUploadInvoice(context, invoice)
+            }catch (e: Exception){
+                Log.e("PaymentsViewModel", "Error generateInvoicePdf: $e")
+            }
+        }
+    }
+
 
     fun loadAllPayments() {
         viewModelScope.launch {
@@ -215,51 +234,73 @@ class PaymentsViewModel(
         }
     }
 
-    // Registrar los pagos seleccionados
+
     private fun registerPayments() {
         viewModelScope.launch {
             try {
+
                 _state.update { it.copy(isLoading = true) }
 
                 val selected = _state.value.selectedPayments.values.toList()
 
                 if (selected.isEmpty()) {
+                    Log.e("PaymentsVM", "❌ Lista de pagos vacía")
+
                     _state.update {
                         it.copy(
                             isLoading = false,
                             errorMessage = "No hay pagos seleccionados"
                         )
                     }
+
                     return@launch
                 }
 
-                // Llamas directo al repository, TÚ NO REGISTRAS UNO POR UNO
-                paymentRepository.registerPayment(selected)
+                val transactionIds =
+                    paymentRepository.registerPayment(selected)
+
+
+                if (transactionIds.isEmpty()) {
+                    Log.e("PaymentsVM", "❌ registerPayment devolvió lista VACÍA")
+                    throw Exception("registerPayment devolvió lista vacía")
+                }
+
+
+                val invoice =
+                    paymentRepository.buildInvoiceFromTransactions(transactionIds)
 
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        success = true,
+                        success = PaymentSuccess.InvoiceGenerated(
+                            invoice = invoice
+                        ),
                         selectedPayments = emptyMap()
                     )
                 }
 
-                // refrescar los pendientes del residente elegido
+
                 _state.value.selectedResident?.let { resident ->
                     loadPendingPayments(resident.id)
                 }
 
+
             } catch (e: Exception) {
-                Log.e("PaymentsViewModel", "Error registerPayments: $e")
+                Log.e("PaymentsVM", "🔥 ERROR en registerPayments", e)
+
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error al registrar los pagos"
+                        errorMessage = "Error al registrar los pagos $e"
                     )
                 }
             }
         }
     }
+
+
+
+
 
     private fun clearResidentSelection() {
         _state.update {
@@ -271,4 +312,15 @@ class PaymentsViewModel(
         }
         Log.d("PaymentsViewModel", "Selección de residente limpiada")
     }
+
+    fun clearSuccess() {
+        _state.update { it.copy(success = null) }
+    }
+
+
+
+
+
+
+
 }
