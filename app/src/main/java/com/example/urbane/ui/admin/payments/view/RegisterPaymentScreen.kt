@@ -1,6 +1,7 @@
 package com.example.urbane.ui.admin.payments.view
 
 import android.annotation.SuppressLint
+import android.app.DownloadManager
 import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
@@ -30,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -74,97 +76,98 @@ fun RegisterPaymentScreen(viewModel: PaymentsViewModel) {
     }
 
     val context = LocalContext.current
-
-
     var showDialog by remember { mutableStateOf(false) }
-    var invoiceFile by remember { mutableStateOf<File?>(null) }
 
     LaunchedEffect(state.success) {
-        val success = state.success
-        if (success is PaymentSuccess.InvoiceGenerated) {
-            // Generamos y subimos el PDF a Supabase
-            val file = File(context.cacheDir, "factura_${success.invoice.invoiceId}.pdf")
-            viewModel.generateInvoicePdf(context, success.invoice) // ya lo genera local y sube
-
-            invoiceFile = file
+        if (state.success is PaymentSuccess.InvoiceGenerated) {
             showDialog = true
-            viewModel.clearSuccess()
         }
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    if (showDialog && invoiceFile != null) {
+    if (showDialog) {
+
+        val success = state.success as? PaymentSuccess.InvoiceGenerated
+        val invoiceUrl = success?.invoice?.invoiceUrl
+        val invoiceId = success?.invoice?.invoiceId
+
         AlertDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = {
+                showDialog = false
+                viewModel.clearSuccess()
+            },
             title = { Text("Pago realizado correctamente") },
             text = { Text("Se ha generado la factura exitosamente.") },
+
+            // ✅ DESCARGAR + SNACKBAR + IR A DESCARGAS
             confirmButton = {
-                TextButton(onClick = {
+                TextButton(
+                    enabled = invoiceUrl != null,
+                    onClick = {
+                        scope.launch {
 
-                    val invoice = invoiceFile!!
+                            // 🔹 Descargar desde Supabase
+                            val uri = viewModel.downloadInvoiceFromSupabase(
+                                context = context,
+                                fileUrl = invoiceUrl!!,
+                                fileName = "factura_$invoiceId.pdf"
+                            )
 
-                    // Guardar PDF en Descargas usando MediaStore
-                    val values = ContentValues().apply {
-                        put(MediaStore.Downloads.DISPLAY_NAME, invoice.name) // nombre del archivo
-                        put(MediaStore.Downloads.MIME_TYPE, "application/pdf")
-                        put(MediaStore.Downloads.IS_PENDING, 1) // archivo en proceso de escritura
-                    }
+                            showDialog = false
+                            viewModel.clearSuccess()
 
-                    val uri = context.contentResolver.insert(
-                        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-                        values
-                    )
+                            // 🔹 Snackbar con botón IR
+                            val result = snackbarHostState.showSnackbar(
+                                message = "Factura descargada correctamente",
+                                actionLabel = "Ir",
+                                duration = SnackbarDuration.Long
+                            )
 
-                    uri?.let {
-                        context.contentResolver.openOutputStream(it)?.use { out ->
-                            invoice.inputStream().copyTo(out)
-                        }
-                        values.clear()
-                        values.put(MediaStore.Downloads.IS_PENDING, 0) // archivo completo
-                        context.contentResolver.update(uri, values, null, null)
-                    }
-
-                    // Cerrar el dialog
-                    showDialog = false
-
-                    // Mostrar Snackbar con acción para abrir el PDF
-                    scope.launch {
-                        val result = snackbarHostState.showSnackbar(
-                            message = "Factura descargada",
-                            actionLabel = "Abrir"
-                        )
-                        if (result == SnackbarResult.ActionPerformed && uri != null) {
-                            // Abrir el PDF directamente usando FileProvider
-                            val intent = Intent(Intent.ACTION_VIEW).apply {
-                                setDataAndType(uri, "application/pdf")
-                                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+                            // 🔹 Abrir carpeta Descargas
+                            if (result == SnackbarResult.ActionPerformed) {
+                                val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                }
+                                context.startActivity(intent)
                             }
-                            context.startActivity(intent)
                         }
                     }
-
-                }) {
+                ) {
                     Text("Descargar")
                 }
             },
+
             dismissButton = {
-                TextButton(onClick = {
-                    val uri = FileProvider.getUriForFile(
-                        context,
-                        context.packageName + ".fileprovider",
-                        invoiceFile!!
-                    )
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "application/pdf"
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                TextButton(
+                    enabled = invoiceUrl != null,
+                    onClick = {
+                        scope.launch {
+
+                            val uri = viewModel.downloadInvoiceFromSupabase(
+                                context = context,
+                                fileUrl = invoiceUrl!!,
+                                fileName = "factura_$invoiceId.pdf"
+                            )
+
+                            uri?.let {
+                                val intent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "application/pdf"
+                                    putExtra(Intent.EXTRA_STREAM, it)
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                context.startActivity(
+                                    Intent.createChooser(intent, "Compartir factura")
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            }
+
+                            showDialog = false
+                            viewModel.clearSuccess()
+                        }
                     }
-                    context.startActivity(Intent.createChooser(intent, "Compartir factura"))
-                    // Cerrar el dialog al compartir
-                    showDialog = false
-                }) {
+                ) {
                     Text("Compartir")
                 }
             }
@@ -175,8 +178,6 @@ fun RegisterPaymentScreen(viewModel: PaymentsViewModel) {
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) {
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -281,7 +282,6 @@ fun RegisterPaymentScreen(viewModel: PaymentsViewModel) {
                         )
                     }
 
-                    // Botón de registrar pagos (solo si hay pagos seleccionados)
                     if (state.selectedPayments.isNotEmpty()) {
                         Spacer(Modifier.height(24.dp))
 
@@ -300,7 +300,7 @@ fun RegisterPaymentScreen(viewModel: PaymentsViewModel) {
 
                         Button(
                             onClick = {
-                                viewModel.handleIntent(PaymentsIntent.RegisterPayments)
+                                viewModel.handleIntent(PaymentsIntent.RegisterPayments(context))
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {

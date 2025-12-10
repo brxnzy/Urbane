@@ -3,7 +3,10 @@ package com.example.urbane.ui.admin.payments.viewmodel
 import android.content.Context
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
+import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.local.SessionManager
@@ -47,17 +50,7 @@ class PaymentsViewModel(
                 updatePaymentAmount(intent.paymentId, intent.newAmount)
             }
             is PaymentsIntent.RegisterPayments -> {
-                registerPayments()
-            }
-        }
-    }
-
-    fun generateInvoicePdf(context: Context, invoice: InvoiceData) {
-        viewModelScope.launch {
-            try {
-            paymentRepository.generateAndUploadInvoice(context, invoice)
-            }catch (e: Exception){
-                Log.e("PaymentsViewModel", "Error generateInvoicePdf: $e")
+                registerPayments(intent.context)
             }
         }
     }
@@ -235,70 +228,75 @@ class PaymentsViewModel(
     }
 
 
-    private fun registerPayments() {
+    private fun registerPayments(context: Context) {
         viewModelScope.launch {
             try {
-
                 _state.update { it.copy(isLoading = true) }
 
                 val selected = _state.value.selectedPayments.values.toList()
-
                 if (selected.isEmpty()) {
-                    Log.e("PaymentsVM", "❌ Lista de pagos vacía")
-
                     _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "No hay pagos seleccionados"
-                        )
+                        it.copy(isLoading = false, errorMessage = "No hay pagos seleccionados")
                     }
-
                     return@launch
                 }
 
-                val transactionIds =
-                    paymentRepository.registerPayment(selected)
+                // 1️⃣ Registrar pagos
+                val transactionIds = paymentRepository.registerPayment(selected)
+                if (transactionIds.isEmpty()) throw Exception("No se registraron transacciones")
 
+                // 2️⃣ Construir factura
+                val invoice = paymentRepository.buildInvoiceFromTransactions(transactionIds)
 
-                if (transactionIds.isEmpty()) {
-                    Log.e("PaymentsVM", "❌ registerPayment devolvió lista VACÍA")
-                    throw Exception("registerPayment devolvió lista vacía")
-                }
+                // 3️⃣ Generar PDF + subir a Supabase
+                val invoiceUrl = paymentRepository.generateAndUploadInvoice(
+                    context = context,
+                    invoice = invoice
+                )
 
+                // 4️⃣ Guardar URL en las transacciones
+                paymentRepository.updateInvoiceUrlForTransactions(
+                    transactionIds = transactionIds,
+                    invoiceUrl = invoiceUrl
+                )
 
-                val invoice =
-                    paymentRepository.buildInvoiceFromTransactions(transactionIds)
-
+                // 5️⃣ Éxito
                 _state.update {
                     it.copy(
                         isLoading = false,
                         success = PaymentSuccess.InvoiceGenerated(
-                            invoice = invoice
+                            invoice.copy(invoiceUrl = invoiceUrl)
                         ),
                         selectedPayments = emptyMap()
                     )
                 }
 
-
                 _state.value.selectedResident?.let { resident ->
                     loadPendingPayments(resident.id)
                 }
 
-
             } catch (e: Exception) {
                 Log.e("PaymentsVM", "🔥 ERROR en registerPayments", e)
-
                 _state.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Error al registrar los pagos $e"
-                    )
+                    it.copy(isLoading = false, errorMessage = "Error al registrar pagos")
                 }
             }
         }
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.Q)
+    suspend fun downloadInvoiceFromSupabase(
+        context: Context,
+        fileUrl: String,
+        fileName: String
+    ): Uri? {
+        return paymentRepository.downloadInvoiceFromSupabase(
+            context = context,
+            fileUrl = fileUrl,
+            fileName = fileName
+        )
+    }
 
 
 

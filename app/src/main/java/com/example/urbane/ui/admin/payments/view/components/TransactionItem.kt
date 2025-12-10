@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +67,7 @@ fun TransactionItem(transaction: PaymentTransaction) {
             }
 
             Spacer(modifier = Modifier.width(12.dp))
+            Row() {
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -89,8 +91,17 @@ fun TransactionItem(transaction: PaymentTransaction) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
-
+            }
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(imageVector = Icons.Default.Download,
+                        contentDescription = "Descargar",
+                    )
+                }
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(imageVector = Icons.Default.Share,
+                        contentDescription = "Compartir",
+                    )
+                }
             }
         }
     }

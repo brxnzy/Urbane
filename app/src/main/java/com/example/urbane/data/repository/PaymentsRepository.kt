@@ -2,10 +2,15 @@ package com.example.urbane.data.repository
 
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Context
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.InvoiceData
 import com.example.urbane.data.model.Payment
@@ -19,6 +24,8 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.storage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.float
 import kotlinx.serialization.json.int
@@ -27,10 +34,11 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URL
 import java.time.Instant
 
 
-class PaymentRepository (
+class PaymentRepository(
     private val sessionManager: SessionManager
 ) {
 
@@ -50,15 +58,19 @@ class PaymentRepository (
 
             supabase
                 .from("payments")
-                .select(columns = Columns.list("id",
-                    "residentId",
-                    "month",
-                    "year",
-                    "amount",
-                    "paidAmount",
-                    "status",
-                    "createdAt",
-                    "paymentsTransactions:payments_transactions(*)")){
+                .select(
+                    columns = Columns.list(
+                        "id",
+                        "residentId",
+                        "month",
+                        "year",
+                        "amount",
+                        "paidAmount",
+                        "status",
+                        "createdAt",
+                        "paymentsTransactions:payments_transactions(*)"
+                    )
+                ) {
 
                     filter {
                         eq("residentId", id)
@@ -149,7 +161,6 @@ class PaymentRepository (
     }
 
 
-
     suspend fun getAllPayments(): List<Payment> {
         return try {
             val residentialId = getResidentialId(sessionManager)
@@ -190,12 +201,11 @@ class PaymentRepository (
     }
 
 
-
     suspend fun getPaymentTransactions(paymentId: Int): List<PaymentTransaction> {
         return try {
             val residentialId = getResidentialId(sessionManager) ?: 0
 
-            supabase.from("payments_transactions").select{
+            supabase.from("payments_transactions").select {
                 filter {
                     eq("residentialId", residentialId)
                     eq("paymentId", paymentId)
@@ -213,7 +223,6 @@ class PaymentRepository (
             val residentialId = getResidentialId(sessionManager)
                 ?: throw IllegalStateException("No hay residentialId")
 
-            // 1. Transaction → Payment → Resident
             val data = supabase.from("payments_transactions").select(
                 Columns.raw(
                     """
@@ -246,7 +255,6 @@ class PaymentRepository (
             val paymentId = payment["id"]!!.jsonPrimitive.int
             val residentId = resident["id"]!!.jsonPrimitive.content
 
-            // 2. Contract por residentId
             val contractData = supabase.from("contracts").select(
                 Columns.raw(
                     """
@@ -289,7 +297,7 @@ class PaymentRepository (
             } else {
                 emptyList()
             }
-            
+
             // 4. Resultado final
             return TransactionDetail(
                 transactionId = data["id"]?.jsonPrimitive?.int,
@@ -351,76 +359,139 @@ class PaymentRepository (
     }
 
 
-    suspend fun generateAndUploadInvoice(
+        suspend fun generateAndUploadInvoice(
+            context: Context,
+            invoice: InvoiceData
+        ): String {
+
+            // 1. Generar PDF local
+            val pdfDocument = PdfDocument()
+            val paint = Paint()
+
+            val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+            val page = pdfDocument.startPage(pageInfo)
+            val canvas = page.canvas
+
+            var y = 40
+            paint.textSize = 16f
+            canvas.drawText("FACTURA DE PAGO", 200f, y.toFloat(), paint)
+
+            y += 25
+            paint.textSize = 12f
+            canvas.drawText("Factura: ${invoice.invoiceId}", 40f, y.toFloat(), paint)
+            y += 20
+            canvas.drawText("Fecha: ${invoice.createdAt}", 40f, y.toFloat(), paint)
+            y += 20
+            canvas.drawText("Residente: ${invoice.residentName}", 40f, y.toFloat(), paint)
+
+            y += 30
+            canvas.drawText("DETALLE:", 40f, y.toFloat(), paint)
+            y += 20
+
+            invoice.lines.forEach {
+                val line =
+                    "Mes ${it.month}/${it.year} - Pagado: ${it.transactionAmount} - Estado: ${it.paymentStatus}"
+                canvas.drawText(line, 40f, y.toFloat(), paint)
+                y += 18
+            }
+
+            y += 25
+            canvas.drawText("TOTAL PAGADO: ${invoice.totalPaid}", 40f, y.toFloat(), paint)
+            y += 20
+            canvas.drawText("TOTAL RESTANTE: ${invoice.totalRemaining}", 40f, y.toFloat(), paint)
+
+            pdfDocument.finishPage(page)
+
+            val file = File(
+                context.cacheDir,
+                "factura_${invoice.invoiceId}.pdf"
+            )
+
+            FileOutputStream(file).use {
+                pdfDocument.writeTo(it)
+            }
+
+            pdfDocument.close()
+
+            val bytes = file.readBytes()
+            val path = "factura_${invoice.invoiceId}.pdf"
+
+            supabase.storage.from("invoices").upload(
+                path = path,
+                data = bytes,
+            )
+
+            return supabase.storage
+                .from("invoices")
+                .publicUrl(path)
+        }
+
+        suspend fun updateInvoiceUrlForTransactions(
+            transactionIds: List<Int>,
+            invoiceUrl: String
+        ) {
+            supabase.from("payments_transactions")
+                .update({
+                    set("invoiceUrl", invoiceUrl)
+                }) {
+                    filter {
+                        isIn("id", transactionIds)
+                    }
+                }
+        }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    suspend fun downloadInvoiceFromSupabase(
         context: Context,
-        invoice: InvoiceData
-    ) :String {
+        fileUrl: String,
+        fileName: String
+    ): Uri? = withContext(Dispatchers.IO) {
 
-        // 1. Generar PDF local
-        val pdfDocument = PdfDocument()
-        val paint = Paint()
+        try {
+            // ✅ DESCARGA EN HILO DE FONDO
+            val connection = URL(fileUrl).openConnection()
+            connection.connect()
+            val bytes = connection.getInputStream().readBytes()
 
-        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
-        val page = pdfDocument.startPage(pageInfo)
-        val canvas = page.canvas
+            // ✅ GUARDAR EN DESCARGAS
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                put(MediaStore.Downloads.MIME_TYPE, "application/pdf")
+                put(MediaStore.Downloads.IS_PENDING, 1)
+            }
 
-        var y = 40
-        paint.textSize = 16f
-        canvas.drawText("FACTURA DE PAGO", 200f, y.toFloat(), paint)
+            val resolver = context.contentResolver
+            val uri = resolver.insert(
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                values
+            )
 
-        y += 25
-        paint.textSize = 12f
-        canvas.drawText("Factura: ${invoice.invoiceId}", 40f, y.toFloat(), paint)
-        y += 20
-        canvas.drawText("Fecha: ${invoice.createdAt}", 40f, y.toFloat(), paint)
-        y += 20
-        canvas.drawText("Residente: ${invoice.residentName}", 40f, y.toFloat(), paint)
+            uri?.let {
+                resolver.openOutputStream(it)?.use { out ->
+                    out.write(bytes)
+                }
 
-        y += 30
-        canvas.drawText("DETALLE:", 40f, y.toFloat(), paint)
-        y += 20
+                values.clear()
+                values.put(MediaStore.Downloads.IS_PENDING, 0)
+                resolver.update(uri, values, null, null)
+            }
 
-        invoice.lines.forEach {
-            val line =
-                "Mes ${it.month}/${it.year} - Pagado: ${it.transactionAmount} - Estado: ${it.paymentStatus}"
-            canvas.drawText(line, 40f, y.toFloat(), paint)
-            y += 18
+            uri
+        } catch (e: Exception) {
+            Log.e("DownloadInvoice", "Error descargando factura", e)
+            null
         }
-
-        y += 25
-        canvas.drawText("TOTAL PAGADO: ${invoice.totalPaid}", 40f, y.toFloat(), paint)
-        y += 20
-        canvas.drawText("TOTAL RESTANTE: ${invoice.totalRemaining}", 40f, y.toFloat(), paint)
-
-        pdfDocument.finishPage(page)
-
-        val file = File(
-            context.cacheDir,
-            "factura_${invoice.invoiceId}.pdf"
-        )
-
-        FileOutputStream(file).use {
-            pdfDocument.writeTo(it)
-        }
-
-        pdfDocument.close()
-
-        val bytes = file.readBytes()
-        val path = "factura_${invoice.invoiceId}.pdf"
-
-        supabase.storage.from("invoices").upload(path = path,
-            data = bytes,
-        )
-
-        return supabase.storage
-            .from("invoices")
-            .publicUrl(path)
-
-
     }
 
 
-
-
 }
+
+
+
+
+
+
+
+
+
 

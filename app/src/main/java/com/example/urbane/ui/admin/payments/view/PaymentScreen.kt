@@ -1,6 +1,8 @@
 package com.example.urbane.ui.admin.payments.view
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -48,6 +50,7 @@ data class TransferRequest(
 
 
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentsScreen(viewModel: PaymentsViewModel, navController: NavController) {
@@ -96,7 +99,7 @@ fun PaymentsScreen(viewModel: PaymentsViewModel, navController: NavController) {
             when (selectedTab) {
                 0 -> RegisterPaymentScreen(viewModel)
                 1 -> TransferRequestsTab()
-                2 -> PaymentHistoryScreen(viewModel, navController)
+                2 -> PaymentHistoryScreen(viewModel)
             }
         }
     }
@@ -256,60 +259,6 @@ fun TransferRequestsTab() {
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@SuppressLint("DefaultLocale")
-@Composable
-fun PaymentHistoryScreen(viewModel: PaymentsViewModel, navController: NavController) {
-    val state by viewModel.state.collectAsState()
-    var expandedPaymentId by remember { mutableStateOf<Int?>(null) }
-
-    LaunchedEffect(Unit) {
-        viewModel.loadAllPayments()
-    }
-
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Historial de Pagos",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(onClick = { /* Filtrar */ }) {
-                    Icon(Icons.Default.FilterList, "Filtrar")
-                }
-                IconButton(onClick = { /* Buscar */ }) {
-                    Icon(Icons.Default.Search, "Buscar")
-                }
-            }
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(state.allPayments) { pago ->
-                PaymentHistoryCard(
-                    pago = pago,
-                    isExpanded = expandedPaymentId == pago.id,
-                    onExpandToggle = {
-                        expandedPaymentId = if (expandedPaymentId == pago.id) null else pago.id
-                    }
-                )
             }
         }
     }

@@ -49,5 +49,7 @@ sealed class PaymentsIntent {
     data class UpdatePaymentAmount(val paymentId: Int, val newAmount: Float) : PaymentsIntent()
 
     // Nuevo: Registrar todos los pagos seleccionados
-    object RegisterPayments  :PaymentsIntent()
+    data class RegisterPayments(val context: Context) : PaymentsIntent()
 }
+
+

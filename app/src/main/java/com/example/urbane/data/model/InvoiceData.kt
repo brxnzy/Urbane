@@ -12,5 +12,6 @@ data class InvoiceData(
     val lines: List<TransactionDetail>,
     val totalAmount: Float,                   // suma de paymentAmount (originales) o suma informativa
     val totalPaid: Float,                     // suma de transactionAmount (lo que se pagó ahora)
-    val totalRemaining: Float                 // suma de remaining después de aplicar pagos
+    val totalRemaining: Float,
+    val invoiceUrl: String? = null// suma de remaining después de aplicar pagos
 )
