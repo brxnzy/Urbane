@@ -1,6 +1,8 @@
 package com.example.urbane.ui.admin.payments.view
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,23 +35,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.urbane.data.model.Payment
 import com.example.urbane.ui.admin.payments.view.components.PaymentHistoryCard
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 
-    @SuppressLint("DefaultLocale")
-    @Composable
-    fun PaymentHistoryScreen(viewModel: PaymentsViewModel) {
-        val state by viewModel.state.collectAsState()
-        var expandedPaymentId by remember { mutableStateOf<Int?>(null) }
+@RequiresApi(Build.VERSION_CODES.Q)
+@SuppressLint("DefaultLocale", "UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun PaymentHistoryScreen(viewModel: PaymentsViewModel) {
 
-        LaunchedEffect(Unit) {
-            viewModel.loadAllPayments()
-        }
+    val state by viewModel.state.collectAsState()
+    var expandedPaymentId by remember { mutableStateOf<Int?>(null) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadAllPayments()
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) {
 
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -60,24 +73,21 @@ import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
                     fontWeight = FontWeight.Bold
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    IconButton(onClick = { /* Filtrar */ }) {
+                    IconButton(onClick = { }) {
                         Icon(Icons.Default.FilterList, "Filtrar")
                     }
-                    IconButton(onClick = { /* Buscar */ }) {
+                    IconButton(onClick = { }) {
                         Icon(Icons.Default.Search, "Buscar")
                     }
                 }
             }
 
-            if (state.isLoading && state.allPayments == emptyList<Payment>()) {
-
-                    Spacer(Modifier.height(32.dp))
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-
+            if (state.isLoading && state.allPayments.isEmpty()) {
+                Spacer(Modifier.height(32.dp))
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
             }
-
 
             LazyColumn(
                 modifier = Modifier
@@ -86,15 +96,20 @@ import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(state.allPayments) { pago ->
+
                     PaymentHistoryCard(
                         pago = pago,
                         isExpanded = expandedPaymentId == pago.id,
                         onExpandToggle = {
-                            expandedPaymentId = if (expandedPaymentId == pago.id) null else pago.id
-                        }
+                            expandedPaymentId =
+                                if (expandedPaymentId == pago.id) null else pago.id
+                        },
+                        viewModel = viewModel,
+                        snackbarHostState = snackbarHostState
                     )
                 }
             }
         }
     }
+}
 

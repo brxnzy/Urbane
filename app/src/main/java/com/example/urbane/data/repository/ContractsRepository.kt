@@ -36,6 +36,7 @@ class   ContractsRepository(val sessionManager: SessionManager) {
         }
     }
 
+
     suspend fun updateContract(contractId: Int, conditions: String, amount: Double): Boolean {
         return try {
             supabase.from("contracts").update({

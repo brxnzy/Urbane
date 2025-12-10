@@ -1,5 +1,7 @@
 package com.example.urbane.ui.admin.payments.view.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -20,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,16 +30,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.example.urbane.data.model.Payment
-import com.example.urbane.navigation.Routes
+import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.utils.intToMonth
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun PaymentHistoryCard(
     pago: Payment,
     isExpanded: Boolean,
     onExpandToggle: () -> Unit,
+    viewModel: PaymentsViewModel,
+    snackbarHostState: SnackbarHostState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -161,7 +166,7 @@ fun PaymentHistoryCard(
                     )
 
                     pago.paymentTransactions.forEach { transaction ->
-                        TransactionItem(transaction = transaction)
+                        TransactionItem(transaction, viewModel, snackbarHostState)
 
 
                         Spacer(modifier = Modifier.height(8.dp))

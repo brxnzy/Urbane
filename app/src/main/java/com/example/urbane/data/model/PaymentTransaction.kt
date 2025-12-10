@@ -9,7 +9,9 @@ data class PaymentTransaction(
     val amount: Float,
     val method: String,
     val residentialId: Int? = null,
-    val createdAt: String? = null
+    val createdAt: String? = null,
+    val invoiceUrl: String? = null
+
 
 
 )
