@@ -74,6 +74,8 @@ fun PaymentHistoryCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
+
                 Column {
                     Text(
                         "Monto Total",

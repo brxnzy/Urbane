@@ -43,19 +43,9 @@ class PaymentRepository(
 ) {
 
 
-    private suspend fun getResId(sessionManager: SessionManager): Int? {
-        return try {
-            getResidentialId(sessionManager)
-
-        } catch (e: Exception) {
-            Log.e("PaymentRepository", "Error obteniendo residential_id: $e")
-
-        }
-    }
 
     suspend fun getPaymentsByUser(id: String): List<Payment> {
         return try {
-
             supabase
                 .from("payments")
                 .select(
@@ -68,20 +58,23 @@ class PaymentRepository(
                         "paidAmount",
                         "status",
                         "createdAt",
-                        "paymentsTransactions:payments_transactions(*)"
+                        "paymentTransactions:payments_transactions(*)",
+                        "fines:fines(*)"
                     )
                 ) {
-
-                    filter {
-                        eq("residentId", id)
-                    }
+                    filter { eq("residentId", id) }
+                    order("year", Order.ASCENDING)
+                    order("month", Order.ASCENDING)
                 }
                 .decodeList<Payment>()
 
         } catch (e: Exception) {
-            throw IllegalStateException("Error obteniendo pagos: $e")
+
+            Log.e("PaymentRepository","Error obteniendo pagos: $e")
+            throw e
         }
     }
+
 
     suspend fun registerPayment(payments: List<SelectedPayment>): List<Int> {
 

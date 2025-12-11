@@ -13,6 +13,7 @@ data class Payment(
     val status: String,
     val createdAt: String,
     val paymentTransactions: List<PaymentTransaction> = emptyList(),
+    val fines: List<Fine> = emptyList(),
     val resident: UserMinimal? = null
 )
 

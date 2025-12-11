@@ -44,7 +44,10 @@ fun PendingPaymentCard(
     onToggleSelection: () -> Unit,
     onAmountChange: (Float) -> Unit
 ) {
-    val montoPendiente = payment.amount - payment.paidAmount
+    val totalMultas = payment.fines.sumOf { it.amount.toDouble() }.toFloat()
+
+    val totalConMultas = payment.amount + totalMultas
+    val montoPendiente = totalConMultas - payment.paidAmount
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -66,15 +69,15 @@ fun PendingPaymentCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Checkbox
             Checkbox(
                 checked = isSelected,
                 onCheckedChange = { onToggleSelection() }
             )
 
-            // Información principal
             Column(
-                modifier = Modifier.weight(1f).padding(horizontal = 12.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp)
             ) {
                 Text(
                     text = intToMonth(payment.month),
@@ -98,25 +101,34 @@ fun PendingPaymentCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                if (totalMultas > 0f) {
+                    Text(
+                        text = "Incluye multas: RD$ %.2f".format(totalMultas),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
 
-            // Monto total (a la derecha)
             Text(
-                text = "RD$ %.2f".format(payment.amount),
+                text = "RD$ %.2f".format(totalConMultas),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
 
-        // Input de monto (expandible cuando está seleccionado)
         if (isSelected && selectedPayment != null) {
             Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 
             Column(modifier = Modifier.padding(16.dp).padding(top = 0.dp)) {
-                var amountText by remember(selectedPayment.montoPagar) {
-                    mutableStateOf(selectedPayment.montoPagar.toString())
+                val montoConMultas = selectedPayment.montoPagar + totalMultas
+
+                var amountText by remember(montoConMultas) {
+                    mutableStateOf(montoConMultas.toString())
                 }
+
 
                 OutlinedTextField(
                     value = amountText,
@@ -135,9 +147,10 @@ fun PendingPaymentCard(
                     singleLine = true
                 )
 
-                // Indicador de tipo de pago
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {

@@ -135,21 +135,18 @@ class UserRepository(val sessionManager: SessionManager) {
         val client = HttpClient(Android) {
             install(ContentNegotiation) { json() }
         }
-
         return try {
-
-
             val residentialId = getResidentialId(sessionManager)
 
             val body =
-                CreateUserRequest(name, email, idCard, password, roleId, residenceId, residentialId)
+                CreateUserRequest(name, email, idCard, password, roleId,
+                    residenceId, residentialId)
 
             val response =
                 client.post("${BuildConfig.SUPABASE_URL}/functions/v1/create-user") {
                     contentType(ContentType.Application.Json)
                     setBody(body)
                 }
-
             val text = response.bodyAsText()
             val json = Json.parseToJsonElement(text).jsonObject
             val success = json["success"]?.jsonPrimitive?.booleanOrNull == true
