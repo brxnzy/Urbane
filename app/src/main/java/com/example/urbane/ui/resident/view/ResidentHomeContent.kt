@@ -1,18 +1,23 @@
 package com.example.urbane.ui.resident.view
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,40 +26,220 @@ import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 @Composable
-fun ResidentHomeContent(sessionManager: SessionManager, loginViewModel: LoginViewModel, navController: NavController) {
+fun ResidentHomeContent(
+    sessionManager: SessionManager,
+    loginViewModel: LoginViewModel,
+    navController: NavController
+) {
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
     val user = userState.value
+
+    var visible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        visible = true
+    }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.background
+                    )
                 )
+            )
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        item { Spacer(modifier = Modifier.height(8.dp)) }
+
+        // Header Card con animación
+        item {
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn() + slideInVertically()
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(8.dp, RoundedCornerShape(24.dp)),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
-                    when (user) {
-                        null -> CircularProgressIndicator()
-                        else -> {
-                            Text(
-                                "Bienvenido/a",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                    Box {
+                        // Círculos decorativos de fondo
+                        Box(
+                            modifier = Modifier
+                                .size(150.dp)
+                                .offset(x = (-30).dp, y = (-30).dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.1f))
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .align(Alignment.BottomEnd)
+                                .offset(x = 30.dp, y = 30.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.1f))
+                        )
+
+                        Column(
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            when (user) {
+                                null -> {
+                                    CircularProgressIndicator(
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+                                else -> {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(60.dp)
+                                                .clip(CircleShape)
+                                                .background(
+                                                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Person,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(32.dp),
+                                                tint = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Column {
+                                            Text(
+                                                "¡Hola! 👋",
+                                                style = MaterialTheme.typography.titleMedium,
+                                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
+                                            )
+                                            Text(
+                                                user.userData?.user?.name ?: "Residente",
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Resumen de Cuenta mejorado
+        item {
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 100)) +
+                        slideInVertically(initialOffsetY = { it / 2 })
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "Resumen de Cuenta",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        EnhancedStatusCard(
+                            title = "Pagos al día",
+                            value = "3/3",
+                            icon = Icons.Default.CheckCircle,
+                            color = Color(0xFF4CAF50),
+                            modifier = Modifier.weight(1f)
+                        )
+                        EnhancedStatusCard(
+                            title = "Incidencias",
+                            value = "1",
+                            icon = Icons.Default.Warning,
+                            color = Color(0xFFFFA726),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Accesos Rápidos con scroll horizontal
+        item {
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 200)) +
+                        slideInVertically(initialOffsetY = { it / 2 })
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "Accesos Rápidos",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        item {
+                            EnhancedQuickAccessCard(
+                                icon = Icons.Default.AttachMoney,
+                                title = "Realizar Pago",
+                                subtitle = "Paga tus cuotas",
+                                gradient = listOf(
+                                    Color(0xFF667eea),
+                                    Color(0xFF764ba2)
+                                )
                             )
-                            Text(
-                                user.userData?.user?.name ?: "Residente",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+                        item {
+                            EnhancedQuickAccessCard(
+                                icon = Icons.Default.Warning,
+                                title = "Incidencias",
+                                subtitle = "Reporta problemas",
+                                gradient = listOf(
+                                    Color(0xFFf093fb),
+                                    Color(0xFFF5576c)
+                                )
+                            )
+                        }
+                        item {
+                            EnhancedQuickAccessCard(
+                                icon = Icons.Default.Event,
+                                title = "Eventos",
+                                subtitle = "Ver calendario",
+                                gradient = listOf(
+                                    Color(0xFF4facfe),
+                                    Color(0xFF00f2fe)
+                                )
+                            )
+                        }
+                        item {
+                            EnhancedQuickAccessCard(
+                                icon = Icons.Default.Groups,
+                                title = "Comunidad",
+                                subtitle = "Red social",
+                                gradient = listOf(
+                                    Color(0xFF43e97b),
+                                    Color(0xFF38f9d7)
+                                )
                             )
                         }
                     }
@@ -62,158 +247,276 @@ fun ResidentHomeContent(sessionManager: SessionManager, loginViewModel: LoginVie
             }
         }
 
+        // Notificaciones mejoradas
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "Resumen de Cuenta",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 300)) +
+                        slideInVertically(initialOffsetY = { it / 2 })
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        StatusCard("Pagos al día", "3/3", Color(0xFF4CAF50))
-                        StatusCard("Incidencias", "1", Color(0xFFFFA726))
+                        Text(
+                            "Notificaciones",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(onClick = { }) {
+                            Text("Ver todas")
+                        }
                     }
                 }
             }
         }
 
-        item {
-            Text(
-                "Accesos Rápidos",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        items(3) { index ->
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(
+                    animationSpec = tween(600, delayMillis = 400 + (index * 100))
+                ) + slideInVertically(initialOffsetY = { it / 2 })
             ) {
-                QuickAccessCard(
-                    icon = Icons.Default.AttachMoney,
-                    title = "Realizar Pago",
-                    modifier = Modifier.weight(1f)
-                )
-                QuickAccessCard(
-                    icon = Icons.Default.Warning,
-                    title = "Nueva Incidencia",
-                    modifier = Modifier.weight(1f)
+                EnhancedNotificationItem(
+                    title = when(index) {
+                        0 -> "Mantenimiento Programado"
+                        1 -> "Recordatorio de Pago"
+                        else -> "Nueva Actualización"
+                    },
+                    message = when(index) {
+                        0 -> "Mañana 8:00 AM - 12:00 PM"
+                        1 -> "Vence en 3 días"
+                        else -> "Nueva versión disponible"
+                    },
+                    icon = when(index) {
+                        0 -> Icons.Default.Build
+                        1 -> Icons.Default.AttachMoney
+                        else -> Icons.Default.Info
+                    },
+                    time = when(index) {
+                        0 -> "Hace 2h"
+                        1 -> "Hace 5h"
+                        else -> "Ayer"
+                    },
+                    isNew = index == 0
                 )
             }
         }
 
-        item {
-            Text(
-                "Últimas Notificaciones",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        items(3) { index ->
-            NotificationItem(
-                title = when(index) {
-                    0 -> "Mantenimiento Programado"
-                    1 -> "Recordatorio de Pago"
-                    else -> "Nueva Actualización"
-                },
-                message = "Tap para ver más detalles",
-                icon = when(index) {
-                    0 -> Icons.Default.Build
-                    1 -> Icons.Default.AttachMoney
-                    else -> Icons.Default.Info
-                }
-            )
-        }
+        item { Spacer(modifier = Modifier.height(16.dp)) }
     }
 }
 
 @Composable
-fun StatusCard(title: String, value: String, color: Color) {
+fun EnhancedStatusCard(
+    title: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = ""
+    )
+
     Card(
-        modifier = Modifier.width(160.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f))
+        modifier = modifier
+            .shadow(4.dp, RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.Start
         ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = color
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 value,
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 color = color
             )
             Text(
                 title,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Composable
-fun QuickAccessCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.clickable { },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                icon,
-                contentDescription = title,
-                modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                title,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
         }
     }
 }
 
 @Composable
-fun NotificationItem(title: String, message: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+fun EnhancedQuickAccessCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    gradient: List<Color>
+) {
+    var pressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.95f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = ""
+    )
+
+    Card(
+        modifier = Modifier
+            .width(160.dp)
+            .shadow(6.dp, RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .clickable {
+                    pressed = true
+                    // Reset después de un momento
+                }
+                .background(Brush.linearGradient(gradient))
+                .padding(20.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.Start
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        icon,
+                        contentDescription = title,
+                        modifier = Modifier.size(28.dp),
+                        tint = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun EnhancedNotificationItem(
+    title: String,
+    message: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    time: String,
+    isNew: Boolean = false
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { }
+            .shadow(2.dp, RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isNew)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            else
+                MaterialTheme.colorScheme.surface
+        )
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                icon,
-                contentDescription = null,
+            Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(56.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .padding(8.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.Bold)
-                Text(message, style = MaterialTheme.typography.bodySmall)
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                            )
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = Color.White
+                )
             }
-            Icon(Icons.Default.ChevronRight, contentDescription = null)
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (isNew) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF4CAF50))
+                        )
+                    }
+                }
+                Text(
+                    message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+                Text(
+                    time,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            )
         }
     }
 }

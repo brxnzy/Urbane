@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
@@ -23,14 +24,20 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
+import com.example.urbane.ui.resident.viewmodel.PagosViewModel
 
 @Composable
 fun ResidentScreen(
     sessionManager: SessionManager,
     loginViewModel: LoginViewModel,
-    navController: NavController
+    navController: NavController,
+    pagosViewModel: PagosViewModel
 ) {
     val innerNavController = rememberNavController()
+
+    // Obtener los datos del usuario de la sesión usando flows
+    val userId by sessionManager.userIdFlow.collectAsState(initial = "")
+    val residentialId by sessionManager.residentialIdFlow.collectAsState(initial = 0)
 
     Scaffold(
         bottomBar = { BottomNavBar(innerNavController) }
@@ -45,14 +52,14 @@ fun ResidentScreen(
             }
 
             composable("pagos") {
-                PagosScreen(innerNavController)  // ← Vuelve al nombre original
+                PagosScreen(innerNavController, pagosViewModel, sessionManager)
             }
 
             composable("pagar_ahora/{concepto}/{monto}/{fecha}") { backStackEntry ->
                 val concepto = backStackEntry.arguments?.getString("concepto") ?: ""
                 val monto = backStackEntry.arguments?.getString("monto")?.toDoubleOrNull() ?: 0.0
                 val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
-                PagarAhoraScreen(  // ← Vuelve al nombre original
+                PagarAhoraScreen(
                     navController = innerNavController,
                     concepto = concepto,
                     monto = monto,
@@ -61,7 +68,10 @@ fun ResidentScreen(
             }
 
             composable("incidencias") {
-                IncidenciasScreen()
+                IncidenciasScreen(
+                    residentId = userId ?: "",
+                    residentialId = residentialId
+                )
             }
 
             composable("mensajes") {
@@ -78,11 +88,11 @@ fun ResidentScreen(
 @Composable
 fun BottomNavBar(navController: NavController) {
     val items = listOf(
-        BottomNavItem("home", "Inicio", Icons.Filled.Home),
-        BottomNavItem("pagos", "Pagos", Icons.Filled.Payment),
-        BottomNavItem("incidencias", "Incidencias", Icons.Filled.Warning),
-        BottomNavItem("mensajes", "Mensajes", Icons.Filled.Email),
-        BottomNavItem("perfil", "Perfil", Icons.Filled.AccountCircle)
+        BottomNavItem("home", "", Icons.Filled.Home),
+        BottomNavItem("pagos", "", Icons.Filled.Payment),
+        BottomNavItem("incidencias", "", Icons.Filled.Warning),
+        BottomNavItem("mensajes", "", Icons.Filled.Email),
+        BottomNavItem("perfil", "", Icons.Filled.AccountCircle)
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
