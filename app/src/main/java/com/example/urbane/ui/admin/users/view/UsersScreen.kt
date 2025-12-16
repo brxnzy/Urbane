@@ -1,9 +1,6 @@
 package com.example.urbane.ui.admin.users.view
 
 import android.annotation.SuppressLint
-import android.graphics.BlendModeColorFilter
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -21,34 +18,58 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.urbane.R
 import com.example.urbane.data.model.User
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
-import com.example.urbane.ui.theme.LightGray
-
-
 @SuppressLint("SuspiciousIndentation", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navController: NavController) {
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
     var busqueda by remember { mutableStateOf("") }
     val state by viewmodel.state.collectAsState()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    LaunchedEffect(navBackStackEntry) {
+        snapshotFlow { navBackStackEntry?.lifecycle?.currentState }
+            .collect { state ->
+                if (state == Lifecycle.State.RESUMED) {
+                    viewmodel.loadUsers()
+                }
+            }
+    }
+
     LaunchedEffect(Unit) {
-        viewmodel.loadUsers()
+        viewmodel.loadUsers(true)
+    }
+
+    val filtros = listOf("Todos", "Administrador", "Residente","Deshabilitados")
+
+    val usuariosFiltrados = state.users.filter { user ->
+        val cumpleBusqueda = user.name.contains(busqueda, ignoreCase = true)
+
+        val cumpleFiltro = when (filtroSeleccionado) {
+            "Todos" -> user.active == true
+            "Deshabilitados" -> user.active == false
+            "Administrador" -> user.role_name.equals("admin", ignoreCase = true) && user.active == true
+            "Residente" -> user.role_name.equals("resident", ignoreCase = true) && user.active == true
+            else -> true
+        }
+
+        cumpleBusqueda && cumpleFiltro
     }
 
 
-    val filtros = listOf("Todos", "Administrador", "Residente")
 
     Scaffold(
         floatingActionButton = {
@@ -69,7 +90,8 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                 value = busqueda,
                 onValueChange = { busqueda = it },
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .height(60.dp),
                 placeholder = { Text(stringResource(R.string.buscar_por_nombre), color = Color.Gray) },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
@@ -78,7 +100,8 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                )
+                ),
+                singleLine = true
             )
 
             LazyRow(
@@ -107,8 +130,16 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(state.activeUsers) { usuario ->
-                    UsuarioCard(usuario)
+                if (state.isLoading) {
+                    items(5) {
+                        UsuarioCardSkeleton()
+                    }
+                }
+
+                    items(usuariosFiltrados) { usuario ->
+                    UsuarioCard(usuario) {
+                        navController.navigate(Routes.ADMIN_USERS_DETAIL.replace("{id}", usuario.id))
+                    }
                 }
 
                 item {
@@ -148,16 +179,15 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
 @Composable
 fun UsuarioCard(
     usuario: User,
+    detailUser: ()->Unit
 
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth(),
+        onClick = detailUser,
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-//        colors = CardDefaults.cardColors(
-//            containerColor = MaterialTheme.colorScheme.surface
-//        )
     ) {
         Row(
             modifier = Modifier
@@ -174,7 +204,7 @@ fun UsuarioCard(
                         .data(usuario.photoUrl)
                         .crossfade(true)
                         .build(),
-                    contentDescription = "Foto de ${usuario.name}",
+                    contentDescription = stringResource(R.string.foto_de) + " " + usuario.name,
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape),
@@ -185,7 +215,7 @@ fun UsuarioCard(
 
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Usuario sin foto",
+                        contentDescription = stringResource(R.string.usuario_sin_foto),
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.onTertiary
                     )
@@ -194,7 +224,7 @@ fun UsuarioCard(
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = usuario.name,
@@ -206,18 +236,18 @@ fun UsuarioCard(
                 )
 
                 Text(
-                    text = usuario.email ?: "Sin correo",
+                    text = usuario.email ?: stringResource(R.string.sin_correo),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+
             }
 
-            // Ícono de flecha (opcional, indica que es clickeable)
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Ver detalles",
+                contentDescription = stringResource(R.string.ver_detalles),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )

@@ -10,8 +10,7 @@ data class UserState(
     val password: String = "",
     val roleId: Int = 0,
     val residenceId: Int? = null,
-    val activeUsers: List<User> = emptyList(),
-    val inactiveUsers: List<User> = emptyList(),
+    val users: List<User> = emptyList(),
     val isLoading: Boolean = false,
     val success: Boolean = false,
     val errorMessage: String? = null

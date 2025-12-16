@@ -50,7 +50,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.navigation.NavController
 import androidx.compose.runtime.livedata.observeAsState
-
+import com.example.urbane.navigation.Routes
 
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -68,6 +68,15 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
         currentUser?.let { user ->
             if (state.success) {
                 navigateByRole(user.roleId)
+            }
+        }
+    }
+
+    if (state.disabled) {
+        LaunchedEffect(Unit) {
+            viewModel.reset()
+            navController.navigate(Routes.DISABLED) {
+                popUpTo(Routes.LOGIN) { inclusive = true }
             }
         }
     }
@@ -184,7 +193,6 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
                 if (state.errorMessage != null) {
                     Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
                 }
-
 
 
 

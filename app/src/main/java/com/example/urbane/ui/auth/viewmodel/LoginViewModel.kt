@@ -14,6 +14,7 @@ import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.model.LoginState
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +27,8 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
     private val _currentUser = MutableStateFlow<CurrentUser?>(null)
     val currentUser = _currentUser.asStateFlow()
+
+    val userRepository = UserRepository(sessionManager)
 
 
     @RequiresApi(Build.VERSION_CODES.P)
@@ -54,7 +57,6 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-
     @RequiresApi(Build.VERSION_CODES.P)
     private fun handleSubmit() {
         viewModelScope.launch {
@@ -62,20 +64,34 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 Log.d("LoginVM", "Iniciando login...")
                 _state.update { it.copy(isLoading = true, errorMessage = null) }
 
+
                 val result = supabase.auth.signInWith(Email) {
                     email = state.value.email
                     password = state.value.password
                 }
                 val session = supabase.auth.currentSessionOrNull()
+                Log.d("LoginVM", "$result")
+
+
                 if (session == null) throw Exception("No se pudo obtener la sesión")
 
                 val userId = session.user?.id
                 if (userId == null) throw Exception("No se pudo obtener userId")
 
+                val disabled = userRepository.isUserDisabled(userId)
+                Log.d("LoginVM", "$disabled")
+                if (disabled == true){
+                    _state.update { it.copy(isLoading = false, disabled = true, errorMessage = null) }
+                    supabase.auth.signOut()
+                    return@launch
+
+                }
+
                 val email = session.user!!.email ?: state.value.email
-                val roleId = UserRepository(sessionManager).getUserRole(userId)
-                val userData = UserRepository(sessionManager).getCurrentUser(userId,email)
+                val roleId = userRepository.getUserRole(userId)
+                val userData = userRepository.getCurrentUser(userId,email)
                 Log.d("LoginVM","data del usuario $userData")
+
 
                 val currentUser = CurrentUser(
                     userId = userId,
@@ -86,6 +102,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                     userData
 
                 )
+
                 Log.d("LoginVM", "CurrentUser creado: $currentUser")
 
                 sessionManager.saveSession(currentUser)
@@ -139,6 +156,11 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
         }
     }
+
+    fun reset() {
+        _state.value = LoginState()
+    }
+
 
 
 
