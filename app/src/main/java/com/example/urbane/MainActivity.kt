@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
             UrbaneTheme {
                 val navController = rememberNavController()
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainNavigation(navController,  modifier = Modifier.padding(innerPadding))
+                    MainNavigation(navController, modifier = Modifier.padding(innerPadding),)
                 }
             }
         }

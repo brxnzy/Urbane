@@ -20,6 +20,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -106,7 +108,12 @@ fun PerfilScreen(
         topBar = {
             if (isEditMode) {
                 TopAppBar(
-                    title = { Text("Editar Perfil") },
+                    title = {
+                        Text(
+                            "Editar Perfil",
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = {
                             isEditMode = false
@@ -116,8 +123,8 @@ fun PerfilScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -130,7 +137,10 @@ fun PerfilScreen(
                     .then(if (isEditMode) Modifier.padding(padding) else Modifier),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    modifier = Modifier.size(56.dp),
+                    strokeWidth = 4.dp
+                )
             }
         } else if (isEditMode) {
             // ============ MODO EDICIÓN ============
@@ -139,42 +149,49 @@ fun PerfilScreen(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
                     .padding(padding)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(16.dp)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     Icons.Default.Info,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
                                 )
-                                Spacer(Modifier.width(8.dp))
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     "Información Personal",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "Actualiza tu información. Los campos con * son obligatorios.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-                            Text(
-                                "Actualiza tu información personal. Los campos marcados con * son obligatorios.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
                     }
                 }
@@ -214,9 +231,14 @@ fun PerfilScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
+                            .height(56.dp)
+                            .shadow(
+                                elevation = if (!uiState.isSaving && nameInput.isNotBlank()) 8.dp else 0.dp,
+                                shape = RoundedCornerShape(16.dp),
+                                spotColor = MaterialTheme.colorScheme.primary
+                            ),
                         enabled = !uiState.isSaving && nameInput.isNotBlank(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         )
@@ -228,17 +250,17 @@ fun PerfilScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Default.Save, contentDescription = null)
-                                Text(
-                                    "Guardar Cambios",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+                            Icon(
+                                Icons.Default.Save,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                "Guardar Cambios",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
@@ -253,20 +275,15 @@ fun PerfilScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         enabled = !uiState.isSaving,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
+                        shape = RoundedCornerShape(16.dp),
+                        border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.5.dp)
                     ) {
                         Text(
                             "Cancelar",
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
                         )
                     }
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         } else {
@@ -275,106 +292,182 @@ fun PerfilScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
-                    .padding(16.dp),
+                    .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                // Header con foto y nombre
+                item {
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(
+                                elevation = 8.dp,
+                                shape = RoundedCornerShape(24.dp),
+                                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                            ),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        shape = RoundedCornerShape(24.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Box(
+                            modifier = Modifier.fillMaxWidth()
                         ) {
+                            // Fondo degradado decorativo
                             Box(
-                                modifier = Modifier.size(120.dp),
-                                contentAlignment = Alignment.BottomEnd
-                            ) {
-                                // Foto de perfil
-                                if (uiState.profileImageUrl != null) {
-                                    AsyncImage(
-                                        model = uiState.profileImageUrl,
-                                        contentDescription = "Foto de perfil",
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(CircleShape)
-                                            .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                                            .clickable { showImageOptions = true },
-                                        contentScale = ContentScale.Crop
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(120.dp)
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            colors = listOf(
+                                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f)
+                                            )
+                                        )
                                     )
-                                } else {
+                            )
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Spacer(modifier = Modifier.height(32.dp))
+
+                                Box(
+                                    modifier = Modifier.size(120.dp),
+                                    contentAlignment = Alignment.BottomEnd
+                                ) {
+                                    // Foto de perfil
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .clip(CircleShape)
-                                            .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                                            .background(MaterialTheme.colorScheme.primary)
-                                            .clickable { showImageOptions = true },
-                                        contentAlignment = Alignment.Center
+                                            .shadow(
+                                                elevation = 12.dp,
+                                                shape = CircleShape,
+                                                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                            )
                                     ) {
-                                        Text(
-                                            text = uiState.name.firstOrNull()?.toString()?.uppercase() ?: "U",
-                                            style = MaterialTheme.typography.displayMedium,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold
+                                        if (uiState.profileImageUrl != null) {
+                                            AsyncImage(
+                                                model = uiState.profileImageUrl,
+                                                contentDescription = "Foto de perfil",
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(CircleShape)
+                                                    .border(4.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                                                    .clickable { showImageOptions = true },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        } else {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(CircleShape)
+                                                    .border(4.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                                                    .background(
+                                                        Brush.linearGradient(
+                                                            colors = listOf(
+                                                                MaterialTheme.colorScheme.primary,
+                                                                MaterialTheme.colorScheme.tertiary
+                                                            )
+                                                        )
+                                                    )
+                                                    .clickable { showImageOptions = true },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = uiState.name.firstOrNull()?.toString()?.uppercase() ?: "U",
+                                                    style = MaterialTheme.typography.displayMedium,
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    // Indicador de carga
+                                    if (uiState.isUploading) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                .size(48.dp),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            strokeWidth = 4.dp
+                                        )
+                                    }
+
+                                    // Botón cámara mejorado
+                                    FloatingActionButton(
+                                        onClick = { showImageOptions = true },
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .shadow(
+                                                elevation = 6.dp,
+                                                shape = CircleShape,
+                                                spotColor = MaterialTheme.colorScheme.primary
+                                            ),
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        elevation = FloatingActionButtonDefaults.elevation(
+                                            defaultElevation = 0.dp
+                                        )
+                                    ) {
+                                        Icon(
+                                            Icons.Default.CameraAlt,
+                                            contentDescription = "Cambiar foto",
+                                            modifier = Modifier.size(20.dp),
+                                            tint = Color.White
                                         )
                                     }
                                 }
 
-                                // Indicador de carga
-                                if (uiState.isUploading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier
-                                            .align(Alignment.Center)
-                                            .size(48.dp),
-                                        color = Color.White,
-                                        strokeWidth = 4.dp
-                                    )
-                                }
+                                Spacer(modifier = Modifier.height(20.dp))
 
-                                // Botón cámara
-                                FloatingActionButton(
-                                    onClick = { showImageOptions = true },
-                                    modifier = Modifier.size(36.dp),
-                                    containerColor = MaterialTheme.colorScheme.secondary
-                                ) {
-                                    Icon(
-                                        Icons.Default.CameraAlt,
-                                        contentDescription = "Cambiar foto",
-                                        modifier = Modifier.size(20.dp),
-                                        tint = MaterialTheme.colorScheme.onSecondary
-                                    )
-                                }
+                                Text(
+                                    text = uiState.name.ifBlank { "Usuario" },
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = uiState.email.ifBlank { "Sin correo" },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Text(
-                                text = uiState.name.ifBlank { "Usuario" },
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Text(
-                                text = uiState.email.ifBlank { "Sin correo" },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                            )
                         }
                     }
                 }
 
+                // Sección de información
                 item {
-                    Text(
-                        "Información Personal",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(4.dp)
+                                .height(24.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    RoundedCornerShape(2.dp)
+                                )
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "Información Personal",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
 
                 item {
@@ -393,19 +486,35 @@ fun PerfilScreen(
                     )
                 }
 
+                // Sección de configuración
                 item {
-                    Text(
-                        "Configuración de Cuenta",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(4.dp)
+                                .height(24.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    RoundedCornerShape(2.dp)
+                                )
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "Configuración de Cuenta",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
 
                 item {
                     ConfiguracionItem(
                         icon = Icons.Default.Edit,
                         titulo = "Editar Información Personal",
+                        subtitulo = "Actualiza tu nombre y datos",
                         onClick = { isEditMode = true }
                     )
                 }
@@ -414,6 +523,7 @@ fun PerfilScreen(
                     ConfiguracionItem(
                         icon = Icons.Default.Lock,
                         titulo = "Cambiar Contraseña",
+                        subtitulo = "Gestiona tu seguridad",
                         onClick = { innerNavController.navigate("cambiar_contrasena") }
                     )
                 }
@@ -422,6 +532,7 @@ fun PerfilScreen(
                     ConfiguracionItem(
                         icon = Icons.Default.Help,
                         titulo = "Ayuda y Soporte",
+                        subtitulo = "¿Necesitas ayuda?",
                         onClick = { }
                     )
                 }
@@ -430,6 +541,7 @@ fun PerfilScreen(
                     ConfiguracionItem(
                         icon = Icons.Default.Security,
                         titulo = "Privacidad y Seguridad",
+                        subtitulo = "Configura tu privacidad",
                         onClick = { innerNavController.navigate("privacidad_seguridad") }
                     )
                 }
@@ -445,19 +557,31 @@ fun PerfilScreen(
                                 }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .shadow(
+                                elevation = 4.dp,
+                                shape = RoundedCornerShape(16.dp),
+                                spotColor = MaterialTheme.colorScheme.error
+                            ),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
                         ),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Logout, contentDescription = "Cerrar sesión")
-                            Text("Cerrar Sesión", style = MaterialTheme.typography.bodyLarge)
-                        }
+                        Icon(
+                            Icons.Default.Logout,
+                            contentDescription = "Cerrar sesión",
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "Cerrar Sesión",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
 
@@ -468,28 +592,64 @@ fun PerfilScreen(
         }
     }
 
-    // Diálogo para cambiar foto
+    // Diálogo mejorado para cambiar foto
     if (showImageOptions) {
         AlertDialog(
             onDismissRequest = { showImageOptions = false },
-            icon = { Icon(Icons.Default.CameraAlt, contentDescription = null) },
-            title = { Text("Cambiar foto de perfil") },
-            text = { Text("Selecciona una imagen de tu galería") },
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.CameraAlt,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            },
+            title = {
+                Text(
+                    "Cambiar foto de perfil",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    "Selecciona una imagen de tu galería para actualizar tu foto de perfil",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             confirmButton = {
-                TextButton(onClick = {
-                    imagePickerLauncher.launch("image/*")
-                    showImageOptions = false
-                }) {
-                    Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                FilledTonalButton(
+                    onClick = {
+                        imagePickerLauncher.launch("image/*")
+                        showImageOptions = false
+                    },
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.PhotoLibrary,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
                     Spacer(Modifier.width(8.dp))
-                    Text("Galería")
+                    Text("Galería", fontWeight = FontWeight.Medium)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showImageOptions = false }) {
+                TextButton(
+                    onClick = { showImageOptions = false },
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text("Cancelar")
                 }
-            }
+            },
+            shape = RoundedCornerShape(24.dp)
         )
     }
 }
@@ -499,35 +659,49 @@ fun PerfilScreen(
 @Composable
 fun PerfilInfoCard(icon: ImageVector, label: String, value: String) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                icon,
-                contentDescription = null,
+            Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .padding(8.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     value,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -536,34 +710,67 @@ fun PerfilInfoCard(icon: ImageVector, label: String, value: String) {
 }
 
 @Composable
-fun ConfiguracionItem(icon: ImageVector, titulo: String, onClick: () -> Unit) {
+fun ConfiguracionItem(
+    icon: ImageVector,
+    titulo: String,
+    subtitulo: String = "",
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .clickable(onClick = onClick)
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
             Spacer(Modifier.width(16.dp))
-            Text(
-                titulo,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    titulo,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (subtitulo.isNotEmpty()) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        subtitulo,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(Modifier.width(8.dp))
             Icon(
                 Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -587,7 +794,7 @@ fun EditTextField(
             onValueChange = onValueChange,
             label = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(label)
+                    Text(label, fontWeight = FontWeight.Medium)
                     if (isRequired) {
                         Text(
                             " *",
@@ -604,33 +811,58 @@ fun EditTextField(
                 )
             },
             leadingIcon = {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = if (enabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (enabled) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                            else MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = if (enabled) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
+                }
             },
             enabled = enabled,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                 disabledBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             ),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             singleLine = true
         )
 
         if (helperText != null) {
-            Text(
-                text = helperText,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-            )
+            Row(
+                modifier = Modifier.padding(start = 16.dp, top = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Info,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = helperText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

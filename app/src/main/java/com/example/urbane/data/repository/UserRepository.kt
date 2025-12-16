@@ -239,9 +239,6 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
-
-
-
     suspend fun getUserById(id: String): User? {
          try {
             val residentialId = getResidentialId() ?: emptyList<User>()
