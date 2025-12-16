@@ -14,11 +14,9 @@ object Routes {
     const val ADMIN_RESIDENCES_ADD ="admin/residences/add"
     const val ADMIN_RESIDENCES_DETAIL= "admin/residences/{id}"
     const val ADMIN_CONTRACTS ="admin/contracts"
-
     const val ADMIN_CONTRACTS_DETAIL= "admin/contracts/{id}"
     const val ADMIN_CLAIMS = "admin/claims"
     const val ADMIN_PAYMENTS = "admin/payments"
-
-    const val ADMIN_PAYMENTS_DETAIL= "admin/payments/{id}"
+    const val ADMIN_FINES = "admin/fines"
 
 }

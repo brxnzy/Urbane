@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.example.urbane.ui.admin.payments.view.components.PaymentHistoryCard
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 
-@RequiresApi(Build.VERSION_CODES.Q)
+
 @SuppressLint("DefaultLocale", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PaymentHistoryScreen(viewModel: PaymentsViewModel) {

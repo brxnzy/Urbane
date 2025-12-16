@@ -62,7 +62,7 @@ import kotlin.collections.get
 import androidx.core.net.toUri
 
 
-@RequiresApi(Build.VERSION_CODES.Q)
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

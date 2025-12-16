@@ -50,7 +50,7 @@ data class TransferRequest(
 
 
 
-@RequiresApi(Build.VERSION_CODES.Q)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentsScreen(viewModel: PaymentsViewModel, navController: NavController) {

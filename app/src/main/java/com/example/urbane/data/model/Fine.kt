@@ -11,6 +11,7 @@ data class Fine(
     val description: String?,
     val amount: Float,
     val status: String,
+    val resident: UserMinimal? = null,
     val residentialId: Int?,
     val createdAt: String
 )

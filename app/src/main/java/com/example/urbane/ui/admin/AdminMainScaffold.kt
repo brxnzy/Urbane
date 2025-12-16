@@ -1,6 +1,6 @@
 package com.example.urbane.ui.admin
-
-
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,10 +12,12 @@ import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ReportProblem
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -40,11 +42,15 @@ import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.admin.claims.view.ClaimsScreen
 import com.example.urbane.ui.admin.contracts.view.ContractsScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
+import com.example.urbane.ui.admin.fines.view.FinesScreen
+import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
 import com.example.urbane.ui.admin.payments.view.PaymentsScreen
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +64,7 @@ fun AdminMainScaffold(
     usersViewModel: UsersViewModel,
     contractsViewModel: ContractsViewModel,
     paymentsViewModel: PaymentsViewModel,
+    finesViewModel: FinesViewModel,
     showResidenceDeletedMessage: Boolean = false
 
 
@@ -94,6 +101,7 @@ fun AdminMainScaffold(
                             Routes.ADMIN_RESIDENCES -> stringResource(R.string.residencias)
                             Routes.ADMIN_CLAIMS -> stringResource(R.string.reclamos)
                             Routes.ADMIN_CONTRACTS -> stringResource(R.string.contratos)
+                            Routes.ADMIN_FINES -> stringResource(R.string.multas)
                             Routes.ADMIN -> "Dashboard"
                             else -> "Panel Admin"
                         }, style = MaterialTheme.typography.displayMedium)
@@ -123,6 +131,7 @@ fun AdminMainScaffold(
                     )
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp), showResidenceDeletedMessage)
                     Routes.ADMIN_CLAIMS-> ClaimsScreen()
+                    Routes.ADMIN_FINES-> FinesScreen(finesViewModel)
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(paymentsViewModel, navController)
                     Routes.ADMIN_CONTRACTS -> ContractsScreen(modifier = Modifier.padding(16.dp),navController, contractsViewModel)
                     Routes.ADMIN -> Dashboard(sessionManager)
@@ -141,8 +150,6 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
         verticalArrangement = Arrangement.SpaceBetween
 
     ) {
-
-
     Column(modifier = Modifier
         .padding(top = 35.dp,
             )
@@ -180,6 +187,8 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
         DrawerItem("Reclamos",Icons.Outlined.ReportProblem, Routes.ADMIN_CLAIMS, currentRoute, onDestinationClicked)
         DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.contratos), Icons.Outlined.Assignment, Routes.ADMIN_CONTRACTS, currentRoute, onDestinationClicked)
+        DrawerItem("Multas", Icons.Outlined.Gavel, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
+        DrawerItem("Configuración", Icons.Outlined.Settings, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
 
     }
 
@@ -243,7 +252,7 @@ fun DrawerItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick(route) }
-            .padding(top = 4.dp, bottom = 4.dp, end = 10.dp),
+            .padding(top = 2.dp, bottom = 2.dp, end = 10.dp),
         color = backgroundColor,
         shape = RoundedCornerShape(
             topStart = 0.dp,
