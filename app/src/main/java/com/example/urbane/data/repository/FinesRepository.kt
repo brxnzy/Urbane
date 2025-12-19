@@ -1,5 +1,4 @@
-package com.example.urbane.data.repository
-
+package com.example.urbane.data.repository                                                                                                                                                                                                          
 import android.util.Log
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Fine
@@ -18,7 +17,6 @@ class FinesRepository(
             val residentialId = getResidentialId(sessionManager)
                 ?: error("No residentialId")
 
-            // 1️⃣ Multas (sin join)
             val fines = supabase
                 .from("fines")
                 .select(columns = Columns.list(
@@ -38,13 +36,11 @@ class FinesRepository(
                 }
                 .decodeList<Fine>()
 
-            // 2️⃣ Users
             val users = supabase
                 .from("users")
                 .select(columns = Columns.list("id, name, photoUrl"))
                 .decodeList<UserMinimal>()
                 .associateBy { it.id }
-
 
             fines.map { fine ->
                 fine.copy(
