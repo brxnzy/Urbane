@@ -29,6 +29,8 @@ import com.example.urbane.data.model.CreateUserRequest
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.rpc
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 
 class UserRepository(val sessionManager: SessionManager) {
@@ -430,7 +432,6 @@ class UserRepository(val sessionManager: SessionManager) {
 
                 supabase.from("users_residentials_roles").update(
                     {
-                        set("residence_id", residenceId)
                         set("role_id", newRoleId)
                     }
                 ){
@@ -439,6 +440,15 @@ class UserRepository(val sessionManager: SessionManager) {
                 val data = Contract(residentId = userId, residenceId = residenceId, startDate = today, residentialId = residentialId as Int)
                 supabase.from("contracts")
                     .insert(data)
+
+                supabase.postgrest.rpc(
+                    "create_pending_payment_if_not_exists",
+                    buildJsonObject {
+                        put("p_resident_id", userId)
+                        put("p_residential_id", residentialId)
+                    }
+                )
+
 
                 return true
             }

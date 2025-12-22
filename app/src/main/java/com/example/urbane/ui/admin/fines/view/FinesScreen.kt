@@ -25,7 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.urbane.data.model.Fine
+import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -33,8 +35,7 @@ import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
 @Composable
 fun FinesScreen(
     viewModel: FinesViewModel,
-    onAddFine: () -> Unit = {},
-    onFineClick: (Fine) -> Unit = {}
+    navController: NavController
 ) {
     val state by viewModel.state.collectAsState()
     var busqueda by remember { mutableStateOf("") }
@@ -67,7 +68,7 @@ fun FinesScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddFine,
+                onClick = { navController.navigate(Routes.ADMIN_FINES_ADD) },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(
@@ -104,8 +105,6 @@ fun FinesScreen(
                 ),
                 singleLine = true
             )
-
-            // FILTROS CON CHIPS
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -136,13 +135,13 @@ fun FinesScreen(
                     }
                 }
 
-                state.error != null -> {
+                state.errorMessage != null -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = state.error ?: "Error desconocido",
+                            text = state.errorMessage ?: "Error desconocido",
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -169,7 +168,7 @@ fun FinesScreen(
                         items(multasFiltradas) { fine ->
                             FineCard(
                                 fine = fine,
-                                onClick = { onFineClick(fine) }
+                                onClick = {  }
                             )
                         }
                     }

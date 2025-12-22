@@ -52,5 +52,29 @@ class FinesRepository(
             Log.e("FinesRepository", "Error obteniendo multas", e)
             emptyList()
         }
+
+
+
     }
+
+    suspend fun createFine(
+        residentId: String,
+        title: String,
+        description: String?,
+        amount: String
+    ) {
+        val residentialId = getResidentialId(sessionManager)
+            ?: error("No residentialId")
+
+        supabase.from("fines").insert(mapOf(
+            "residentId" to residentId,
+            "title" to title,
+            "description" to description,
+            "amount" to amount,
+            "status" to "Pendiente",
+            "residentialId" to residentialId
+        )
+            )
+    }
+
 }

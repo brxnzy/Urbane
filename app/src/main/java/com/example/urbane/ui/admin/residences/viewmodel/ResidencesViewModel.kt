@@ -9,12 +9,11 @@ import com.example.urbane.ui.admin.residences.model.ResidencesState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.util.Log
 import com.example.urbane.data.repository.UserRepository
-import com.example.urbane.ui.admin.residences.model.SuccessType
+import com.example.urbane.ui.admin.residences.model.ResidenceSuccessType
 
 
 class ResidencesViewModel(private val sessionManager: SessionManager) : ViewModel() {
@@ -33,8 +32,7 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
             is ResidencesIntent.OwnerIdCardChanged -> _state.update { it.copy(ownerIdCard = intent.ownerIdCard) }
             is ResidencesIntent.OwnerPasswordChanged -> _state.update { it.copy(ownerPassword = intent.ownerPassword) }
             ResidencesIntent.CreateResidence -> createResidence()
-            ResidencesIntent.CreateOwner -> createOwner()
-            ResidencesIntent.LoadOwners -> loadOwners()
+
 
             is ResidencesIntent.AssignPropietario -> {
                 _state.update {
@@ -80,7 +78,7 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        success = SuccessType.ResidenceCreated,
+                        success = ResidenceSuccessType.ResidenceCreated,
                         name = "",
                         type = "",
                         description = "",
@@ -124,79 +122,6 @@ class ResidencesViewModel(private val sessionManager: SessionManager) : ViewMode
                         errorMessage = e.message ?: "Error al cargar residencias"
                     )
                 }
-            }
-        }
-    }
-
-    fun loadOwners() {
-        viewModelScope.launch {
-            try {
-                Log.d("ResidencesVM", "Loading owners...")
-                _state.update { it.copy(isLoadingOwners = true, errorMessage = null) }
-
-                val owners = userRepository.getOwners()
-
-                Log.d("ResidencesVM", "Loaded ${owners.size} owners")
-
-                _state.update {
-                    it.copy(isLoadingOwners = false, availableOwners = owners)
-                }
-
-            } catch (e: Exception) {
-                Log.e("ResidencesVM", "Error loading owners: $e")
-                _state.update {
-                    it.copy(
-                        isLoadingOwners = false,
-                        errorMessage = e.message ?: "Error al cargar propietarios"
-                    )
-                }
-            }
-        }
-    }
-
-    private fun createOwner() {
-        viewModelScope.launch {
-            try {
-                _state.update { it.copy(isLoading = true, errorMessage = null) }
-
-                val user = userRepository.createUser(
-                    _state.value.ownerName,
-                    _state.value.ownerEmail,
-                    _state.value.ownerIdCard,
-                    _state.value.ownerPassword,
-                    3, // roleId para propietario
-                    _state.value.selectedResidence
-                )
-
-                if (user == null) {
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            success = SuccessType.PropietarioAssigned,
-                            ownerName = "",
-                            ownerEmail = "",
-                            ownerIdCard = "",
-                            ownerPassword = ""
-                        )
-                    }
-                    loadOwners()
-                } else {
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "Error al crear propietario"
-                        )
-                    }
-                }
-
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = e.message ?: "Error al crear propietario"
-                    )
-                }
-                Log.e("ResidencesVM", "Error creando propietario: $e")
             }
         }
     }

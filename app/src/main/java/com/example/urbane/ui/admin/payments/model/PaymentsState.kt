@@ -21,7 +21,7 @@ data class PaymentsState(
     val isLoading: Boolean = false,
     val residents: List<User> = emptyList(),
     val selectedResident: User? = null,
-    val pendingPayments: List<Payment> = emptyList(), // USA Payment directamente
+    val pendingPayments: List<Payment> = emptyList(),
     val selectedPayments: Map<Int, SelectedPayment> = emptyMap(),
     val allPayments: List<Payment> = emptyList(),
     val errorMessage: String? = null,

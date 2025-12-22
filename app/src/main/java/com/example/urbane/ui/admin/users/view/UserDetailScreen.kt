@@ -128,10 +128,6 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
             }
         }
     }
-
-
-
-
     if (showEnableResidentDialog) {
         EnableResidentDialog(
             residencesViewModel = residencesViewModel,
@@ -157,14 +153,6 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
             }
         )
     }
-
-
-
-
-
-
-
-
     Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {

@@ -25,6 +25,7 @@ import com.example.urbane.ui.admin.AdminMainScaffold
 import com.example.urbane.ui.admin.contracts.view.ContractDetailScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsDetailViewModel
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
+import com.example.urbane.ui.admin.fines.view.AddFineScreen
 import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
@@ -146,10 +147,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                         ?.savedStateHandle
                         ?.remove<Boolean>("residenceDeleted")
                 }
-
                 onDispose { }
             }
-
             AdminMainScaffold(
                 navController = navController,
                 currentRoute = Routes.ADMIN_RESIDENCES,
@@ -247,8 +246,13 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
             }
         }
         composable(Routes.ADMIN_RESIDENCES_ADD) {
-            val residencesViewModel = ResidencesViewModel(sessionManager)
             AddResidenceScreen(residencesViewModel){
+                navController.popBackStack()
+            }
+        }
+
+        composable(Routes.ADMIN_FINES_ADD) {
+            AddFineScreen(finesViewModel){
                 navController.popBackStack()
             }
         }
