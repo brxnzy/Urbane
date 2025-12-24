@@ -1,6 +1,5 @@
 package com.example.urbane.ui.admin.users.view
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -57,12 +56,10 @@ import com.example.urbane.data.model.User
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.model.DetailSuccess
 import com.example.urbane.ui.admin.users.model.UsersDetailIntent
-import com.example.urbane.ui.admin.users.view.components.DisabledDialog
 import com.example.urbane.ui.admin.users.view.components.EditUserDialog
-import com.example.urbane.ui.admin.users.view.components.EnableDialog
 import com.example.urbane.ui.admin.users.view.components.EnableResidentDialog
-import com.example.urbane.ui.admin.users.view.components.InfoSection
-import com.example.urbane.ui.admin.users.view.components.UserInfoItem
+import com.example.urbane.ui.common.InfoSection
+import com.example.urbane.ui.common.UserInfoItem
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.utils.getRoleLabelRes
 import com.example.urbane.utils.getTipoPropiedadLabelRes
@@ -361,7 +358,6 @@ fun UserDetail(
                         contentColor = Color.White
                     )
                 ) {
-
 
                     if (true) {
                         Row(verticalAlignment = Alignment.CenterVertically) {

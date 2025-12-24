@@ -20,37 +20,42 @@ fun AddResidenceScreen(
     goBack: () -> Unit
 ) {
     var perteneceResidencial by remember { mutableStateOf(false) }
-    var showSuccessDialog by remember { mutableStateOf(false) }
     var expandedTipo by remember { mutableStateOf(false) }
+
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val tiposPropiedad = listOf("Apartamento", "Casa", "Local", "Villa", "Terreno")
 
     LaunchedEffect(state.success) {
         if (state.success == ResidenceSuccessType.ResidenceCreated) {
-            showSuccessDialog = true
+            snackbarHostState.showSnackbar(
+                message = "Propiedad creada correctamente",
+                withDismissAction = true
+            )
+            viewModel.clearSuccess()
+            viewModel.loadResidences()
         }
     }
 
-    // Manejar errores
     state.errorMessage?.let { error ->
         LaunchedEffect(error) {
-            // Aquí puedes mostrar un Snackbar o Toast
-            Log.e("AddResidence", "Error: $error")
+            snackbarHostState.showSnackbar(
+                message = error
+            )
         }
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Crear Propiedad") },
                 navigationIcon = {
-                    IconButton(onClick = { goBack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                    IconButton(onClick = goBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = null)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
         }
     ) { padding ->
@@ -64,21 +69,20 @@ fun AddResidenceScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Nombre de la propiedad
             OutlinedTextField(
                 value = state.name,
-                onValueChange = { viewModel.processIntent(ResidencesIntent.NameChanged(it)) },
+                onValueChange = {
+                    viewModel.processIntent(ResidencesIntent.NameChanged(it))
+                },
                 label = { Text("Nombre de la propiedad") },
-                leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Default.Home, null) },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
                 enabled = !state.isLoading
             )
 
-            // Tipo de propiedad
             ExposedDropdownMenuBox(
                 expanded = expandedTipo,
-                onExpandedChange = { expandedTipo = !state.isLoading && it }
+                onExpandedChange = { expandedTipo = it && !state.isLoading }
             ) {
                 OutlinedTextField(
                     value = state.type,
@@ -88,10 +92,13 @@ fun AddResidenceScreen(
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTipo)
                     },
-                    leadingIcon = { Icon(Icons.Default.Category, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    leadingIcon = { Icon(Icons.Default.Category, null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
                     enabled = !state.isLoading
                 )
+
                 ExposedDropdownMenu(
                     expanded = expandedTipo,
                     onDismissRequest = { expandedTipo = false }
@@ -100,7 +107,9 @@ fun AddResidenceScreen(
                         DropdownMenuItem(
                             text = { Text(tipo) },
                             onClick = {
-                                viewModel.processIntent(ResidencesIntent.TypeChanged(tipo))
+                                viewModel.processIntent(
+                                    ResidencesIntent.TypeChanged(tipo)
+                                )
                                 expandedTipo = false
                             }
                         )
@@ -108,27 +117,22 @@ fun AddResidenceScreen(
                 }
             }
 
-            // Descripción
             OutlinedTextField(
                 value = state.description,
                 onValueChange = {
-                    viewModel.processIntent(ResidencesIntent.DescriptionChanged(it))
+                    viewModel.processIntent(
+                        ResidencesIntent.DescriptionChanged(it)
+                    )
                 },
                 label = { Text("Descripción") },
-                leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Default.Description, null) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
-                maxLines = 3,
                 enabled = !state.isLoading
             )
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-
-
             Spacer(modifier = Modifier.weight(1f))
 
-            // Botón guardar
             Button(
                 onClick = {
                     viewModel.processIntent(ResidencesIntent.CreateResidence)
@@ -136,71 +140,25 @@ fun AddResidenceScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = state.name.isNotBlank() &&
-                        state.type.isNotBlank() &&
-                        state.description.isNotBlank() &&
-                        (perteneceResidencial || state.selectedOwnerId != null) &&
-                        !state.isLoading
+                enabled =
+                    state.name.isNotBlank() &&
+                            state.type.isNotBlank() &&
+                            state.description.isNotBlank() &&
+                            !state.isLoading
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        strokeWidth = 2.dp
                     )
                 } else {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Save, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Guardar propiedad",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
+                    Icon(Icons.Default.Save, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Guardar propiedad")
                 }
             }
         }
-
-
-
-        // Diálogo de éxito
-        if (showSuccessDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    showSuccessDialog = false
-                    viewModel.clearSuccess()
-                },
-                icon = {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(48.dp)
-                    )
-                },
-                title = { Text("¡Propiedad creada!") },
-                text = {
-                    Text(
-                        if (perteneceResidencial)
-                            "Propiedad registrada como parte del residencial"
-                        else
-                            "La propiedad ha sido creada exitosamente"
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showSuccessDialog = false
-                            viewModel.clearSuccess()
-                            viewModel.loadResidences()
-                            goBack()
-                        }
-                    ) {
-                        Text("Aceptar")
-                    }
-                }
-            )
-        }
     }
 }
+
 

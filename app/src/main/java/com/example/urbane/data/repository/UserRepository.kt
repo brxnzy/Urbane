@@ -429,7 +429,6 @@ class UserRepository(val sessionManager: SessionManager) {
                      filter { eq("id", residenceId) }
                  }
 
-
                 supabase.from("users_residentials_roles").update(
                     {
                         set("role_id", newRoleId)
@@ -448,8 +447,6 @@ class UserRepository(val sessionManager: SessionManager) {
                         put("p_residential_id", residentialId)
                     }
                 )
-
-
                 return true
             }
 
@@ -488,12 +485,6 @@ class UserRepository(val sessionManager: SessionManager) {
             return  false
         }
     }
-
-
-
-
-
-
 }
 
 

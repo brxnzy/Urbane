@@ -6,7 +6,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
-fun formatTransactionDate(dateString: String?): String {
+fun formatDate(dateString: String?): String {
     if (dateString.isNullOrBlank()) return ""
 
     return try {

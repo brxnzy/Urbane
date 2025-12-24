@@ -18,20 +18,27 @@ fun AddFineScreen(
     goBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-    var showSuccessDialog by remember { mutableStateOf(false) }
     var expandedResident by remember { mutableStateOf(false) }
-
-    LaunchedEffect(state.success) {
-        if (state.success is FinesSuccessType.FineCreated) {
-            showSuccessDialog = true
-        }
-    }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.loadResidents()
     }
 
+    LaunchedEffect(state.success) {
+        if (state.success is FinesSuccessType.FineCreated) {
+            snackbarHostState.showSnackbar(
+                message = "Multa creada correctamente" ,
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.handleIntent(FinesIntent.ClearSuccess)
+
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Crear multa") },
@@ -43,7 +50,6 @@ fun AddFineScreen(
             )
         }
     ) { padding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -64,7 +70,6 @@ fun AddFineScreen(
                 enabled = !state.isLoading
             )
 
-            // Descripción
             OutlinedTextField(
                 value = state.description,
                 onValueChange = {
@@ -77,7 +82,6 @@ fun AddFineScreen(
                 enabled = !state.isLoading
             )
 
-            // Monto
             OutlinedTextField(
                 value = state.amount,
                 onValueChange = {
@@ -89,7 +93,6 @@ fun AddFineScreen(
                 singleLine = true,
                 enabled = !state.isLoading
             )
-
 
             ExposedDropdownMenuBox(
                 expanded = expandedResident,
@@ -111,16 +114,13 @@ fun AddFineScreen(
                     enabled = !state.isLoading
                 )
 
-
                 ExposedDropdownMenu(
                     expanded = expandedResident,
                     onDismissRequest = { expandedResident = false }
                 ) {
                     state.residents.forEach { resident ->
                         DropdownMenuItem(
-                            text = {
-                                    Text(resident.name)
-                            },
+                            text = { Text(resident.name) },
                             onClick = {
                                 viewModel.handleIntent(
                                     FinesIntent.ResidentSelected(resident.id)
@@ -138,7 +138,9 @@ fun AddFineScreen(
                 onClick = {
                     viewModel.handleIntent(FinesIntent.CreateFine)
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
                 enabled =
                     state.title.isNotBlank() &&
                             state.amount.isNotBlank() &&
@@ -156,32 +158,6 @@ fun AddFineScreen(
                     Text("Crear multa")
                 }
             }
-        }
-
-        if (showSuccessDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    showSuccessDialog = false
-                    viewModel.handleIntent(FinesIntent.ClearSuccess)
-                },
-                icon = {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                },
-                title = { Text("Multa creada") },
-                text = { Text("La multa fue registrada correctamente") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            viewModel.handleIntent(FinesIntent.ClearSuccess)
-                            goBack()
-                        }
-                    ) { Text("Aceptar") }
-                }
-            )
         }
     }
 }

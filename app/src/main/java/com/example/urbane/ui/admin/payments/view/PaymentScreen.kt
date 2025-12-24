@@ -1,20 +1,10 @@
 package com.example.urbane.ui.admin.payments.view
 
-import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -27,18 +17,6 @@ import androidx.compose.ui.Modifier
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
-import com.example.urbane.R
-import com.example.urbane.data.model.Payment
-import com.example.urbane.data.model.PaymentTransaction
-import com.example.urbane.ui.admin.payments.view.components.PaymentHistoryCard
-import com.example.urbane.ui.admin.payments.view.components.StatusBadge
-import com.example.urbane.ui.admin.payments.view.components.TransactionItem
-import com.example.urbane.utils.formatTransactionDate
-import com.example.urbane.utils.intToMonth
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 data class TransferRequest(
     val id: Int,

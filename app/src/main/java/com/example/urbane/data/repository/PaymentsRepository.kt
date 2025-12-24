@@ -118,7 +118,6 @@ class PaymentRepository(
 
             Log.d("PaymentsRepo", "✅ transactionId generado: $transactionId")
 
-            // ✅ Cálculo correcto del acumulado
             val paidAmount = p.montoTotal - p.montoPendiente
             val nuevoPaidAmount = paidAmount + p.montoPagar
             val nuevoPendiente = p.montoTotal - nuevoPaidAmount

@@ -17,6 +17,8 @@ import com.example.urbane.ui.admin.residences.model.ResidencesDetailIntent
 import com.example.urbane.ui.admin.residences.model.ResidencesDetailSuccess
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
 import com.example.urbane.utils.getResidenceIcon
+import com.example.urbane.ui.common.UserInfoItem
+import com.example.urbane.ui.common.InfoSection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +41,7 @@ fun ResidencesDetailScreen(
         viewmodel.loadResidence(residenceId)
     }
 
-    // Manejar los success states con snackbar (sin el delete)
+
     LaunchedEffect(state.success, state.isLoading) {
         if (state.success != null && !state.isLoading) {
             when (state.success) {
@@ -466,39 +468,4 @@ fun ResidenceDetail(
     }
 }
 
-@Composable
-fun InfoSection(content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            content = content
-        )
-    }
-}
 
-@Composable
-fun UserInfoItem(
-    label: String,
-    value: String,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = valueColor,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}

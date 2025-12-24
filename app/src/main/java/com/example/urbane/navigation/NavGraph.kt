@@ -6,9 +6,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -26,6 +24,8 @@ import com.example.urbane.ui.admin.contracts.view.ContractDetailScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsDetailViewModel
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
 import com.example.urbane.ui.admin.fines.view.AddFineScreen
+import com.example.urbane.ui.admin.fines.view.FinesDetailScreen
+import com.example.urbane.ui.admin.fines.viewmodel.FinesDetailViewModel
 import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
@@ -57,10 +57,7 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
     val contractsDetailViewModel = ContractsDetailViewModel(sessionManager)
     val paymentsViewModel = PaymentsViewModel(sessionManager)
     val finesViewModel = FinesViewModel(sessionManager)
-
-
-
-
+    val finesDetailViewModel = FinesDetailViewModel(sessionManager)
 
     NavHost(
         navController = navController,
@@ -129,12 +126,8 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 finesViewModel
                 )
         }
-// En tu NavGraph
         composable(Routes.ADMIN_RESIDENCES) {
-            // Crear un estado derivado que se limpia automáticamente
             var residenceDeleted by remember { mutableStateOf(false) }
-
-            // Leer el savedStateHandle solo una vez
             DisposableEffect(Unit) {
                 val deleted = navController.currentBackStackEntry
                     ?.savedStateHandle
@@ -142,7 +135,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
 
                 if (deleted) {
                     residenceDeleted = true
-                    // Limpiar inmediatamente después de leer
                     navController.currentBackStackEntry
                         ?.savedStateHandle
                         ?.remove<Boolean>("residenceDeleted")
@@ -233,11 +225,6 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 contractsViewModel,
                 paymentsViewModel,
                 finesViewModel
-
-
-
-
-
                 )
         }
         composable(Routes.ADMIN_USERS_ADD) {
@@ -306,6 +293,19 @@ fun MainNavigation(navController: NavHostController, modifier: Modifier) {
                 navController.popBackStack()
             }
 
+        }
+
+
+        composable(
+            Routes.ADMIN_FINES_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStackEntry ->
+           FinesDetailScreen(
+                fineId = backStackEntry.arguments?.getString("id") ?: "",
+                viewModel = finesDetailViewModel,
+            ){
+                navController.popBackStack()
+            }
         }
 
 

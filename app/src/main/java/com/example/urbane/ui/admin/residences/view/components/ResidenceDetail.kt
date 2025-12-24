@@ -38,8 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.urbane.data.model.Residence
-import com.example.urbane.ui.admin.users.view.components.InfoSection
-import com.example.urbane.ui.admin.users.view.components.UserInfoItem
+import com.example.urbane.ui.common.InfoSection
+import com.example.urbane.ui.common.UserInfoItem
 import com.example.urbane.utils.getResidenceIcon
 
 

@@ -125,7 +125,7 @@ val Typography = Typography(
     labelMedium = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
+        fontSize = 13.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),

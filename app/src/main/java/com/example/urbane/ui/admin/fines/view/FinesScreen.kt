@@ -11,10 +11,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -168,7 +170,10 @@ fun FinesScreen(
                         items(multasFiltradas) { fine ->
                             FineCard(
                                 fine = fine,
-                                onClick = {  }
+                                onClick = { navController.navigate(Routes.ADMIN_FINES_DETAIL.replace(
+                                    "{id}",
+                                    fine.id.toString()
+                                )) }
                             )
                         }
                     }
@@ -183,6 +188,46 @@ fun FineCard(
     fine: Fine,
     onClick: () -> Unit
 ) {
+    val status = fine.status.lowercase()
+
+    val yellow = Color(0xFFFFC107)
+    val red = Color.Red
+
+    val bgColor = when (status) {
+        "pagado", "paid" ->
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+
+        "pendiente", "pending" ->
+            yellow.copy(alpha = 0.20f)
+
+        "cancelada", "canceled", "cancelled" ->
+            red.copy(alpha = 0.20f)
+
+        else ->
+            MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    val icon = when (status) {
+        "pagado", "paid" -> Icons.Default.CheckCircle
+        "pendiente", "pending" -> Icons.Default.Schedule
+        "cancelada", "canceled", "cancelled" -> Icons.Default.Cancel
+        else -> Icons.Default.Receipt
+    }
+
+    val iconTint = when (status) {
+        "pagado", "paid" ->
+            MaterialTheme.colorScheme.primary
+
+        "pendiente", "pending" ->
+            yellow
+
+        "cancelada", "canceled", "cancelled" ->
+            red
+
+        else ->
+            MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
@@ -196,37 +241,24 @@ fun FineCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ICONO EN CÍRCULO CON ESTADO
+
+            // ICONO
             Box(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(
-                        when (fine.status.lowercase()) {
-                            "pagada", "paid" -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                            "pendiente", "pending" -> MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        }
-                    ),
+                    .background(bgColor),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = when (fine.status.lowercase()) {
-                        "pagada", "paid" -> Icons.Default.CheckCircle
-                        "pendiente", "pending" -> Icons.Default.Warning
-                        else -> Icons.Default.Receipt
-                    },
+                    imageVector = icon,
                     contentDescription = null,
-                    tint = when (fine.status.lowercase()) {
-                        "pagada", "paid" -> MaterialTheme.colorScheme.primary
-                        "pendiente", "pending" -> MaterialTheme.colorScheme.error
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    tint = iconTint,
                     modifier = Modifier.size(28.dp)
                 )
             }
 
-            // INFORMACIÓN
+            // INFO
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -254,34 +286,27 @@ fun FineCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // BADGE DE ESTADO
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = when (fine.status.lowercase()) {
-                            "pagada", "paid" -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                            "pendiente", "pending" -> MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        }
+                        color = bgColor
                     ) {
                         Text(
                             text = fine.status.uppercase(),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
-                            color = when (fine.status.lowercase()) {
-                                "pagada", "paid" -> MaterialTheme.colorScheme.primary
-                                "pendiente", "pending" -> MaterialTheme.colorScheme.error
-                                else -> MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            color = iconTint,
+                            modifier = Modifier.padding(
+                                horizontal = 6.dp,
+                                vertical = 2.dp
+                            )
                         )
                     }
 
-                    // ADVERTENCIA SI NO TIENE PAGO
-                    if (fine.paymentId == null) {
+                    if (fine.paymentId == null && status == "pendiente") {
                         Text(
                             text = "⚠ Próximo pago",
                             fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.tertiary
+                            color = yellow
                         )
                     }
                 }
@@ -289,11 +314,10 @@ fun FineCard(
 
             // MONTO
             Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = "${String.format("%.2f", fine.amount)}",
+                    text = String.format("%.2f", fine.amount),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
