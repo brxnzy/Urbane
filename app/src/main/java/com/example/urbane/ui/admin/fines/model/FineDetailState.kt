@@ -9,3 +9,8 @@ data class FineDetailState(
     val fine: Fine? = null,
     val payment: Payment? = null
 )
+
+sealed class FineDetailIntent {
+    data object CancelFine : FineDetailIntent()
+}
+

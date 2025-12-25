@@ -160,7 +160,6 @@ fun FinesScreen(
                         )
                     }
                 }
-
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),

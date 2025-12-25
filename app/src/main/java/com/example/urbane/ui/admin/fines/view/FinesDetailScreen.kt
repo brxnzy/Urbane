@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
@@ -43,13 +42,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.urbane.ui.admin.fines.model.FineDetailIntent
 import com.example.urbane.ui.admin.fines.viewmodel.FinesDetailViewModel
 import com.example.urbane.ui.common.InfoSection2
 import com.example.urbane.ui.common.UserInfoItem2
 import com.example.urbane.utils.formatDate
 import com.example.urbane.utils.intToMonth
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -63,9 +61,15 @@ fun FinesDetailScreen(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
-
-
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(state.success) {
+        if (state.success) {
+            snackbarHostState.showSnackbar("Multa cancelada")
+            viewModel.resetSuccess()
+        }
+    }
+
 
     val yellow = Color(0xFFFFC107)
     val red = Color(0xFFF44336)
@@ -122,6 +126,7 @@ fun FinesDetailScreen(
                         color = MaterialTheme.colorScheme.error
                     )
                 }
+
             }
 
             state.fine != null -> {
@@ -239,7 +244,7 @@ fun FinesDetailScreen(
 
                         Spacer(modifier = Modifier.weight(1f))
                         Button(
-                            onClick = {},
+                            onClick = { viewModel.handleIntent(FineDetailIntent.CancelFine)},
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(56.dp),

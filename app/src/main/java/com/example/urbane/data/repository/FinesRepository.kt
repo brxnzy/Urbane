@@ -1,4 +1,5 @@
-package com.example.urbane.data.repository                                                                                                                                                                                                          
+package com.example.urbane.data.repository
+
 import android.util.Log
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Fine
@@ -20,8 +21,9 @@ class FinesRepository(
 
             val fines = supabase
                 .from("fines")
-                .select(columns = Columns.list(
-                    """
+                .select(
+                    columns = Columns.list(
+                        """
                     id,
                     createdAt,
                     residentId,
@@ -32,7 +34,8 @@ class FinesRepository(
                     status,
                     residentialId
                     """
-                ) ){
+                    )
+                ) {
                     filter { eq("residentialId", residentialId) }
                 }
                 .decodeList<Fine>()
@@ -88,9 +91,9 @@ class FinesRepository(
 
             val resident = supabase
                 .from("users")
-                .select(columns = Columns.list("id, name, photoUrl")){
+                .select(columns = Columns.list("id, name, photoUrl")) {
                     filter {
-                    eq("id", fine.residentId)
+                        eq("id", fine.residentId)
 
                     }
                 }
@@ -99,7 +102,7 @@ class FinesRepository(
             val paymentPeriod = fine.paymentId?.let { paymentId ->
                 supabase
                     .from("payments")
-                    .select(columns = Columns.list("month, year")){
+                    .select(columns = Columns.list("month, year")) {
                         filter {
                             eq("id", paymentId)
                         }
@@ -146,5 +149,20 @@ class FinesRepository(
             throw e
         }
     }
+
+    suspend fun cancelFine(fineId: Int) {
+        try {
+            supabase.from("fines").update({
+                set("status", "Cancelada")
+            }) {
+                filter {
+                    eq("id", fineId)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("FinesRepository", "Error cancelando multa $e")
+        }
+    }
+
 
 }
