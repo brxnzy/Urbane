@@ -60,9 +60,6 @@ import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.collections.get
 import androidx.core.net.toUri
-
-
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +88,7 @@ fun RegisterPaymentScreen(viewModel: PaymentsViewModel) {
 
         val success = state.success as? PaymentSuccess.InvoiceGenerated
         val invoiceUrl = success?.invoice?.invoiceUrl
-        val invoiceId = success?.invoice?.invoiceId
+        val invoiceFileName = success?.invoice?.invoiceFileName  // ✅ NUEVO
 
         AlertDialog(
             onDismissRequest = {
@@ -108,11 +105,10 @@ fun RegisterPaymentScreen(viewModel: PaymentsViewModel) {
                     onClick = {
                         scope.launch {
 
-                            // 🔹 Descargar desde Supabase
                             val uri = viewModel.downloadInvoiceFromSupabase(
                                 context = context,
                                 fileUrl = invoiceUrl!!,
-                                fileName = "factura_$invoiceId.pdf"
+                                fileName = invoiceFileName ?: "factura_temp.pdf"  // ✅ USAR invoiceFileName
                             )
 
                             showDialog = false
@@ -148,7 +144,7 @@ fun RegisterPaymentScreen(viewModel: PaymentsViewModel) {
                             val uri = viewModel.downloadInvoiceFromSupabase(
                                 context = context,
                                 fileUrl = invoiceUrl!!,
-                                fileName = "factura_$invoiceId.pdf"
+                                fileName = invoiceFileName ?: "factura_temp.pdf"  // ✅ USAR invoiceFileName
                             )
 
                             uri?.let {
@@ -173,7 +169,6 @@ fun RegisterPaymentScreen(viewModel: PaymentsViewModel) {
             }
         )
     }
-
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }

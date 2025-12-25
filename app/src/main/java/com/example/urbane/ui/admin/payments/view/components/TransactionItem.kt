@@ -109,12 +109,12 @@ fun TransactionItem(
                         val uri = viewModel.downloadInvoiceFromSupabase(
                             context,
                             transaction.invoiceUrl!!,
-                            "factura_${transaction.id}.pdf"
+                            transaction.invoiceFileName ?: "factura_${transaction.id}.pdf"  // ✅ Nombre real de la BD
                         )
 
                         if (uri != null) {
                             val result = snackbarHostState.showSnackbar(
-                                message = "Factura ${transaction.id} descargada correctamente",
+                                message = "Factura descargada correctamente",
                                 actionLabel = "Ir",
                                 duration = SnackbarDuration.Long
                             )
@@ -133,7 +133,6 @@ fun TransactionItem(
                 Icon(Icons.Default.Download, contentDescription = "Descargar")
             }
 
-            // ✅ COMPARTIR
             IconButton(
                 enabled = transaction.invoiceUrl != null,
                 onClick = {

@@ -15,5 +15,6 @@ data class TransactionDetail(
     val paidAmount: Float? = null,
     val residentName: String? = null,
     val contractAmount: Float? = null,
-    val services: List<Service>? = emptyList()
+    val services: List<Service>? = emptyList(),
+    val invoiceFileName: String? = null
 )

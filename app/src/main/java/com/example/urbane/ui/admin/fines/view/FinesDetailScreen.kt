@@ -69,8 +69,6 @@ fun FinesDetailScreen(
             viewModel.resetSuccess()
         }
     }
-
-
     val yellow = Color(0xFFFFC107)
     val red = Color(0xFFF44336)
 

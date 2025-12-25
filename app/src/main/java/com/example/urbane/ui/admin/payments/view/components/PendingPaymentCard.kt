@@ -44,10 +44,15 @@ fun PendingPaymentCard(
     onToggleSelection: () -> Unit,
     onAmountChange: (Float) -> Unit
 ) {
+
+    // ✅ Multas
     val totalMultas = payment.fines.sumOf { it.amount.toDouble() }.toFloat()
 
-    val totalConMultas = payment.amount + totalMultas
-    val montoPendiente = totalConMultas - payment.paidAmount
+    // ✅ Total original (cuota base + multas)
+    val totalOriginal = payment.amount + totalMultas  // 1000
+
+    // ✅ Lo que REALMENTE debe (total - ya pagado)
+    val pendienteReal = (totalOriginal - payment.paidAmount).coerceAtLeast(0f)  // 1000 - 700 = 300
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -69,6 +74,7 @@ fun PendingPaymentCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Checkbox(
                 checked = isSelected,
                 onCheckedChange = { onToggleSelection() }
@@ -79,6 +85,7 @@ fun PendingPaymentCard(
                     .weight(1f)
                     .padding(horizontal = 12.dp)
             ) {
+
                 Text(
                     text = intToMonth(payment.month),
                     style = MaterialTheme.typography.titleMedium,
@@ -88,13 +95,13 @@ fun PendingPaymentCard(
                 Spacer(Modifier.height(4.dp))
 
                 Text(
-                    text = "Pendiente: RD$ %.2f".format(montoPendiente),
+                    text = "Pendiente total: RD$ %.2f".format(pendienteReal),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Medium
                 )
 
-                if (payment.paidAmount > 0) {
+                if (payment.paidAmount > 0f) {
                     Text(
                         text = "Pagado: RD$ %.2f".format(payment.paidAmount),
                         style = MaterialTheme.typography.bodySmall,
@@ -102,17 +109,28 @@ fun PendingPaymentCard(
                     )
                 }
 
-                if (totalMultas > 0f) {
+                if (payment.fines.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+
                     Text(
-                        text = "Incluye multas: RD$ %.2f".format(totalMultas),
+                        text = "Extras",
                         style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.error
                     )
+
+                    payment.fines.forEach { fine ->
+                        Text(
+                            text = "• ${fine.title}: RD$ %.2f".format(fine.amount),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
 
             Text(
-                text = "RD$ %.2f".format(totalConMultas),
+                text = "RD$ %.2f".format(pendienteReal),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -122,20 +140,42 @@ fun PendingPaymentCard(
         if (isSelected && selectedPayment != null) {
             Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 
-            Column(modifier = Modifier.padding(16.dp).padding(top = 0.dp)) {
-                val montoConMultas = selectedPayment.montoPagar + totalMultas
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .padding(top = 0.dp)
+            ) {
 
-                var amountText by remember(montoConMultas) {
-                    mutableStateOf(montoConMultas.toString())
+                var amountText by remember(pendienteReal) {
+                    mutableStateOf(pendienteReal.toString())
                 }
-
 
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { newValue ->
-                        amountText = newValue
-                        newValue.toFloatOrNull()?.let { amount ->
-                            onAmountChange(amount)
+                        // ✅ Permitir texto vacío temporalmente (mientras escribe)
+                        if (newValue.isEmpty()) {
+                            amountText = ""
+                            onAmountChange(0f)
+                            return@OutlinedTextField
+                        }
+
+                        // ✅ Validar que solo sean números y punto decimal
+                        val regex = Regex("^\\d*\\.?\\d*$")
+                        if (!regex.matches(newValue)) {
+                            return@OutlinedTextField  // Rechazar caracteres inválidos
+                        }
+
+                        val enteredAmount = newValue.toFloatOrNull() ?: 0f
+
+                        // ✅ LIMITAR: No permitir más del pendiente real
+                        if (enteredAmount <= pendienteReal) {
+                            amountText = newValue
+                            onAmountChange(enteredAmount)
+                        } else {
+                            // ✅ Si intenta poner más, lo limita al máximo
+                            amountText = pendienteReal.toString()
+                            onAmountChange(pendienteReal)
                         }
                     },
                     label = { Text("Monto a pagar") },
@@ -144,29 +184,42 @@ fun PendingPaymentCard(
                         keyboardType = KeyboardType.Decimal
                     ),
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    supportingText = {
+                        Text(
+                            "Máximo: RD$ %.2f".format(pendienteReal),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    isError = (amountText.toFloatOrNull() ?: 0f) > pendienteReal
                 )
 
+                Spacer(Modifier.height(8.dp))
+
+                val esPagoCompleto = selectedPayment.montoPagar >= pendienteReal
+
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     Text(
-                        text = if (selectedPayment.isPagoCompleto) "Pago completo" else "Pago parcial",
+                        text = if (esPagoCompleto)
+                            "Pago completo"
+                        else
+                            "Pago parcial",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Icon(
-                        imageVector = if (selectedPayment.isPagoCompleto)
+                        imageVector = if (esPagoCompleto)
                             Icons.Default.CheckCircle
                         else
                             Icons.Default.Warning,
                         contentDescription = null,
-                        tint = if (selectedPayment.isPagoCompleto)
+                        tint = if (esPagoCompleto)
                             MaterialTheme.colorScheme.primary
                         else
                             MaterialTheme.colorScheme.tertiary,

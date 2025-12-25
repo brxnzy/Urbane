@@ -6,15 +6,18 @@ import com.example.urbane.data.model.User
 import com.example.urbane.data.model.Payment
 import com.example.urbane.data.model.TransactionDetail
 
+// ------------------ DATA CLASS ------------------
 data class SelectedPayment(
-    val paymentId: Int,           // ID del pago original
-    val mes: Int,                 // Mes del pago
-    val year: Int,                // Año del pago
-    val montoTotal: Float,        // Monto total del pago
-    val montoPendiente: Float,    // Monto que aún debe
-    val montoPagar: Float,        // Monto que decidió pagar (puede editarse)
-    val isPagoCompleto: Boolean   // true si va a pagar todo, false si es abono
+    val paymentId: Int,
+    val mes: Int,
+    val year: Int,
+    val montoTotal: Float,      // solo la cuota base
+    val montoPendiente: Float,  // deuda base sin multas
+    val totalMultas: Float,     // suma de multas
+    val montoPagar: Float,      // editable, cuota + multas
+    val isPagoCompleto: Boolean
 )
+
 
 // State optimizado
 data class PaymentsState(

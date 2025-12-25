@@ -166,7 +166,7 @@ class PaymentsViewModel(
         }
     }
 
-    // Toggle de selección de un pago (checkbox)
+
     private fun togglePaymentSelection(payment: Payment) {
         val paymentId = payment.id ?: return
 
@@ -174,58 +174,76 @@ class PaymentsViewModel(
             val currentSelections = currentState.selectedPayments.toMutableMap()
 
             if (currentSelections.containsKey(paymentId)) {
-                // Si ya está seleccionado, lo deseleccionamos
+                Log.d("PAYMENTBUG", "togglePaymentSelection → DESELECCIONADO paymentId=$paymentId")
                 currentSelections.remove(paymentId)
-                Log.d("PaymentsViewModel", "Pago deseleccionado: $paymentId")
             } else {
-                // Si no está seleccionado, lo agregamos
-                val montoPendiente = payment.amount - payment.paidAmount
+                val montoPendienteCuota = (payment.amount - payment.paidAmount).coerceAtLeast(0f)
+                val totalMultas = payment.fines.sumOf { it.amount.toDouble() }.toFloat()
+                val totalPendienteVisual = montoPendienteCuota + totalMultas
+
+                Log.d(
+                    "PAYMENTBUG",
+                    """
+                togglePaymentSelection → SELECCIONADO
+                paymentId=$paymentId
+                amountBase=${payment.amount}
+                paidAmount=${payment.paidAmount}
+                montoPendienteCuota=$montoPendienteCuota
+                totalMultas=$totalMultas
+                totalPendienteVisual=$totalPendienteVisual
+                """.trimIndent()
+                )
 
                 val selectedPayment = SelectedPayment(
                     paymentId = paymentId,
                     mes = payment.month,
                     year = payment.year,
                     montoTotal = payment.amount,
-                    montoPendiente = montoPendiente,
-                    montoPagar = montoPendiente, // Por defecto, pagar todo lo pendiente
-                    isPagoCompleto = true // Por defecto, pago completo
+                    montoPendiente = montoPendienteCuota,
+                    totalMultas = totalMultas,
+                    montoPagar = totalPendienteVisual,
+                    isPagoCompleto = false
                 )
 
                 currentSelections[paymentId] = selectedPayment
-                Log.d("PaymentsViewModel", "Pago seleccionado: $paymentId, monto pendiente: $montoPendiente")
             }
 
             currentState.copy(selectedPayments = currentSelections)
         }
     }
+
+
 
     private fun updatePaymentAmount(paymentId: Int, newAmount: Float) {
         _state.update { currentState ->
-            val currentSelections = currentState.selectedPayments.toMutableMap()
-            val selectedPayment = currentSelections[paymentId] ?: return@update currentState
+            val selections = currentState.selectedPayments.toMutableMap()
+            val sp = selections[paymentId] ?: return@update currentState
 
-            // Validar que el nuevo monto no sea mayor al pendiente ni negativo
-            val validAmount = when {
-                newAmount < 0 -> 0f
-                newAmount > selectedPayment.montoPendiente -> selectedPayment.montoPendiente
-                else -> newAmount
-            }
+            val montoIngresado = newAmount.coerceAtLeast(0f)
 
-            // Determinar si es pago completo o parcial
-            val isPagoCompleto = validAmount >= selectedPayment.montoPendiente
+            // total real que debe (cuota + multas)
+            val totalDebe = sp.montoPendiente + sp.totalMultas
 
-            val updatedPayment = selectedPayment.copy(
-                montoPagar = validAmount,
+            val isPagoCompleto = montoIngresado >= totalDebe && totalDebe > 0f
+
+            val updated = sp.copy(
+                montoPagar = montoIngresado,
                 isPagoCompleto = isPagoCompleto
             )
 
-            currentSelections[paymentId] = updatedPayment
+            selections[paymentId] = updated
 
-            Log.d("PaymentsViewModel", "Monto actualizado para pago $paymentId: $validAmount (completo: $isPagoCompleto)")
+            Log.d(
+                "PAYMENTBUG",
+                "updatePaymentAmount FINAL → paymentId=$paymentId " +
+                        "montoIngresado=$montoIngresado totalDebe=$totalDebe isPagoCompleto=$isPagoCompleto"
+            )
 
-            currentState.copy(selectedPayments = currentSelections)
+            currentState.copy(selectedPayments = selections)
         }
     }
+
+
 
 
     private fun registerPayments(context: Context) {
@@ -239,6 +257,22 @@ class PaymentsViewModel(
                         it.copy(isLoading = false, errorMessage = "No hay pagos seleccionados")
                     }
                     return@launch
+                }
+
+                // 🔎 LOG: qué se va a enviar realmente al repo
+                selected.forEach { sp ->
+                    Log.d(
+                        "PAYMENTBUG",
+                        """
+                    registerPayments → ENVIANDO A REPO
+                    paymentId=${sp.paymentId}
+                    mes=${sp.mes}/${sp.year}
+                    montoTotalBase=${sp.montoTotal}
+                    montoPendienteCuota=${sp.montoPendiente}
+                    montoPagar=${sp.montoPagar}
+                    isPagoCompleto=${sp.isPagoCompleto}
+                    """.trimIndent()
+                    )
                 }
 
                 // 1️⃣ Registrar pagos
@@ -283,7 +317,6 @@ class PaymentsViewModel(
             }
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun downloadInvoiceFromSupabase(
