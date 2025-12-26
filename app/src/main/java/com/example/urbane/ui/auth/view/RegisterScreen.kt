@@ -1,12 +1,16 @@
 package com.example.urbane.ui.auth.view
 
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -51,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -61,6 +67,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.urbane.R
 import com.example.urbane.ui.auth.model.RegisterIntent
 import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
@@ -72,7 +80,7 @@ import com.example.urbane.utils.isValidPhone
 
 
 @Composable
-fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: () -> Unit ) {
+fun RegisterScreen(viewModel: RegisterViewModel,navController: NavController, modifier: Modifier, toLogin: () -> Unit ) {
     var currentStep by remember { mutableIntStateOf(0) }
 
     val state by viewModel.state.collectAsState()
@@ -81,6 +89,12 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
     var idCardFormat by remember { mutableStateOf(true) }
     var validPassword by remember {mutableStateOf(true)}
     var validPhone by remember {mutableStateOf(true)}
+    val context = LocalContext.current
+
+
+
+
+
 
     val totalSteps = 2
 
@@ -90,7 +104,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
         modifier = modifier.fillMaxSize()
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(25.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -111,7 +125,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
             Row(
                 modifier = Modifier
                     .fillMaxWidth(fraction = 0.7f)
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 5.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 for (i in 0 until totalSteps) {
@@ -142,7 +156,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
                 label = "step_transition"
             ) { step ->
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(15.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     when (step) {
@@ -257,10 +271,6 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
                                         }else{
                                             Icon(imageVector = Icons.Default.Visibility, contentDescription = null)
                                         }
-
-
-
-
                                     }
                                 },
                                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -348,6 +358,27 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
                             )
 
 
+                            val launcher = rememberLauncherForActivityResult(
+                                contract = ActivityResultContracts.GetContent()
+                            ) { uri: Uri? ->
+                                viewModel.processIntent(RegisterIntent.LogoChanged(uri))
+                            }
+
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                state.logoUrl?.let {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(it),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(125.dp)
+                                    )
+                                }
+                                Button(onClick = { launcher.launch("image/*") }) {
+                                    Text(stringResource(R.string.logo_del_residencial), color = Color.White)
+                                }
+                            }
+
+
+
                         }
                     }
                 }
@@ -395,13 +426,13 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
                     }
 
                     Button(
-                        onClick = { viewModel.processIntent(RegisterIntent.Submit) },
+                        onClick = { viewModel.processIntent(RegisterIntent.Submit(context)) },
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        enabled = state.residentialName.isNotEmpty() && state.residentialAddress.isNotEmpty() && state.residentialPhone.isNotEmpty() && validPhone
+                        enabled = state.residentialName.isNotEmpty() && state.residentialAddress.isNotEmpty() && state.residentialPhone.isNotEmpty() && validPhone && !state.isLoading
                     ) {
                         Text(
                             text = stringResource(R.string.aceptar),
@@ -424,6 +455,9 @@ fun RegisterScreen(viewModel: RegisterViewModel, modifier: Modifier, toLogin: ()
             }
 
             if(state.success){
+                navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.set("success_msg", stringResource(R.string.cuenta_creada_correctamente))
                 toLogin()
             }
 

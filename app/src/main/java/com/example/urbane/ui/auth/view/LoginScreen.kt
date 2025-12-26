@@ -1,6 +1,7 @@
 package com.example.urbane.ui.auth.view
 
 
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -46,17 +46,23 @@ import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.navigation.NavController
+import androidx.compose.runtime.livedata.observeAsState
+import com.example.urbane.navigation.Routes
 
 
-
+@RequiresApi(Build.VERSION_CODES.P)
 @Composable
-fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifier: Modifier, toRegister:()-> Unit, navigateByRole:(String?)-> Unit) {
+fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navController: NavController, modifier: Modifier, toRegister:()-> Unit, navigateByRole:(String?)-> Unit) {
     val state by viewModel.state.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
     var emailEmpty by remember { mutableStateOf(false) }
     var passwordEmpty by remember { mutableStateOf(false) }
     var triedSubmit by remember { mutableStateOf(false) }
     val currentUser by sessionManager.sessionFlow.collectAsState(initial = null)
+    val context = LocalContext.current
 
     LaunchedEffect(currentUser) {
         currentUser?.let { user ->
@@ -66,7 +72,32 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifi
         }
     }
 
-    
+    if (state.disabled) {
+        LaunchedEffect(Unit) {
+            viewModel.reset()
+            navController.navigate(Routes.DISABLED) {
+                popUpTo(Routes.LOGIN) { inclusive = true }
+            }
+        }
+    }
+
+    val successMsg = navController
+        .previousBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<String>("success_msg")
+        ?.observeAsState()
+
+    successMsg?.value?.let { msg ->
+        LaunchedEffect(msg) {
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.remove<String>("success_msg")
+        }
+    }
+
+
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -148,6 +179,7 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifi
                 Text(
                     text = stringResource(R.string.loguearse),
                     fontSize = 17.sp,
+                    color = Color.White,
                     modifier = Modifier.padding(5.dp)
                 )
             }
@@ -158,9 +190,9 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifi
                 )
             }
 
-            if (state.errorMessage != null){
-                Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
-            }
+                if (state.errorMessage != null) {
+                    Text(stringResource(state.errorMessage!!.toInt()), color = Color.Red)
+                }
 
 
 
@@ -175,6 +207,8 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager, modifi
 
     }
 }
+
+
 
 
 

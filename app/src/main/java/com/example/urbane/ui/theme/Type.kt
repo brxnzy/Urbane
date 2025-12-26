@@ -27,21 +27,21 @@ val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Bold,
-        fontSize = 40.sp,
+        fontSize = 37.sp,
         lineHeight = 47.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 28.sp,
+        fontSize = 25.sp,
         lineHeight = 52.sp,
         letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 36.sp,
+        fontSize = 25.sp,
         lineHeight = 44.sp,
         letterSpacing = 0.sp
     ),
@@ -87,7 +87,7 @@ val Typography = Typography(
     titleSmall = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
+        fontSize = 15.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
@@ -95,15 +95,15 @@ val Typography = Typography(
     // Body styles
     bodyLarge = TextStyle(
         fontFamily = PlusJakartaSans,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = PlusJakartaSans,
-        fontWeight = FontWeight.Normal,
-        fontSize = 28.sp,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
@@ -115,7 +115,6 @@ val Typography = Typography(
         letterSpacing = 0.4.sp
     ),
 
-    // Label styles
     labelLarge = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Medium,
@@ -126,7 +125,7 @@ val Typography = Typography(
     labelMedium = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
+        fontSize = 13.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),

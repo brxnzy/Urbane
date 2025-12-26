@@ -1,6 +1,8 @@
 package com.example.urbane.ui.auth.viewmodel
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.R
@@ -12,6 +14,7 @@ import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.model.LoginState
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +28,10 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
     private val _currentUser = MutableStateFlow<CurrentUser?>(null)
     val currentUser = _currentUser.asStateFlow()
 
+    val userRepository = UserRepository(sessionManager)
 
+
+    @RequiresApi(Build.VERSION_CODES.P)
     fun processIntent(intent: LoginIntent) {
         when (intent) {
 
@@ -51,40 +57,52 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun handleSubmit() {
         viewModelScope.launch {
             try {
                 Log.d("LoginVM", "Iniciando login...")
-                _state.update { it.copy(isLoading = true) }
+                _state.update { it.copy(isLoading = true, errorMessage = null) }
+
 
                 val result = supabase.auth.signInWith(Email) {
                     email = state.value.email
                     password = state.value.password
                 }
-                Log.d("LoginVM", "Login realizado: $result")
-
                 val session = supabase.auth.currentSessionOrNull()
-                Log.d("LoginVM", "Sesión actual: $session")
+                Log.d("LoginVM", "$result")
+
+
                 if (session == null) throw Exception("No se pudo obtener la sesión")
 
                 val userId = session.user?.id
-                Log.d("LoginVM", "UserId obtenido: $userId")
                 if (userId == null) throw Exception("No se pudo obtener userId")
 
-                val email = session.user!!.email ?: state.value.email
-                Log.d("LoginVM", "Email obtenido: $email")
+                val disabled = userRepository.isUserDisabled(userId)
+                Log.d("LoginVM", "$disabled")
+                if (disabled == true){
+                    _state.update { it.copy(isLoading = false, disabled = true, errorMessage = null) }
+                    supabase.auth.signOut()
+                    return@launch
 
-                val roleId = UserRepository().getUserRole(userId)
-                Log.d("LoginVM", "RoleId obtenido: $roleId")
+                }
+
+                val email = session.user!!.email ?: state.value.email
+                val roleId = userRepository.getUserRole(userId)
+                val userData = userRepository.getCurrentUser(userId,email)
+                Log.d("LoginVM","data del usuario $userData")
+
 
                 val currentUser = CurrentUser(
                     userId = userId,
                     email = email,
                     accessToken = session.accessToken,
                     refreshToken = session.refreshToken,
-                    roleId = roleId.toString()
+                    roleId = roleId.toString(),
+                    userData
+
                 )
+
                 Log.d("LoginVM", "CurrentUser creado: $currentUser")
 
                 sessionManager.saveSession(currentUser)
@@ -115,6 +133,8 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
             }
         }
     }
+
+
     fun checkSession(onRoleFound: (String) -> Unit) {
         viewModelScope.launch {
             sessionManager.sessionFlow.collect { currentUser ->
@@ -125,8 +145,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-    private fun performLogout() {
-        viewModelScope.launch {
+    suspend fun performLogout() {
             try {
                 supabase.auth.signOut()
                 sessionManager.clearSession()
@@ -134,16 +153,28 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 _currentUser.value = null
             } catch (e: Exception) {
                 Log.e("LoginViewModel", "Error logout: ${e.message}")
-            }
+
         }
+    }
+
+    fun reset() {
+        _state.value = LoginState()
     }
 
 
 
 
+
     fun onLogoutClicked(toLogin: () -> Unit) {
+        viewModelScope.launch {
+            try {
+
         performLogout()
         toLogin()
+            }catch (e:Exception){
+                Log.e("LOGOUT",e.toString())
+            }
+        }
     }
 
 
