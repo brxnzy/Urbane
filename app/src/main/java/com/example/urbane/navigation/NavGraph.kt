@@ -251,7 +251,7 @@ fun MainNavigation(
             }
         }
         composable(Routes.RESIDENT){
-            ResidentScreen(sessionManager, loginViewModel, navController)
+            ResidentScreen(sessionManager, loginViewModel, navController, pagosViewModel)
         }
         composable(Routes.DISABLED){
             DisabledScreen {
