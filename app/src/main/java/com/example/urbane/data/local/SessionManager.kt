@@ -12,6 +12,7 @@ import com.example.urbane.data.model.UserResidentialRole
 import com.example.urbane.ui.auth.model.CurrentUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class SessionManager(context: Context) {
@@ -33,7 +34,7 @@ class SessionManager(context: Context) {
             prefs[ROLE_KEY] = user.roleId.toString()
             prefs[TOKEN_KEY] = user.accessToken
             prefs[REFRESH_KEY] = user.refreshToken
-            prefs[USER_DATA] = user.userData?.let { Json.encodeToString(it) }?: ""
+            prefs[USER_DATA] = user.userData?.let { Json.encodeToString<UserResidentialRole>(it) } ?: ""
         }
     }
 
@@ -54,11 +55,25 @@ class SessionManager(context: Context) {
         } else null
     }
 
-    suspend fun clearSession() {
-        dataStore.edit { it.clear() }
+    val userIdFlow: Flow<String?> = dataStore.data.map { prefs ->
+        prefs[USER_ID_KEY]
     }
 
+    val residentialIdFlow: Flow<Int> = dataStore.data.map { prefs ->
+        val userDataJson = prefs[USER_DATA]
+        if (!userDataJson.isNullOrEmpty()) {
+            try {
+                val userData = Json.decodeFromString<UserResidentialRole>(userDataJson)
+                // Obtener el id del objeto residential
+                userData.residential.id ?: 0
+            } catch (e: Exception) {
+                0
+            }
+        } else {
+            0
+        }
+    }
+
+
+
 }
-
-
-
