@@ -87,7 +87,7 @@ val Typography = Typography(
     titleSmall = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
+        fontSize = 15.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
@@ -115,7 +115,6 @@ val Typography = Typography(
         letterSpacing = 0.4.sp
     ),
 
-    // Label styles
     labelLarge = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Medium,
@@ -126,7 +125,7 @@ val Typography = Typography(
     labelMedium = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
+        fontSize = 13.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),

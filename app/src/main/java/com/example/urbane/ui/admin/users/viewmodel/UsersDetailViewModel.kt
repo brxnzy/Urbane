@@ -139,11 +139,6 @@ class UsersDetailViewModel(val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-
-    fun reset() {
-        _state.value = UserDetailState()
-    }
-
     fun resetSuccess() {
         _state.update{it.copy(success = null )}
     }

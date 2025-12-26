@@ -70,6 +70,9 @@
     <string name="sin_tipo">Sin tipo</string>
     <string name="contratos">Contratos</string>
     <string name="role_owner">Propietario</string>
+    <string name="no_se_pudo_obtener_los_contratos">No se pudo obtener los contratos</string>
+    <string name="efectivo">Efectivo</string>
+    <string name="multas">Multas</string>
 
 
 </resources>

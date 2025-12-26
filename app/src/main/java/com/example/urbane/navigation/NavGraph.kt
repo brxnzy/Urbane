@@ -5,6 +5,11 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -15,8 +20,14 @@ import androidx.navigation.navArgument
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.Splash
 import com.example.urbane.ui.admin.AdminMainScaffold
-import com.example.urbane.ui.admin.claims.view.ClaimsScreen
-import com.example.urbane.ui.admin.residences.model.ResidencesDetailSuccess
+import com.example.urbane.ui.admin.contracts.view.ContractDetailScreen
+import com.example.urbane.ui.admin.contracts.viewmodel.ContractsDetailViewModel
+import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
+import com.example.urbane.ui.admin.fines.view.AddFineScreen
+import com.example.urbane.ui.admin.fines.view.FinesDetailScreen
+import com.example.urbane.ui.admin.fines.viewmodel.FinesDetailViewModel
+import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
+import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
@@ -47,6 +58,11 @@ fun MainNavigation(
     val pagosViewModel = PagosViewModel()
     val usersDetailViewModel = UsersDetailViewModel(sessionManager)
     val residencesDetailViewModel = ResidencesDetailViewModel(sessionManager)
+    val contractsViewModel = ContractsViewModel(sessionManager)
+    val contractsDetailViewModel = ContractsDetailViewModel(sessionManager)
+    val paymentsViewModel = PaymentsViewModel(sessionManager)
+    val finesViewModel = FinesViewModel(sessionManager)
+    val finesDetailViewModel = FinesDetailViewModel(sessionManager)
 
     NavHost(
         navController = navController,
@@ -109,19 +125,41 @@ fun MainNavigation(
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
-            )
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel
+                )
         }
         composable(Routes.ADMIN_RESIDENCES) {
+            var residenceDeleted by remember { mutableStateOf(false) }
+            DisposableEffect(Unit) {
+                val deleted = navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Boolean>("residenceDeleted") ?: false
+
+                if (deleted) {
+                    residenceDeleted = true
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.remove<Boolean>("residenceDeleted")
+                }
+                onDispose { }
+            }
             AdminMainScaffold(
                 navController = navController,
                 currentRoute = Routes.ADMIN_RESIDENCES,
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel,
+                showResidenceDeletedMessage = residenceDeleted
             )
         }
+
         composable(Routes.ADMIN) {
             AdminMainScaffold(
                 navController = navController,
@@ -129,8 +167,11 @@ fun MainNavigation(
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
-            )
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel
+                )
         }
 
         composable(Routes.ADMIN_PAYMENTS) {
@@ -140,7 +181,26 @@ fun MainNavigation(
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel
+
+                )
+        }
+
+        composable(Routes.ADMIN_FINES) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_FINES,
+                loginViewModel,
+                sessionManager,
+                residencesViewModel,
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel
+
             )
         }
         composable(Routes.ADMIN_CLAIMS) {
@@ -150,9 +210,28 @@ fun MainNavigation(
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
-                usersViewModel
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel
 
-            )
+
+
+                )
+        }
+
+        composable(Routes.ADMIN_CONTRACTS) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_CONTRACTS,
+                loginViewModel,
+                sessionManager,
+                residencesViewModel,
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel
+                )
         }
         composable(Routes.ADMIN_USERS_ADD) {
             AddUserScreen(usersViewModel, residencesViewModel){
@@ -161,14 +240,18 @@ fun MainNavigation(
         }
 
         composable(Routes.ADMIN_RESIDENCES_ADD) {
-            val residencesViewModel = ResidencesViewModel(sessionManager)
-            AddResidenceScreen(residencesViewModel) {
-                navController.navigate(Routes.ADMIN_RESIDENCES)
+            AddResidenceScreen(residencesViewModel){
+                navController.popBackStack()
             }
         }
 
-        composable(Routes.RESIDENT) {
-            ResidentScreen(sessionManager, loginViewModel, navController, pagosViewModel)
+        composable(Routes.ADMIN_FINES_ADD) {
+            AddFineScreen(finesViewModel){
+                navController.popBackStack()
+            }
+        }
+        composable(Routes.RESIDENT){
+            ResidentScreen(sessionManager, loginViewModel, navController)
         }
         composable(Routes.DISABLED){
             DisabledScreen {
@@ -189,6 +272,18 @@ fun MainNavigation(
                 navController.popBackStack()
             }
         }
+
+        composable(
+            Routes.ADMIN_CONTRACTS_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStackEntry ->
+            ContractDetailScreen(
+                contractId = backStackEntry.arguments?.getString("id") ?: "",
+                viewmodel = contractsDetailViewModel,
+            ){
+                navController.popBackStack()
+            }
+        }
         composable(
             Routes.ADMIN_RESIDENCES_DETAIL,
             arguments = listOf(navArgument("id") { type = NavType.IntType })
@@ -196,6 +291,25 @@ fun MainNavigation(
             ResidencesDetailScreen(
                 residenceId = backStackEntry.arguments?.getInt("id") ?: 0,
                 viewmodel = residencesDetailViewModel,
+            ){showDeleteMessage ->
+                if (showDeleteMessage) {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("residenceDeleted", true)
+                }
+                navController.popBackStack()
+            }
+
+        }
+
+
+        composable(
+            Routes.ADMIN_FINES_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStackEntry ->
+           FinesDetailScreen(
+                fineId = backStackEntry.arguments?.getString("id") ?: "",
+                viewModel = finesDetailViewModel,
             ){
                 navController.popBackStack()
             }

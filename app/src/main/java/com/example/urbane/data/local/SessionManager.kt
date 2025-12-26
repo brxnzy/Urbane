@@ -74,8 +74,6 @@ class SessionManager(context: Context) {
         }
     }
 
-    suspend fun clearSession() {
-        dataStore.edit { it.clear() }
-    }
+
 
 }

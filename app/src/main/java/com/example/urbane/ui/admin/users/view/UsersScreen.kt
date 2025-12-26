@@ -31,6 +31,7 @@ import coil.request.ImageRequest
 import com.example.urbane.R
 import com.example.urbane.data.model.User
 import com.example.urbane.navigation.Routes
+import com.example.urbane.ui.admin.users.view.components.UsuarioCardSkeleton
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 @SuppressLint("SuspiciousIndentation", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -50,7 +51,7 @@ fun UsersScreen(viewmodel: UsersViewModel,modifier: Modifier = Modifier, navCont
     }
 
     LaunchedEffect(Unit) {
-        viewmodel.loadUsers(true)
+        viewmodel.loadUsers()
     }
 
     val filtros = listOf("Todos", "Administrador", "Residente","Deshabilitados")

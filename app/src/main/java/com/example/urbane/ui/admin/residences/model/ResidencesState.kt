@@ -3,7 +3,6 @@ package com.example.urbane.ui.admin.residences.model
 import com.example.urbane.data.model.Residence
 import com.example.urbane.data.model.User
 
-// Estado corregido
 data class ResidencesState(
     val name: String = "",
     val type: String = "",
@@ -19,14 +18,14 @@ data class ResidencesState(
     val ownerId: String? = null,
     val isLoading: Boolean = false,
     val isLoadingOwners: Boolean = false,
-    val success: SuccessType? = null,
+    val success: ResidenceSuccessType? = null,
     val errorMessage: String? = null
 )
 
-sealed class SuccessType {
-    object ResidenceCreated : SuccessType()
-    object PropietarioAssigned : SuccessType()
-    object ResidenceUpdated : SuccessType()
+sealed class ResidenceSuccessType {
+    object ResidenceCreated : ResidenceSuccessType()
+    object PropietarioAssigned : ResidenceSuccessType()
+
 }
 
 // Intents corregidos
@@ -39,11 +38,11 @@ sealed class ResidencesIntent {
     data class OwnerIdCardChanged(val ownerIdCard: String) : ResidencesIntent()
     data class OwnerPasswordChanged(val ownerPassword: String) : ResidencesIntent()
     object CreateResidence : ResidencesIntent()
-    object CreateOwner : ResidencesIntent()
+
     data class AssignPropietario(val propietario: User) : ResidencesIntent()
-    data class SelectOwner(val ownerId: String) : ResidencesIntent() // ✅ Añadido
-    object ClearSelectedOwner : ResidencesIntent() // ✅ Añadido
-    object LoadOwners : ResidencesIntent() // ✅ Añadido
+    data class SelectOwner(val ownerId: String) : ResidencesIntent()
+    object ClearSelectedOwner : ResidencesIntent()
+
 }
 
 

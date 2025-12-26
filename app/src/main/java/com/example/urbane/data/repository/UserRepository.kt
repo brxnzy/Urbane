@@ -1,6 +1,4 @@
 package com.example.urbane.data.repository
-
-
 import android.util.Log
 import com.example.urbane.BuildConfig
 import com.example.urbane.R
@@ -24,28 +22,19 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import com.example.urbane.data.model.CreateUserRequest
-import com.example.urbane.data.model.Residence
-import io.github.jan.supabase.auth.auth
+import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.rpc
-import kotlinx.datetime.LocalDate
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.buildJsonObject
-import java.util.Date
+import kotlinx.serialization.json.put
 
 
 class UserRepository(val sessionManager: SessionManager) {
 
-    suspend fun getResidentialId(): Int? {
-        val user = sessionManager.sessionFlow.firstOrNull()
-        return user?.userData?.residential?.id
-    }
 
 
     suspend fun getUserRole(userId: String): Int? {
@@ -148,21 +137,18 @@ class UserRepository(val sessionManager: SessionManager) {
         val client = HttpClient(Android) {
             install(ContentNegotiation) { json() }
         }
-
         return try {
-
-
-            val residentialId = getResidentialId()
+            val residentialId = getResidentialId(sessionManager)
 
             val body =
-                CreateUserRequest(name, email, idCard, password, roleId, residenceId, residentialId)
+                CreateUserRequest(name, email, idCard, password, roleId,
+                    residenceId, residentialId)
 
             val response =
                 client.post("${BuildConfig.SUPABASE_URL}/functions/v1/create-user") {
                     contentType(ContentType.Application.Json)
                     setBody(body)
                 }
-
             val text = response.bodyAsText()
             val json = Json.parseToJsonElement(text).jsonObject
             val success = json["success"]?.jsonPrimitive?.booleanOrNull == true
@@ -194,7 +180,7 @@ class UserRepository(val sessionManager: SessionManager) {
     suspend fun getAllUsers(): List<User> {
         return try {
 
-            val residentialId = getResidentialId() ?: emptyList<User>()
+            val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
 
 
             val users = supabase
@@ -214,11 +200,36 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
+    suspend fun getResidents(): List<User> {
+        return try {
+            val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
+            val users = supabase
+                .from("users_view")
+                .select {
+                    filter {
+                        eq("residential_id", residentialId)
+                        eq("role_name","resident")
+                        eq( "active", true)
+                    }
+                }
+                .decodeList<User>()
+            Log.d("UserRepository","Usuarios obtenidos $users")
+            users
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error obteniendo los usuarios: $e")
+            emptyList()
+        }
+    }
+
+
+
+
 
     suspend fun getOwners(): List<User> {
         return try {
 
-            val residentialId = getResidentialId() ?: emptyList<User>()
+            val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
 
 
             val users = supabase
@@ -241,7 +252,7 @@ class UserRepository(val sessionManager: SessionManager) {
 
     suspend fun getUserById(id: String): User? {
          try {
-            val residentialId = getResidentialId() ?: emptyList<User>()
+            val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
 
             val user = supabase
                 .from("users_view")
@@ -336,7 +347,7 @@ class UserRepository(val sessionManager: SessionManager) {
         return try {
 
             val today = java.time.LocalDate.now().toString()
-            val residentialId = getResidentialId() ?: emptyList<User>()
+            val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
 
             // Si es residente, asignar residencia
             if (residenceId != null) {
@@ -399,7 +410,7 @@ class UserRepository(val sessionManager: SessionManager) {
             val today = java.time.LocalDate.now().toString()
 
             if (newRoleId == 2) {
-            val residentialId = getResidentialId() ?: emptyList<User>()
+                val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
 
                 if (residenceId == null) {
                     return false
@@ -415,10 +426,8 @@ class UserRepository(val sessionManager: SessionManager) {
                      filter { eq("id", residenceId) }
                  }
 
-
                 supabase.from("users_residentials_roles").update(
                     {
-                        set("residence_id", residenceId)
                         set("role_id", newRoleId)
                     }
                 ){
@@ -428,6 +437,13 @@ class UserRepository(val sessionManager: SessionManager) {
                 supabase.from("contracts")
                     .insert(data)
 
+                supabase.postgrest.rpc(
+                    "create_pending_payment_if_not_exists",
+                    buildJsonObject {
+                        put("p_resident_id", userId)
+                        put("p_residential_id", residentialId)
+                    }
+                )
                 return true
             }
 
@@ -466,12 +482,6 @@ class UserRepository(val sessionManager: SessionManager) {
             return  false
         }
     }
-
-
-
-
-
-
 }
 
 
