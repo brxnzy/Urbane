@@ -16,7 +16,7 @@ class FcmService : FirebaseMessagingService() {
         val notification = NotificationCompat.Builder(this, Test.NOTIFICATION_CHANNEL_ID)
             .setContentTitle(message.notification?.title)
             .setContentText(message.notification?.body)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setBadgeIconType(R.mipmap.ic_launcher)
             .setAutoCancel(true)
             .build()
         notificationManager.notify(1,notification)

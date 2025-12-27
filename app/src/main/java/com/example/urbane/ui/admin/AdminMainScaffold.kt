@@ -1,6 +1,4 @@
 package com.example.urbane.ui.admin
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,7 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import coil.compose.rememberAsyncImagePainter
 import com.example.urbane.data.local.SessionManager
-import com.example.urbane.ui.admin.claims.view.ClaimsScreen
+import com.example.urbane.ui.admin.incidents.view.IncidentsScreen
 import com.example.urbane.ui.admin.contracts.view.ContractsScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
 import com.example.urbane.ui.admin.fines.view.FinesScreen
@@ -130,7 +128,7 @@ fun AdminMainScaffold(
                         navController = navController
                     )
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp), showResidenceDeletedMessage)
-                    Routes.ADMIN_CLAIMS-> ClaimsScreen()
+                    Routes.ADMIN_CLAIMS-> IncidentsScreen()
                     Routes.ADMIN_FINES-> FinesScreen(finesViewModel, navController)
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(paymentsViewModel, navController)
                     Routes.ADMIN_CONTRACTS -> ContractsScreen(modifier = Modifier.padding(16.dp),navController, contractsViewModel)

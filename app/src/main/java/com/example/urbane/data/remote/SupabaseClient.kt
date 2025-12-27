@@ -5,7 +5,11 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.cio.endpoint
+import kotlin.time.Duration.Companion.seconds
 
 val supabase = createSupabaseClient(
     supabaseUrl = BuildConfig.SUPABASE_URL,
@@ -15,4 +19,13 @@ val supabase = createSupabaseClient(
     install(Postgrest)
     install(Storage)
     install(Functions)
+    install(Realtime){
+        reconnectDelay = 5.seconds
+    }
+    httpEngine = CIO.create {
+        endpoint {
+            connectTimeout = 15_000
+            requestTimeout = 30_000
+        }
+    }
 }
