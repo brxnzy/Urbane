@@ -27,6 +27,7 @@ import com.example.urbane.ui.admin.fines.view.AddFineScreen
 import com.example.urbane.ui.admin.fines.view.FinesDetailScreen
 import com.example.urbane.ui.admin.fines.viewmodel.FinesDetailViewModel
 import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
+import com.example.urbane.ui.admin.incidents.viewmodel.IncidentsViewModel
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
@@ -63,6 +64,8 @@ fun MainNavigation(
     val paymentsViewModel = PaymentsViewModel(sessionManager)
     val finesViewModel = FinesViewModel(sessionManager)
     val finesDetailViewModel = FinesDetailViewModel(sessionManager)
+    val incidentsViewModel = IncidentsViewModel(sessionManager)
+
 
     NavHost(
         navController = navController,
@@ -128,7 +131,8 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel
                 )
         }
         composable(Routes.ADMIN_RESIDENCES) {
@@ -156,6 +160,7 @@ fun MainNavigation(
                 contractsViewModel,
                 paymentsViewModel,
                 finesViewModel,
+                incidentsViewModel,
                 showResidenceDeletedMessage = residenceDeleted
             )
         }
@@ -170,7 +175,8 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel
                 )
         }
 
@@ -184,7 +190,8 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel
 
                 )
         }
@@ -199,24 +206,23 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel
 
             )
         }
-        composable(Routes.ADMIN_CLAIMS) {
+        composable(Routes.ADMIN_INCIDENTS) {
             AdminMainScaffold(
                 navController = navController,
-                currentRoute = Routes.ADMIN_CLAIMS,
+                currentRoute = Routes.ADMIN_INCIDENTS,
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
-
-
-
+                finesViewModel,
+                incidentsViewModel
                 )
         }
 
@@ -230,7 +236,8 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel
                 )
         }
         composable(Routes.ADMIN_USERS_ADD) {

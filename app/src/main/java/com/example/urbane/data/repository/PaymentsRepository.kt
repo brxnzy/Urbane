@@ -29,7 +29,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.float
 import kotlinx.serialization.json.int
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
@@ -41,9 +40,6 @@ import java.time.Instant
 class PaymentRepository(
     private val sessionManager: SessionManager
 ) {
-
-
-
     suspend fun getPaymentsByUser(id: String): List<Payment> {
         return try {
             supabase

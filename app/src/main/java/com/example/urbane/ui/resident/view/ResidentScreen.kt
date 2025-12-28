@@ -35,7 +35,6 @@ fun ResidentScreen(
 ) {
     val innerNavController = rememberNavController()
 
-    // Obtener los datos del usuario de la sesión usando flows
     val userId by sessionManager.userIdFlow.collectAsState(initial = "")
     val residentialId by sessionManager.residentialIdFlow.collectAsState(initial = 0)
 

@@ -2,8 +2,17 @@ package com.example.urbane.ui.admin
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
@@ -16,39 +25,50 @@ import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ReportProblem
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.urbane.R
-import com.example.urbane.navigation.Routes
-import com.example.urbane.ui.admin.users.view.UsersScreen
-import com.example.urbane.ui.admin.residences.view.ResidencesScreen
-import kotlinx.coroutines.launch
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import coil.compose.rememberAsyncImagePainter
+import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
-import com.example.urbane.ui.admin.incidents.view.IncidentsScreen
+import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.contracts.view.ContractsScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
 import com.example.urbane.ui.admin.fines.view.FinesScreen
 import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
+import com.example.urbane.ui.admin.incidents.view.IncidentsScreen
+import com.example.urbane.ui.admin.incidents.viewmodel.IncidentsViewModel
 import com.example.urbane.ui.admin.payments.view.PaymentsScreen
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
+import com.example.urbane.ui.admin.residences.view.ResidencesScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
+import com.example.urbane.ui.admin.users.view.UsersScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
-
-
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,9 +83,8 @@ fun AdminMainScaffold(
     contractsViewModel: ContractsViewModel,
     paymentsViewModel: PaymentsViewModel,
     finesViewModel: FinesViewModel,
+    incidentsViewModel: IncidentsViewModel,
     showResidenceDeletedMessage: Boolean = false
-
-
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -97,7 +116,7 @@ fun AdminMainScaffold(
                             Routes.ADMIN_USERS -> stringResource(R.string.usuarios)
                             Routes.ADMIN_PAYMENTS -> stringResource(R.string.pagos)
                             Routes.ADMIN_RESIDENCES -> stringResource(R.string.residencias)
-                            Routes.ADMIN_CLAIMS -> stringResource(R.string.reclamos)
+                            Routes.ADMIN_INCIDENTS -> stringResource(R.string.incidencias)
                             Routes.ADMIN_CONTRACTS -> stringResource(R.string.contratos)
                             Routes.ADMIN_FINES -> stringResource(R.string.multas)
                             Routes.ADMIN -> "Dashboard"
@@ -128,7 +147,7 @@ fun AdminMainScaffold(
                         navController = navController
                     )
                     Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp), showResidenceDeletedMessage)
-                    Routes.ADMIN_CLAIMS-> IncidentsScreen()
+                    Routes.ADMIN_INCIDENTS-> IncidentsScreen(incidentsViewModel)
                     Routes.ADMIN_FINES-> FinesScreen(finesViewModel, navController)
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(paymentsViewModel, navController)
                     Routes.ADMIN_CONTRACTS -> ContractsScreen(modifier = Modifier.padding(16.dp),navController, contractsViewModel)
@@ -182,7 +201,7 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
         DrawerItem("Dashboard", Icons.Outlined.Dashboard , Routes.ADMIN, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.usuarios), Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.residencias), Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
-        DrawerItem("Reclamos",Icons.Outlined.ReportProblem, Routes.ADMIN_CLAIMS, currentRoute, onDestinationClicked)
+        DrawerItem("Reclamos",Icons.Outlined.ReportProblem, Routes.ADMIN_INCIDENTS, currentRoute, onDestinationClicked)
         DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.contratos), Icons.Outlined.Assignment, Routes.ADMIN_CONTRACTS, currentRoute, onDestinationClicked)
         DrawerItem("Multas", Icons.Outlined.Gavel, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)

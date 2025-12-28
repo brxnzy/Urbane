@@ -3,9 +3,6 @@ package com.example.urbane.ui.admin.residences.view
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +18,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -34,9 +30,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,12 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.urbane.R
 import com.example.urbane.navigation.Routes
-import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.example.urbane.ui.admin.residences.view.components.ResidenceCard
+import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.view.components.UsuarioCardSkeleton
 
 
@@ -72,7 +71,6 @@ fun ResidencesScreen(
     LaunchedEffect(Unit) {
         viewModel.loadResidences()
     }
-
 
     LaunchedEffect(showResidenceDeletedMessage) {
         if (showResidenceDeletedMessage) {
@@ -100,9 +98,6 @@ fun ResidencesScreen(
 
         coincideNombre && coincideTipo && coincideEstado
     }
-
-
-
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
