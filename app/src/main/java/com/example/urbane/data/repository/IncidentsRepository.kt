@@ -7,6 +7,7 @@ import com.example.urbane.data.model.IncidentCategory
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.int
@@ -33,14 +34,23 @@ class IncidentsRepository(val sessionManager: SessionManager) {
         return try {
             val residentialId = getResidentialId(sessionManager)
 
-            // 1. Obtener incidencias
-            val incidents = supabase.from("incidents").select {
+            val incidents = supabase.from("incidents").select(columns = Columns.list(
+                "id",
+                "createdAt",
+                "title",
+                "description",
+                "status",
+                "type",
+                "residentId",
+                "residentName:users(name)",
+                "residentialId"
+            )) {
                 filter {
                     eq("residentialId", residentialId!!)
                 }
             }.decodeList<Incident>()
 
-            // 2. Obtener IDs
+
             val incidentIds = incidents.mapNotNull { it.id }
 
             if (incidentIds.isEmpty()) {

@@ -110,7 +110,7 @@ val Typography = Typography(
     bodySmall = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
+        fontSize = 13.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.4.sp
     ),

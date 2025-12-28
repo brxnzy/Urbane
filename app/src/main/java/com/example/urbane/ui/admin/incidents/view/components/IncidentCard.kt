@@ -1,4 +1,4 @@
-
+package com.example.urbane.ui.admin.incidents.view.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -28,10 +30,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.urbane.data.model.Incident
-import com.example.urbane.ui.admin.incidents.view.components.ImageViewerDialog
-import com.example.urbane.ui.admin.incidents.view.components.getStatusColor
 import com.example.urbane.utils.formatDate
 
 @Composable
@@ -55,7 +56,8 @@ fun IncidentCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Header: Título y Status
+
+            // 1️⃣ TÍTULO + STATUS
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -63,12 +65,11 @@ fun IncidentCard(
             ) {
                 Text(
                     text = incident.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp,
                     modifier = Modifier.weight(1f)
                 )
 
-                // Badge de Status
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color = getStatusColor(incident.status)
@@ -83,46 +84,38 @@ fun IncidentCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Categoría
             if (!incident.category.isNullOrEmpty()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                Spacer(modifier = Modifier.height(10.dp))
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color(0xFFF3F4F6)
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = Color(0xFFF3F4F6)
-                    ) {
-                        Text(
-                            text = incident.category,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF6B7280)
-                        )
-                    }
+                    Text(
+                        text = incident.category,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color(0xFF6B7280)
+                    )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
             }
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = incident.description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 3,
+                maxLines = 3
+            )
 
-                )
-
+            // 4️⃣ IMÁGENES
             if (incident.imageUrls?.isNotEmpty() == true) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(incident.imageUrls) { imageUrl ->
                         AsyncImage(
                             model = imageUrl,
-                            contentDescription = "Imagen de incidencia",
+                            contentDescription = null,
                             modifier = Modifier
                                 .size(80.dp)
                                 .clip(RoundedCornerShape(8.dp))
@@ -133,23 +126,57 @@ fun IncidentCard(
                 }
             }
 
-            incident.createdAt?.let { dateString ->
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = formatDate(dateString),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF9CA3AF)
-                )
-            }
+            Spacer(modifier = Modifier.height(12.dp))
 
+            // 5️⃣ ROW FINAL
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+
+                // IZQUIERDA → RESIDENTE + FECHA
+                Column(modifier = Modifier.padding(top = 12.dp)) {
+                    Text(
+                        text = ("Por: " + incident.residentName["name"]),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    if (incident.createdAt != null) {
+                        Text(
+                            text = formatDate(incident.createdAt),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF9CA3AF),
+                            modifier = Modifier.padding(top = 2.dp),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                // DERECHA → BOTONES
+                if (incident.status == "Pendiente") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = {},
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Atender")
+                        }
+
+                        Button(
+                            onClick = {},
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Red,
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Rechazar")
+                        }
+                    }
+                }
+            }
         }
     }
-
-    selectedImageUrl?.let { imageUrl ->
-        ImageViewerDialog(
-            imageUrl = imageUrl,
-            onDismiss = { selectedImageUrl = null }
-        )
-    }
 }
-

@@ -1,6 +1,5 @@
 package com.example.urbane.ui.admin.incidents.view
 
-import IncidentCard
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.urbane.ui.admin.incidents.view.components.IncidentCard
 import com.example.urbane.ui.admin.incidents.viewmodel.IncidentsViewModel
 
 

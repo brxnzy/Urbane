@@ -12,6 +12,7 @@ data class Incident(
     @SerialName("type")
     val category: String? = null,
     val residentId: String = "",
+    val residentName: Map<String,String>,
     val residentialId: Int,
     val imageUrls: List<String>? = null
 )
