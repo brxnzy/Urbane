@@ -3,15 +3,12 @@ package com.example.urbane.data.repository
 
 import android.util.Log
 import com.example.urbane.data.local.SessionManager
-
 import com.example.urbane.data.model.Residence
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.rpc
-import kotlinx.coroutines.flow.firstOrNull
 
 class ResidencesRepository(val sessionManager: SessionManager) {
     suspend fun createResidence(name:String, type:String, description:String){
@@ -27,7 +24,6 @@ class ResidencesRepository(val sessionManager: SessionManager) {
         }
 
     }
-
 
     suspend fun getResidences(): List<Residence> {
         try {
@@ -141,6 +137,4 @@ class ResidencesRepository(val sessionManager: SessionManager) {
             throw e
         }
     }
-
-
 }

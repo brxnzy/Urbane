@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.urbane.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import com.example.urbane.data.remote.supabase
 import java.util.UUID
 
 @Serializable
@@ -77,26 +77,22 @@ class IncidenciasViewModel : ViewModel() {
     private val _uploadProgress = MutableStateFlow(0f)
     val uploadProgress: StateFlow<Float> = _uploadProgress.asStateFlow()
 
-    init {
-        loadIncidencias()
-    }
 
-    fun loadIncidencias() {
+
+    fun loadIncidencias(residentId: String) {
         viewModelScope.launch {
             _uiState.value = IncidenciasUiState.Loading
             try {
                 Log.d("IncidenciasVM", "Cargando incidencias...")
-
-                // Cargar incidencias con sus imágenes relacionadas
                 val incidencias = supabase.from("incidents")
                     .select {
                         filter {
-                            // Puedes agregar filtros aquí si es necesario
+                           eq("residentId", residentId)
                         }
                     }
+
                     .decodeList<Incidencia>()
 
-                // Cargar imágenes para cada incidencia
                 val incidenciasConImagenes = incidencias.map { incidencia ->
                     if (incidencia.id != null) {
                         try {
@@ -249,7 +245,7 @@ class IncidenciasViewModel : ViewModel() {
                 }
 
                 Log.d("IncidenciasVM", "✓ Incidencia e imágenes creadas exitosamente")
-                loadIncidencias()
+                loadIncidencias(residentId)
                 onSuccess()
             } catch (e: Exception) {
                 Log.e("IncidenciasVM", "✗ Error: ${e.message}", e)
@@ -257,30 +253,6 @@ class IncidenciasViewModel : ViewModel() {
             } finally {
                 _isCreating.value = false
                 _uploadProgress.value = 0f
-            }
-        }
-    }
-
-    fun updateIncidenciaStatus(incidenciaId: Int, newStatus: String) {
-        viewModelScope.launch {
-            try {
-                Log.d("IncidenciasVM", "Actualizando status de incidencia $incidenciaId a $newStatus")
-                supabase.from("incidents")
-                    .update({
-                        set("status", newStatus)
-                    }) {
-                        filter {
-                            eq("id", incidenciaId)
-                        }
-                    }
-
-                Log.d("IncidenciasVM", "Status actualizado exitosamente")
-                loadIncidencias()
-            } catch (e: Exception) {
-                Log.e("IncidenciasVM", "Error al actualizar status: ${e.message}", e)
-                _uiState.value = IncidenciasUiState.Error(
-                    e.message ?: "Error al actualizar el estado"
-                )
             }
         }
     }
@@ -337,7 +309,7 @@ class IncidenciasViewModel : ViewModel() {
                     }
 
                 Log.d("IncidenciasVM", "✓ Incidencia eliminada exitosamente")
-                loadIncidencias()
+                loadIncidencias(residentId)
                 onSuccess()
             } catch (e: Exception) {
                 Log.e("IncidenciasVM", "✗ Error al eliminar: ${e.message}", e)

@@ -14,7 +14,6 @@ import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.model.LoginState
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -86,7 +85,6 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                     return@launch
 
                 }
-
                 val email = session.user!!.email ?: state.value.email
                 val roleId = userRepository.getUserRole(userId)
                 val userData = userRepository.getCurrentUser(userId,email)
