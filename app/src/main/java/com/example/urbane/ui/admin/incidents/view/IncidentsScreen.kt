@@ -59,7 +59,7 @@ fun IncidentsScreen(
     }
 
     LaunchedEffect(state.success) {
-        if (state.success == true) {
+        if (state.success != null) {
             showBottomSheet = false
         }
     }
@@ -193,7 +193,8 @@ fun IncidentsScreen(
                                         incident = incident,
                                         onAttendClick = {
                                             viewModel.handleIntent(IncidentsIntent.SelectIncident(it))
-                                        }
+                                        },
+                                        viewModel = viewModel
                                     )
                                 }
                             }

@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.urbane.data.model.Incident
+import com.example.urbane.ui.admin.incidents.model.IncidentsIntent
+import com.example.urbane.ui.admin.incidents.viewmodel.IncidentsViewModel
 import com.example.urbane.ui.common.getStatusColor
 import com.example.urbane.utils.formatDate
 
@@ -42,7 +44,8 @@ import com.example.urbane.utils.formatDate
 fun IncidentCard(
     incident: Incident,
     onAttendClick: (Incident) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: IncidentsViewModel
 ) {
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
@@ -177,7 +180,7 @@ fun IncidentCard(
                                     Text("Atender")
                                 }
                                 Button(
-                                    onClick = {},
+                                    onClick = {viewModel.handleIntent(IncidentsIntent.RejectIncident(incident.id!!))},
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Red,
@@ -252,7 +255,7 @@ fun IncidentCard(
                                     Text("Atender")
                                 }
                                 Button(
-                                    onClick = {},
+                                    onClick = {viewModel.handleIntent(IncidentsIntent.RejectIncident(incident.id!!))},
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Red,
                                         contentColor = Color.White
