@@ -43,7 +43,9 @@ class IncidentsRepository(val sessionManager: SessionManager) {
                 "type",
                 "residentId",
                 "residentName:users(name)",
-                "residentialId"
+                "residentialId",
+                "scheduledDate",
+                "startTime",
             )) {
                 filter {
                     eq("residentialId", residentialId!!)
@@ -80,6 +82,32 @@ class IncidentsRepository(val sessionManager: SessionManager) {
 
         } catch (e: Exception) {
             Log.e("IncidentsRepository", "Error obteniendo las incidencias: $e")
+            throw e
+        }
+    }
+
+    // En tu IncidentsRepository.kt
+
+    suspend fun attendIncident(
+        incidentId: Int,
+        scheduledDate: String,
+        startTime: String,
+        adminResponse: String
+    ) {
+        try {
+            supabase.from("incidents")
+                .update({
+                    set("status", "Atendido")
+                    set("scheduledDate", scheduledDate)
+                    set("startTime", startTime)
+                    set("adminResponse", adminResponse)
+                }) {
+                    filter {
+                        eq("id", incidentId)
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e("IncidentsRepository", "Error atendiendo incidencia: $e")
             throw e
         }
     }

@@ -21,6 +21,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.urbane.ui.admin.incidents.model.IncidentsIntent
+import com.example.urbane.ui.admin.incidents.view.components.AttendIncidentBottomSheet
 import com.example.urbane.ui.admin.incidents.view.components.IncidentCard
 import com.example.urbane.ui.admin.incidents.viewmodel.IncidentsViewModel
 
@@ -44,12 +47,23 @@ fun IncidentsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadIncidents()
     }
 
-    // Agregar "Todos" al inicio de la lista de categorías
+    LaunchedEffect(state.selectedIncident) {
+        showBottomSheet = state.selectedIncident != null
+    }
+
+    LaunchedEffect(state.success) {
+        if (state.success == true) {
+            showBottomSheet = false
+        }
+    }
+
     val categoriesWithAll = remember(state.categories) {
         listOf("Todos") + state.categories.map { it.name }
     }
@@ -175,7 +189,12 @@ fun IncidentsScreen(
                                     items = incidenciasFiltradas,
                                     key = { it.id ?: it.hashCode() }
                                 ) { incident ->
-                                    IncidentCard(incident = incident)
+                                    IncidentCard(
+                                        incident = incident,
+                                        onAttendClick = {
+                                            viewModel.handleIntent(IncidentsIntent.SelectIncident(it))
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -184,5 +203,12 @@ fun IncidentsScreen(
             }
         }
     }
-}
 
+    if (showBottomSheet) {
+        AttendIncidentBottomSheet(
+            viewModel = viewModel,
+            sheetState = sheetState,
+            onDismiss = { showBottomSheet = false }
+        )
+    }
+}

@@ -45,11 +45,10 @@ fun ImageViewerDialog(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(32.dp)
-                    .clickable(enabled = false) {}, // Evita que el click cierre cuando tocas la imagen
+                    .clickable(enabled = false) {},
                 contentScale = ContentScale.Fit
             )
 
-            // Botón de cerrar
             IconButton(
                 onClick = onDismiss,
                 modifier = Modifier

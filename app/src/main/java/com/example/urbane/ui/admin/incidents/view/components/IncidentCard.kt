@@ -1,6 +1,8 @@
 package com.example.urbane.ui.admin.incidents.view.components
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,11 +35,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.urbane.data.model.Incident
+import com.example.urbane.ui.common.getStatusColor
 import com.example.urbane.utils.formatDate
 
 @Composable
 fun IncidentCard(
     incident: Incident,
+    onAttendClick: (Incident) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
@@ -57,7 +61,6 @@ fun IncidentCard(
                 .padding(16.dp)
         ) {
 
-            // 1️⃣ TÍTULO + STATUS
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -66,7 +69,7 @@ fun IncidentCard(
                 Text(
                     text = incident.title,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 20.sp,
+                    fontSize = 19.sp,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -98,6 +101,7 @@ fun IncidentCard(
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
@@ -107,7 +111,6 @@ fun IncidentCard(
                 maxLines = 3
             )
 
-            // 4️⃣ IMÁGENES
             if (incident.imageUrls?.isNotEmpty() == true) {
                 Spacer(modifier = Modifier.height(6.dp))
 
@@ -128,55 +131,148 @@ fun IncidentCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 5️⃣ ROW FINAL
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+            // Usar BoxWithConstraints para adaptar el layout según el ancho disponible
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth()
             ) {
+                val maxWidth = maxWidth
+                val shouldStack = maxWidth < 360.dp // Si el ancho es menor a 360dp, apilar verticalmente
 
-                // IZQUIERDA → RESIDENTE + FECHA
-                Column(modifier = Modifier.padding(top = 12.dp)) {
-                    Text(
-                        text = ("Por: " + incident.residentName["name"]),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                if (shouldStack) {
+                    // Layout vertical para pantallas pequeñas
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = ("Por: " + incident.residentName["name"]),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            if (incident.createdAt != null) {
+                                Text(
+                                    text = formatDate(incident.createdAt),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF9CA3AF),
+                                    modifier = Modifier.padding(top = 2.dp),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
 
-                    if (incident.createdAt != null) {
-                        Text(
-                            text = formatDate(incident.createdAt),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF9CA3AF),
-                            modifier = Modifier.padding(top = 2.dp),
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
 
-                // DERECHA → BOTONES
-                if (incident.status == "Pendiente") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("Atender")
                         }
 
-                        Button(
-                            onClick = {},
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Red,
-                                contentColor = Color.White
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("Rechazar")
+                        if (incident.status == "Pendiente") {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = { onAttendClick(incident) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Atender")
+                                }
+                                Button(
+                                    onClick = {},
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Red,
+                                        contentColor = Color.White
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Rechazar")
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Column(modifier = Modifier.padding(top = 12.dp)) {
+                            Text(
+                                text = ("Por: " + incident.residentName["name"]),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            if (incident.createdAt != null) {
+                                Text(
+                                    text = formatDate(incident.createdAt),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF9CA3AF),
+                                    modifier = Modifier.padding(top = 2.dp),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+
+                            if(incident.status == "Atendido") {
+                            Spacer(modifier = Modifier.height(3.dp))
+
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFFDCFCE7) // Verde claro
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(
+                                            horizontal = 8.dp,
+                                            vertical = 4.dp
+                                        ),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "📅",
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                        Text(
+                                            text = "Pautada: ${incident.scheduledDate} ${incident.startTime}",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = Color(0xFF166534),
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                }
+                            }
+                            }
+
+
+                        if (incident.status == "Pendiente") {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(
+                                    onClick = { onAttendClick(incident) },
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Atender")
+                                }
+                                Button(
+                                    onClick = {},
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Red,
+                                        contentColor = Color.White
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Rechazar")
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
+
+        selectedImageUrl?.let { imageUrl ->
+            ImageViewerDialog(
+                imageUrl = imageUrl,
+                onDismiss = { selectedImageUrl = null }
+            )
         }
     }
 }

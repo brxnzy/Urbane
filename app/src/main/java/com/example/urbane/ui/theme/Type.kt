@@ -45,8 +45,6 @@ val Typography = Typography(
         lineHeight = 44.sp,
         letterSpacing = 0.sp
     ),
-
-    // Headline styles
     headlineLarge = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.Bold,
@@ -68,8 +66,6 @@ val Typography = Typography(
         lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
-
-    // Title styles
     titleLarge = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.SemiBold,
@@ -92,7 +88,6 @@ val Typography = Typography(
         letterSpacing = 0.1.sp
     ),
 
-    // Body styles
     bodyLarge = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.SemiBold,

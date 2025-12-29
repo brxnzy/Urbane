@@ -14,5 +14,7 @@ data class Incident(
     val residentId: String = "",
     val residentName: Map<String,String>,
     val residentialId: Int,
-    val imageUrls: List<String>? = null
+    val imageUrls: List<String>? = null,
+    val scheduledDate: String? = null,
+    val startTime: String? = null,
 )

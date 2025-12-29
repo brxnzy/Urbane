@@ -1,7 +1,5 @@
 package com.example.urbane
-
 import android.app.NotificationManager
-import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.urbane.data.remote.supabase
@@ -16,7 +14,6 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 class FcmService : FirebaseMessagingService() {
-
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         showNotification(message)
@@ -74,7 +71,7 @@ class FcmService : FirebaseMessagingService() {
         val notification = NotificationCompat.Builder(this, Test.NOTIFICATION_CHANNEL_ID)
             .setContentTitle(message.notification?.title)
             .setContentText(message.notification?.body)
-            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_foreground))
+            .setSmallIcon(R.drawable.logo)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()

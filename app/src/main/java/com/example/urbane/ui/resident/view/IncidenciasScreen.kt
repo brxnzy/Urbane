@@ -66,6 +66,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.urbane.ui.common.getStatusColor
 import com.example.urbane.ui.resident.viewmodel.IncidenciasUiState
 import com.example.urbane.ui.resident.viewmodel.IncidenciasViewModel
 import java.time.Instant
@@ -281,26 +282,22 @@ fun IncidenciaCard(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Default.Warning,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(
-                            when(status) {
-                                "Resuelto" -> Color(0xFF4CAF50).copy(alpha = 0.2f)
-                                "En proceso" -> Color(0xFFFFA726).copy(alpha = 0.2f)
-                                else -> Color(0xFFE91E63).copy(alpha = 0.2f)
-                            }
-                        )
-                        .padding(8.dp),
-                    tint = when(status) {
-                        "Resuelto" -> Color(0xFF4CAF50)
-                        "En proceso" -> Color(0xFFFFA726)
-                        else -> Color(0xFFE91E63)
-                    }
-                )
+//                Icon(
+//                    Icons.Default.Warning,
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .size(40.dp)
+//                        .clip(CircleShape)
+//                        .background(
+//                            getStatusColor(status)
+//                        )
+//                        .padding(8.dp),
+//                    tint = when(status) {
+//                        "Resuelto" -> Color(0xFF4CAF50)
+//                        "En proceso" -> Color(0xFFFFA726)
+//                        else -> Color(0xFFE91E63)
+//                    }
+//                )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -422,22 +419,14 @@ fun IncidenciaCard(
 fun Chip(label: String) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = when(label) {
-            "Pagado", "Resuelto" -> Color(0xFF4CAF50).copy(alpha = 0.2f)
-            "En proceso" -> Color(0xFFFFA726).copy(alpha = 0.2f)
-            else -> Color(0xFFE91E63).copy(alpha = 0.2f)
-        }
+        color = getStatusColor(label)
     ) {
         Text(
             text = label,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = when(label) {
-                "Pagado", "Resuelto" -> Color(0xFF4CAF50)
-                "En proceso" -> Color(0xFFFFA726)
-                else -> Color(0xFFE91E63)
-            }
+            color = Color.White
         )
     }
 }
