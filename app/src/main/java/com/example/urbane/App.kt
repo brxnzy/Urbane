@@ -1,5 +1,4 @@
 package com.example.urbane
-
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -15,7 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-class Test : Application() {
+class App : Application() {
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "notification_fcm"
     }

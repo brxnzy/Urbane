@@ -20,6 +20,8 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -32,8 +34,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.urbane.R
 import com.example.urbane.ui.admin.incidents.model.IncidentsIntent
+import com.example.urbane.ui.admin.incidents.model.IncidentsSuccess
 import com.example.urbane.ui.admin.incidents.view.components.AttendIncidentBottomSheet
 import com.example.urbane.ui.admin.incidents.view.components.IncidentCard
 import com.example.urbane.ui.admin.incidents.viewmodel.IncidentsViewModel
@@ -49,6 +54,7 @@ fun IncidentsScreen(
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.loadIncidents()
@@ -57,18 +63,35 @@ fun IncidentsScreen(
     LaunchedEffect(state.selectedIncident) {
         showBottomSheet = state.selectedIncident != null
     }
-
     LaunchedEffect(state.success) {
         if (state.success != null) {
             showBottomSheet = false
         }
     }
 
-    val categoriesWithAll = remember(state.categories) {
-        listOf("Todos") + state.categories.map { it.name }
+    val estadosDisponibles = listOf(
+        "Todos" to R.string.todos,
+        "Pendiente" to R.string.pendiente,
+        "Atendido" to R.string.atendido,
+        "En Curso" to R.string.en_curso,
+        "Resuelto" to R.string.resuelto,
+        "Rechazado" to R.string.rechazado
+    )
+    LaunchedEffect(state.success) {
+        state.success?.let { success ->
+            val message = when (success) {
+                is IncidentsSuccess.IncidentRejected -> "Incidencia rechazada correctamente"
+                is IncidentsSuccess.IncidentAttended -> "Incidencia atendida correctamente"
+            }
+            snackbarHostState.showSnackbar(
+                message = message,
+                withDismissAction =true)
+            viewModel.resetSuccess()
+        }
     }
-
-    Scaffold {
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -127,18 +150,17 @@ fun IncidentsScreen(
 
                 else -> {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // FilterChips dinámicos
                         LazyRow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(categoriesWithAll) { category ->
+                            items(estadosDisponibles) { (estadoBD, stringResId) ->
                                 FilterChip(
-                                    selected = filtroSeleccionado == category,
-                                    onClick = { filtroSeleccionado = category },
-                                    label = { Text(category) },
+                                    selected = filtroSeleccionado == estadoBD,
+                                    onClick = { filtroSeleccionado = estadoBD },
+                                    label = { Text(stringResource(stringResId)) },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                                         selectedLabelColor = Color.White
@@ -146,17 +168,14 @@ fun IncidentsScreen(
                                 )
                             }
                         }
-
-                        // Filtrar incidencias
                         val incidenciasFiltradas = remember(state.incidents, filtroSeleccionado) {
                             if (filtroSeleccionado == "Todos") {
                                 state.incidents
                             } else {
-                                state.incidents.filter { it.category == filtroSeleccionado }
+                                state.incidents.filter { it.status == filtroSeleccionado }
                             }
                         }
 
-                        // Lista de incidencias
                         if (incidenciasFiltradas.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -167,7 +186,7 @@ fun IncidentsScreen(
                                     modifier = Modifier.padding(16.dp)
                                 ) {
                                     Text(
-                                        text = "No hay incidencias ${filtroSeleccionado.lowercase()}",
+                                        text = "No hay incidencias con estado ${filtroSeleccionado.lowercase()}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = Color(0xFF6B7280)
                                     )

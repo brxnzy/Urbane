@@ -190,8 +190,6 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
         )
 
     }
-
-
         Text(
             user?.userData?.residential?.name ?: "Panel" ,
             modifier = Modifier.padding(12.dp),
@@ -201,11 +199,11 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
         DrawerItem("Dashboard", Icons.Outlined.Dashboard , Routes.ADMIN, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.usuarios), Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.residencias), Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
-        DrawerItem("Reclamos",Icons.Outlined.ReportProblem, Routes.ADMIN_INCIDENTS, currentRoute, onDestinationClicked)
-        DrawerItem("Pagos", Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
+        DrawerItem(stringResource(R.string.incidencias),Icons.Outlined.ReportProblem, Routes.ADMIN_INCIDENTS, currentRoute, onDestinationClicked)
+        DrawerItem(stringResource(R.string.pagos), Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.contratos), Icons.Outlined.Assignment, Routes.ADMIN_CONTRACTS, currentRoute, onDestinationClicked)
-        DrawerItem("Multas", Icons.Outlined.Gavel, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
-        DrawerItem("Configuración", Icons.Outlined.Settings, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
+        DrawerItem(stringResource(R.string.multas), Icons.Outlined.Gavel, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
+        DrawerItem(stringResource(R.string.configuraci_n), Icons.Outlined.Settings, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
 
     }
 

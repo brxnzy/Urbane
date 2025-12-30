@@ -26,51 +26,48 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.urbane.R
 import com.example.urbane.data.model.Fine
-
+import java.util.Locale.getDefault
 @Composable
 fun FineCard(
     fine: Fine,
     onClick: () -> Unit
 ) {
     val status = fine.status.lowercase()
-
     val yellow = Color(0xFFFFC107)
     val red = Color.Red
-
-    val bgColor = when (status) {
-        "pagado", "paid" ->
+    val bgColor = when (status.lowercase(getDefault())) {
+        "pagado" ->
             MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-
-        "pendiente", "pending" ->
+        "pendiente" ->
             yellow.copy(alpha = 0.20f)
-
-        "cancelada", "canceled", "cancelled" ->
+        "cancelada" ->
             red.copy(alpha = 0.20f)
-
         else ->
             MaterialTheme.colorScheme.surfaceVariant
     }
 
     val icon = when (status) {
-        "pagado", "paid" -> Icons.Default.CheckCircle
-        "pendiente", "pending" -> Icons.Default.Schedule
-        "cancelada", "canceled", "cancelled" -> Icons.Default.Cancel
+        "pagado" -> Icons.Default.CheckCircle
+        "pendiente" -> Icons.Default.Schedule
+        "cancelada" -> Icons.Default.Cancel
         else -> Icons.Default.Receipt
     }
 
     val iconTint = when (status) {
-        "pagado", "paid" ->
+        "pagado"->
             MaterialTheme.colorScheme.primary
 
-        "pendiente", "pending" ->
+        "pendiente"  ->
             yellow
 
-        "cancelada", "canceled", "cancelled" ->
+        "cancelada" ->
             red
 
         else ->
@@ -90,8 +87,6 @@ fun FineCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            // ICONO
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -107,7 +102,6 @@ fun FineCard(
                 )
             }
 
-            // INFO
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -153,15 +147,13 @@ fun FineCard(
 
                     if (fine.paymentId == null && status == "pendiente") {
                         Text(
-                            text = "⚠ Próximo pago",
+                            text = stringResource(R.string.se_asignara_al_proximo_pago),
                             fontSize = 11.sp,
                             color = yellow
                         )
                     }
                 }
             }
-
-            // MONTO
             Column(
                 horizontalAlignment = Alignment.End
             ) {
@@ -172,8 +164,6 @@ fun FineCard(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-
-            // FLECHA
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,

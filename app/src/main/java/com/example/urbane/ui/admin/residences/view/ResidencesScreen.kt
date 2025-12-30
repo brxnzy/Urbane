@@ -71,11 +71,12 @@ fun ResidencesScreen(
     LaunchedEffect(Unit) {
         viewModel.loadResidences()
     }
-
+    val residenciaEliminadaCorrectamente =
+        stringResource(R.string.residencia_eliminada_exitosamente)
     LaunchedEffect(showResidenceDeletedMessage) {
         if (showResidenceDeletedMessage) {
             snackbarHostState.showSnackbar(
-                message = "Residencia eliminada exitosamente",
+                message = residenciaEliminadaCorrectamente,
                 withDismissAction = true,
                 duration = SnackbarDuration.Short
             )
@@ -139,7 +140,7 @@ fun ResidencesScreen(
                     },
                     trailingIcon = {
                         IconButton(onClick = { filtroMenuExpandido = true }) {
-                            Icon(Icons.Default.FilterList, contentDescription = "Filtros")
+                            Icon(Icons.Default.FilterList, contentDescription = stringResource(R.string.filtros))
                         }
                     },
                     shape = RoundedCornerShape(12.dp),
@@ -152,7 +153,7 @@ fun ResidencesScreen(
                 ) {
 
                     Text(
-                        "Tipo de propiedad",
+                        stringResource(R.string.tipo_de_propiedad),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                         fontWeight = FontWeight.Bold
                     )
@@ -181,9 +182,8 @@ fun ResidencesScreen(
                     }
 
                     Divider()
-
                     Text(
-                        "Estado",
+                        stringResource(R.string.estado),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                         fontWeight = FontWeight.Bold
                     )
@@ -197,7 +197,7 @@ fun ResidencesScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Disponible", modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.disponible), modifier = Modifier.weight(1f))
                                 Checkbox(
                                     checked = estadoFiltro == "Disponible",
                                     onCheckedChange = {
@@ -217,7 +217,7 @@ fun ResidencesScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Ocupada", modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.ocupada), modifier = Modifier.weight(1f))
                                 Checkbox(
                                     checked = estadoFiltro == "Ocupada",
                                     onCheckedChange = {
@@ -227,15 +227,13 @@ fun ResidencesScreen(
                             }
                         }
                     )
-
                     Divider()
-
                     DropdownMenuItem(
                         onClick = {
                             tipoFiltro = null
                             estadoFiltro = null
                         },
-                        text = { Text("Limpiar filtros") }
+                        text = { Text(stringResource(R.string.limpiar_filtros)) }
                     )
                 }
 
@@ -258,7 +256,7 @@ fun ResidencesScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("No se encontraron residencias")
+                        Text(stringResource(R.string.no_se_encontraron_residencias))
                     }
                 }
 

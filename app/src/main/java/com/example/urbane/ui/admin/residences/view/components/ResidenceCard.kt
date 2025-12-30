@@ -1,7 +1,5 @@
 package com.example.urbane.ui.admin.residences.view.components
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,12 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Apartment
-import androidx.compose.material.icons.filled.HolidayVillage
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -28,18 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.urbane.data.model.Residence
 import com.example.urbane.utils.getResidenceIcon
-import com.example.urbane.utils.getTipoPropiedadLabelRes
-
-
-
 
 @Composable
 fun ResidenceCard(
@@ -52,7 +38,6 @@ fun ResidenceCard(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -60,8 +45,6 @@ fun ResidenceCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            // ICONO EN CÍRCULO
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -78,8 +61,6 @@ fun ResidenceCard(
                     modifier = Modifier.size(28.dp)
                 )
             }
-
-            // INFORMACIÓN
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -101,8 +82,6 @@ fun ResidenceCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-
-            // FLECHA
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
@@ -112,5 +91,3 @@ fun ResidenceCard(
         }
     }
 }
-
-

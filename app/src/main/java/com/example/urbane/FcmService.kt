@@ -68,7 +68,7 @@ class FcmService : FirebaseMessagingService() {
 
     private fun showNotification(message: RemoteMessage) {
         val notificationManager = getSystemService(NotificationManager::class.java)
-        val notification = NotificationCompat.Builder(this, Test.NOTIFICATION_CHANNEL_ID)
+        val notification = NotificationCompat.Builder(this, App.NOTIFICATION_CHANNEL_ID)
             .setContentTitle(message.notification?.title)
             .setContentText(message.notification?.body)
             .setSmallIcon(R.drawable.logo)

@@ -1,5 +1,4 @@
 package com.example.urbane.navigation
-
 object Routes {
     const val SPLASH = "splash"
     const val DISABLED = "disabled"
@@ -19,9 +18,5 @@ object Routes {
     const val ADMIN_PAYMENTS = "admin/payments"
     const val ADMIN_FINES = "admin/fines"
     const val ADMIN_FINES_ADD = "admin/fines/add"
-
     const val ADMIN_FINES_DETAIL = "admin/fines/{id}"
-
-
-
 }

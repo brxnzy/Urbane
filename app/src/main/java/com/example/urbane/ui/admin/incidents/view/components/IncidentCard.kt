@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -20,6 +21,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +50,7 @@ fun IncidentCard(
     viewModel: IncidentsViewModel
 ) {
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    var showRejectDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = modifier
@@ -134,15 +137,13 @@ fun IncidentCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Usar BoxWithConstraints para adaptar el layout según el ancho disponible
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 val maxWidth = maxWidth
-                val shouldStack = maxWidth < 360.dp // Si el ancho es menor a 360dp, apilar verticalmente
+                val shouldStack = maxWidth < 360.dp
 
                 if (shouldStack) {
-                    // Layout vertical para pantallas pequeñas
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -163,8 +164,6 @@ fun IncidentCard(
                                 )
                             }
                             Spacer(modifier = Modifier.height(2.dp))
-
-
                         }
 
                         if (incident.status == "Pendiente") {
@@ -180,7 +179,7 @@ fun IncidentCard(
                                     Text("Atender")
                                 }
                                 Button(
-                                    onClick = {viewModel.handleIntent(IncidentsIntent.RejectIncident(incident.id!!))},
+                                    onClick = { showRejectDialog = true },
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Red,
@@ -216,11 +215,11 @@ fun IncidentCard(
                             }
 
                             if(incident.status == "Atendido") {
-                            Spacer(modifier = Modifier.height(3.dp))
+                                Spacer(modifier = Modifier.height(3.dp))
 
                                 Surface(
                                     shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFFDCFCE7) // Verde claro
+                                    color = Color(0xFFDCFCE7)
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(
@@ -243,8 +242,7 @@ fun IncidentCard(
                                     }
                                 }
                             }
-                            }
-
+                        }
 
                         if (incident.status == "Pendiente") {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -255,7 +253,7 @@ fun IncidentCard(
                                     Text("Atender")
                                 }
                                 Button(
-                                    onClick = {viewModel.handleIntent(IncidentsIntent.RejectIncident(incident.id!!))},
+                                    onClick = { showRejectDialog = true },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = Color.Red,
                                         contentColor = Color.White
@@ -277,5 +275,39 @@ fun IncidentCard(
                 onDismiss = { selectedImageUrl = null }
             )
         }
+    }
+
+    if (showRejectDialog) {
+        AlertDialog(
+            onDismissRequest = { showRejectDialog = false },
+            title = {
+                Text(
+                    text = "Rechazar reclamo",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text("¿Estás seguro que quieres rechazar este reclamo?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.handleIntent(IncidentsIntent.RejectIncident(incident.id!!))
+                        showRejectDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Rechazar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRejectDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }

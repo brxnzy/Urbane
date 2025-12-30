@@ -64,14 +64,6 @@ import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.utils.getRoleLabelRes
 import com.example.urbane.utils.getTipoPropiedadLabelRes
 
-
-sealed class DialogType {
-    object EditSuccess : DialogType()
-    object DisableSuccess : DialogType()
-    object EnableSuccess: DialogType()
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewModel: UsersViewModel,residencesViewModel: ResidencesViewModel, sessionManager: SessionManager, goBack:()-> Unit) {

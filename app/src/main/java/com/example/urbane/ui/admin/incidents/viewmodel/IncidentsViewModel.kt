@@ -141,4 +141,8 @@ class IncidentsViewModel(sessionManager: SessionManager): ViewModel() {
                 }
             }
         }
+
+    fun resetSuccess(){
+        _state.update { it.copy(success = null) }
+    }
     }
