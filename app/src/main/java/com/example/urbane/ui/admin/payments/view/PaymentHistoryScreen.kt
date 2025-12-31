@@ -1,8 +1,6 @@
 package com.example.urbane.ui.admin.payments.view
 
 import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,10 +40,8 @@ import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 @SuppressLint("DefaultLocale", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PaymentHistoryScreen(viewModel: PaymentsViewModel) {
-
     val state by viewModel.state.collectAsState()
     var expandedPaymentId by remember { mutableStateOf<Int?>(null) }
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -55,11 +51,9 @@ fun PaymentHistoryScreen(viewModel: PaymentsViewModel) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
-
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

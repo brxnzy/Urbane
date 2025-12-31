@@ -35,20 +35,19 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
@@ -58,9 +57,10 @@ import com.example.urbane.ui.admin.users.model.DetailSuccess
 import com.example.urbane.ui.admin.users.model.UsersDetailIntent
 import com.example.urbane.ui.admin.users.view.components.EditUserDialog
 import com.example.urbane.ui.admin.users.view.components.EnableResidentDialog
+import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
+import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.ui.common.InfoSection
 import com.example.urbane.ui.common.UserInfoItem
-import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.utils.getRoleLabelRes
 import com.example.urbane.utils.getTipoPropiedadLabelRes
 
@@ -113,7 +113,7 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
                     viewmodel.resetSuccess()
                 }
 
-                null -> TODO()
+                else -> {}
             }
         }
     }
@@ -124,7 +124,6 @@ fun UserDetailScreen(userId: String, viewmodel: UsersDetailViewModel,usersViewMo
             closeDialog = { showEnableResidentDialog = false }
         )
     }
-
     if (showEditResidentDialog) {
         EditUserDialog(
             user = state.user!!,

@@ -70,12 +70,9 @@ class PaymentRepository(
             throw e
         }
     }
-
     suspend fun registerPayment(payments: List<SelectedPayment>): List<Int> {
         val residentialId = getResidentialId(sessionManager) ?: 0
         val transactionIds = mutableListOf<Int>()
-
-        // ✅ Generar nombre de factura ÚNICO para todas las transacciones
         val dateStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
             .format(java.util.Date())
         val shortId = java.util.UUID.randomUUID().toString().substring(0, 8)
@@ -196,8 +193,8 @@ class PaymentRepository(
                     )
                 ) {
                     filter { eq("residentialId", residentialId) }
-                    order("year", Order.ASCENDING)
-                    order("month", Order.ASCENDING)
+                    order("year", Order.DESCENDING)
+                    order("month", Order.DESCENDING)
                 }
                 .decodeList<Payment>()
 

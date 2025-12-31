@@ -1,4 +1,5 @@
 package com.example.urbane.ui.admin
+import FinancesViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Gavel
@@ -57,6 +59,7 @@ import com.example.urbane.data.local.SessionManager
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.contracts.view.ContractsScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
+import com.example.urbane.ui.admin.finances.view.FinancesScreen
 import com.example.urbane.ui.admin.fines.view.FinesScreen
 import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
 import com.example.urbane.ui.admin.incidents.view.IncidentsScreen
@@ -84,6 +87,7 @@ fun AdminMainScaffold(
     paymentsViewModel: PaymentsViewModel,
     finesViewModel: FinesViewModel,
     incidentsViewModel: IncidentsViewModel,
+    financesViewModel: FinancesViewModel,
     showResidenceDeletedMessage: Boolean = false
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -119,6 +123,7 @@ fun AdminMainScaffold(
                             Routes.ADMIN_INCIDENTS -> stringResource(R.string.incidencias)
                             Routes.ADMIN_CONTRACTS -> stringResource(R.string.contratos)
                             Routes.ADMIN_FINES -> stringResource(R.string.multas)
+                            Routes.ADMIN_FINANCES -> stringResource(R.string.finanzas)
                             Routes.ADMIN -> "Dashboard"
                             else -> "Panel Admin"
                         }, style = MaterialTheme.typography.displayMedium)
@@ -150,6 +155,7 @@ fun AdminMainScaffold(
                     Routes.ADMIN_INCIDENTS-> IncidentsScreen(incidentsViewModel)
                     Routes.ADMIN_FINES-> FinesScreen(finesViewModel, navController)
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(paymentsViewModel, navController)
+                    Routes.ADMIN_FINANCES -> FinancesScreen(financesViewModel)
                     Routes.ADMIN_CONTRACTS -> ContractsScreen(modifier = Modifier.padding(16.dp),navController, contractsViewModel)
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
@@ -165,13 +171,11 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
 
     Column(modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween
-
     ) {
     Column(modifier = Modifier
         .padding(top = 35.dp,
             )
     ) {
-
         if (user?.userData?.residential?.logoUrl?.isBlank() == true) {
             Image(
                 painter = rememberAsyncImagePainter(user.userData.residential.logoUrl),
@@ -188,20 +192,20 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
                 .size(60.dp)
                 .padding(start = 15.dp)
         )
-
     }
         Text(
             user?.userData?.residential?.name ?: "Panel" ,
             modifier = Modifier.padding(12.dp),
             style = MaterialTheme.typography.titleLarge,
         )
-        HorizontalDivider(modifier = Modifier.padding(bottom = 20.dp))
+        HorizontalDivider(modifier = Modifier.padding(bottom = 6.dp))
         DrawerItem("Dashboard", Icons.Outlined.Dashboard , Routes.ADMIN, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.usuarios), Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.residencias), Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.incidencias),Icons.Outlined.ReportProblem, Routes.ADMIN_INCIDENTS, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.pagos), Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.contratos), Icons.Outlined.Assignment, Routes.ADMIN_CONTRACTS, currentRoute, onDestinationClicked)
+        DrawerItem(stringResource(R.string.finanzas), Icons.Outlined.Analytics, Routes.ADMIN_FINANCES, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.multas), Icons.Outlined.Gavel, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.configuraci_n), Icons.Outlined.Settings, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
 
@@ -229,9 +233,7 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
                 bottomEnd = 10.dp
             )
         ) {
-
             Row (modifier = Modifier.padding(vertical = 5.dp),horizontalArrangement = Arrangement.spacedBy(10.dp)
-
             ){
 
                 Icon(Icons.Default.Logout, contentDescription = "Cerrar sesion")
@@ -267,7 +269,7 @@ fun DrawerItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick(route) }
-            .padding(top = 2.dp, bottom = 2.dp, end = 10.dp),
+            .padding(top = 1.dp, bottom = 1.dp, end = 10.dp),
         color = backgroundColor,
         shape = RoundedCornerShape(
             topStart = 0.dp,

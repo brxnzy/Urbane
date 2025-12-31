@@ -1,6 +1,7 @@
 package com.example.urbane.navigation
 
 import AddResidenceScreen
+import FinancesViewModel
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -65,6 +66,8 @@ fun MainNavigation(
     val finesViewModel = FinesViewModel(sessionManager)
     val finesDetailViewModel = FinesDetailViewModel(sessionManager)
     val incidentsViewModel = IncidentsViewModel(sessionManager)
+    val financesViewModel = FinancesViewModel(sessionManager)
+
 
 
     NavHost(
@@ -132,7 +135,8 @@ fun MainNavigation(
                 contractsViewModel,
                 paymentsViewModel,
                 finesViewModel,
-                incidentsViewModel
+                incidentsViewModel,
+                financesViewModel
                 )
         }
         composable(Routes.ADMIN_RESIDENCES) {
@@ -161,6 +165,7 @@ fun MainNavigation(
                 paymentsViewModel,
                 finesViewModel,
                 incidentsViewModel,
+                financesViewModel,
                 showResidenceDeletedMessage = residenceDeleted
             )
         }
@@ -176,7 +181,8 @@ fun MainNavigation(
                 contractsViewModel,
                 paymentsViewModel,
                 finesViewModel,
-                incidentsViewModel
+                incidentsViewModel,
+                financesViewModel
                 )
         }
 
@@ -191,7 +197,8 @@ fun MainNavigation(
                 contractsViewModel,
                 paymentsViewModel,
                 finesViewModel,
-                incidentsViewModel
+                incidentsViewModel,
+                financesViewModel
 
                 )
         }
@@ -207,7 +214,8 @@ fun MainNavigation(
                 contractsViewModel,
                 paymentsViewModel,
                 finesViewModel,
-                incidentsViewModel
+                incidentsViewModel,
+                financesViewModel
 
             )
         }
@@ -222,7 +230,8 @@ fun MainNavigation(
                 contractsViewModel,
                 paymentsViewModel,
                 finesViewModel,
-                incidentsViewModel
+                incidentsViewModel,
+                financesViewModel
                 )
         }
 
@@ -237,8 +246,24 @@ fun MainNavigation(
                 contractsViewModel,
                 paymentsViewModel,
                 finesViewModel,
-                incidentsViewModel
+                incidentsViewModel,
+                financesViewModel
                 )
+        }
+        composable(Routes.ADMIN_FINANCES) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_FINANCES,
+                loginViewModel,
+                sessionManager,
+                residencesViewModel,
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel
+            )
         }
         composable(Routes.ADMIN_USERS_ADD) {
             AddUserScreen(usersViewModel, residencesViewModel){

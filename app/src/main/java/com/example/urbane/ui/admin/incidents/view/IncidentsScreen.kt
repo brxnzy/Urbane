@@ -59,7 +59,6 @@ fun IncidentsScreen(
     LaunchedEffect(Unit) {
         viewModel.loadIncidents()
     }
-
     LaunchedEffect(state.selectedIncident) {
         showBottomSheet = state.selectedIncident != null
     }
@@ -68,7 +67,6 @@ fun IncidentsScreen(
             showBottomSheet = false
         }
     }
-
     val estadosDisponibles = listOf(
         "Todos" to R.string.todos,
         "Pendiente" to R.string.pendiente,
@@ -110,19 +108,19 @@ fun IncidentsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Error al cargar incidencias",
+                            text = stringResource(R.string.error_al_cargar_incidencias),
                             style = MaterialTheme.typography.titleMedium,
                             color = Color(0xFF6B7280)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = state.errorMessage ?: "Error desconocido",
+                            text = state.errorMessage ?: stringResource(R.string.error_desconocido),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF9CA3AF)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = { viewModel.loadIncidents() }) {
-                            Text("Reintentar")
+                            Text(stringResource(R.string.reintentar))
                         }
                     }
                 }
@@ -141,7 +139,7 @@ fun IncidentsScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Las incidencias aparecerán aquí cuando se registren",
+                            text = stringResource(R.string.las_incidencias_aparecer_n_aqu_cuando_se_registren),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF9CA3AF)
                         )
