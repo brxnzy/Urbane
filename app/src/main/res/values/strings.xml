@@ -141,7 +141,7 @@
     <string name="no_hay_incidencias">No hay incidencias</string>
     <string name="las_incidencias_aparecer_n_aqu_cuando_se_registren">Las incidencias aparecerán aquí cuando se registren</string>
     <string name="no_hay_incidencias_con_estado">No hay incidencias con estado</string>
-    <string name="todos">todos</string>
+    <string name="todos">Todos</string>
     <string name="configuraci_n">Configuración</string>
     <string name="error_al_cargar_incidencias">Error al cargar incidencias</string>
     <string name="egresos">Egresos</string>

@@ -38,6 +38,8 @@ fun FinancesScreen(viewModel: FinancesViewModel) {
                     snackbarHostState.showSnackbar("Egreso registrado correctamente", withDismissAction = true)
                     viewModel.resetSuccess()
                 }
+
+                else -> {}
             }
         }
     }
@@ -84,7 +86,7 @@ fun FinancesScreen(viewModel: FinancesViewModel) {
                 .padding(padding)
         ) {
             when (selectedTab) {
-                0 -> FinancialReportScreen()
+                0 -> FinancialReportScreen(viewModel)
                 1 -> ExpensesScreen(viewModel)
             }
         }

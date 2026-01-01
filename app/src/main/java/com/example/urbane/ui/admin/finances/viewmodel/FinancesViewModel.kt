@@ -1,3 +1,4 @@
+
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,6 +26,23 @@ class FinancesViewModel(sessionManager: SessionManager) : ViewModel() {
             }
             is FinancesIntent.RegisterExpense -> registerExpense()
 
+            // Nuevos intents para reporte financiero
+            is FinancesIntent.UpdateStartDate -> {
+                _state.value = _state.value.copy(startDate = intent.date)
+                // Si ambas fechas están seleccionadas, cargar reporte automáticamente
+                if (_state.value.endDate != null && intent.date != null) {
+                    loadReport()
+                }
+            }
+            is FinancesIntent.UpdateEndDate -> {
+                _state.value = _state.value.copy(endDate = intent.date)
+                // Si ambas fechas están seleccionadas, cargar reporte automáticamente
+                if (_state.value.startDate != null && intent.date != null) {
+                    loadReport()
+                }
+            }
+            is FinancesIntent.GeneratePDF -> generatePDF()
+            else -> {}
         }
     }
 
@@ -76,6 +94,64 @@ class FinancesViewModel(sessionManager: SessionManager) : ViewModel() {
         }
     }
 
+    private fun loadReport() {
+        viewModelScope.launch {
+            try {
+                val startDate = _state.value.startDate
+                val endDate = _state.value.endDate
+
+                if (startDate == null || endDate == null) {
+                    return@launch
+                }
+
+                if (startDate > endDate) {
+                    _state.value = _state.value.copy(
+                        errorMessage = "La fecha de inicio debe ser anterior a la fecha de fin"
+                    )
+                    return@launch
+                }
+
+                _state.value = _state.value.copy(
+                    isLoadingReport = true,
+                    errorMessage = null
+                )
+
+                // Cargar transacciones del rango de fechas
+                val transactions = repository.getTransactionsByDateRange(startDate, endDate)
+
+                // Calcular totales
+                val totalIngresos = transactions
+                    .filter { it.type == com.example.urbane.ui.admin.finances.model.TransactionType.INGRESO }
+                    .sumOf { it.amount }
+
+                val totalEgresos = transactions
+                    .filter { it.type == com.example.urbane.ui.admin.finances.model.TransactionType.EGRESO }
+                    .sumOf { it.amount }
+
+                _state.value = _state.value.copy(
+                    isLoadingReport = false,
+                    filteredTransactions = transactions,
+                    totalIngresos = totalIngresos,
+                    totalEgresos = totalEgresos,
+                    success = FinancesSuccess.ReportGenerated
+                )
+
+            } catch (e: Exception) {
+                Log.e("FinancesViewModel", "Error cargando reporte: $e")
+                _state.value = _state.value.copy(
+                    isLoadingReport = false,
+                    errorMessage = "Error al cargar reporte: ${e.message}"
+                )
+            }
+        }
+    }
+
+    private fun generatePDF() {
+        // TODO: Implementar generación de PDF
+        Log.d("FinancesViewModel", "Generar PDF - Función pendiente de implementación")
+        // Aquí irá la lógica para generar el PDF del reporte
+    }
+
     fun loadExpenses() {
         viewModelScope.launch {
             try {
@@ -94,6 +170,7 @@ class FinancesViewModel(sessionManager: SessionManager) : ViewModel() {
             }
         }
     }
+
     fun loadBalance() {
         viewModelScope.launch {
             try {
