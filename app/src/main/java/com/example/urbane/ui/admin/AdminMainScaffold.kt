@@ -157,7 +157,7 @@ fun AdminMainScaffold(
                     Routes.ADMIN_FINES-> FinesScreen(finesViewModel, navController)
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(paymentsViewModel, navController)
                     Routes.ADMIN_FINANCES -> FinancesScreen(financesViewModel)
-                    Routes.ADMIN_SETTINGS -> SettingsScreen()
+                    Routes.ADMIN_SETTINGS -> SettingsScreen(sessionManager)
                     Routes.ADMIN_CONTRACTS -> ContractsScreen(modifier = Modifier.padding(16.dp),navController, contractsViewModel)
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.House
@@ -30,6 +31,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -42,19 +44,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.model.CurrentUser
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(sessionManager: SessionManager) {
-    val user by sessionManager.sessionFlow.collectAsState(initial = "")
+    val userState = sessionManager.sessionFlow.collectAsState(initial = null)
+    val user = userState.value
 
     var notificationsEnabled by remember { mutableStateOf(true) }
 
@@ -67,7 +71,7 @@ fun SettingsScreen(sessionManager: SessionManager) {
                 .background(Color.White)
         ) {
             // Profile Section
-            ProfileSection()
+            ProfileSection(user)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -139,8 +143,6 @@ fun SettingsScreen(sessionManager: SessionManager) {
             )
         }
     }
-
-
 @Composable
 fun ProfileSection(user: CurrentUser?) {
     Row(
@@ -151,25 +153,22 @@ fun ProfileSection(user: CurrentUser?) {
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF26A69A),
-                            Color(0xFF075E54)
-                        )
-                    )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = user.userData.user.name,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+
+        if (user?.userData?.user?.photoUrl != null) {
+            AsyncImage(
+                model = user.userData.user.photoUrl,
+                contentDescription = "Foto de perfil",
+                modifier = Modifier
+                    .size(70.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = null,
+                modifier = Modifier.size(76.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -177,14 +176,14 @@ fun ProfileSection(user: CurrentUser?) {
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "John Doe",
+                text = user?.userData?.user?.name ?: "",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF000000)
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "Disponible",
+                text = user?.userData?.user?.email ?: "",
                 fontSize = 14.sp,
                 color = Color.Gray
             )

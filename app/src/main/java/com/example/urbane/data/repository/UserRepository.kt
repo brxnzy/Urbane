@@ -69,7 +69,7 @@ class UserRepository(val sessionManager: SessionManager) {
                 "obteniendo datos del usuario, email $currentUserEmail id: $currentUserId"
             )
             val user = supabase.from("users")
-                .select(columns = Columns.list("id", "name", "idCard", "createdAt")) {
+                .select(columns = Columns.list("id", "name", "idCard", "createdAt", "photoUrl")) {
                     filter {
                         eq("id", currentUserId)
                     }
