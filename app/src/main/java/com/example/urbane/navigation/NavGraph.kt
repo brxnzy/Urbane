@@ -265,6 +265,22 @@ fun MainNavigation(
                 financesViewModel
             )
         }
+
+        composable(Routes.ADMIN_SETTINGS) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_SETTINGS,
+                loginViewModel,
+                sessionManager,
+                residencesViewModel,
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel
+            )
+        }
         composable(Routes.ADMIN_USERS_ADD) {
             AddUserScreen(usersViewModel, residencesViewModel){
                 navController.popBackStack()

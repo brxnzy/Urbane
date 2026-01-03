@@ -20,5 +20,6 @@ object Routes {
     const val ADMIN_FINES_ADD = "admin/fines/add"
     const val ADMIN_FINES_DETAIL = "admin/fines/{id}"
     const val ADMIN_FINANCES = "admin/finances"
+    const val ADMIN_SETTINGS = "admin/settings"
 
 }

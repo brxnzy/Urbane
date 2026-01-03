@@ -68,6 +68,7 @@ import com.example.urbane.ui.admin.payments.view.PaymentsScreen
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
+import com.example.urbane.ui.admin.settings.view.SettingsScreen
 import com.example.urbane.ui.admin.users.view.UsersScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
@@ -156,6 +157,7 @@ fun AdminMainScaffold(
                     Routes.ADMIN_FINES-> FinesScreen(finesViewModel, navController)
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(paymentsViewModel, navController)
                     Routes.ADMIN_FINANCES -> FinancesScreen(financesViewModel)
+                    Routes.ADMIN_SETTINGS -> SettingsScreen()
                     Routes.ADMIN_CONTRACTS -> ContractsScreen(modifier = Modifier.padding(16.dp),navController, contractsViewModel)
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
@@ -207,7 +209,7 @@ fun DrawerContent(sessionManager: SessionManager,navController: NavHostControlle
         DrawerItem(stringResource(R.string.contratos), Icons.Outlined.Assignment, Routes.ADMIN_CONTRACTS, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.finanzas), Icons.Outlined.Analytics, Routes.ADMIN_FINANCES, currentRoute, onDestinationClicked)
         DrawerItem(stringResource(R.string.multas), Icons.Outlined.Gavel, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
-        DrawerItem(stringResource(R.string.configuraci_n), Icons.Outlined.Settings, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
+        DrawerItem(stringResource(R.string.configuraci_n), Icons.Outlined.Settings, Routes.ADMIN_SETTINGS, currentRoute, onDestinationClicked)
 
     }
 

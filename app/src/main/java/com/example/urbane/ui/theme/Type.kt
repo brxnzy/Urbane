@@ -98,8 +98,8 @@ val Typography = Typography(
     bodyMedium = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 16.sp,
-        lineHeight = 20.sp,
+        fontSize = 15.sp,
+        lineHeight = 18.sp,
         letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(

@@ -1,5 +1,4 @@
 package com.example.urbane.ui.admin.contracts.model
-
 import com.example.urbane.data.model.Contract
 
 data class ContractsState(
@@ -8,9 +7,3 @@ data class ContractsState(
     val error: String? = null,
     val success: Boolean = false
 )
-
-//sealed class ContractsIntent {
-//    object LoadContracts : ContractsIntent()
-//}
-
-

@@ -401,7 +401,7 @@ fun FinancialReportScreen(viewModel: FinancesViewModel) {
     if (showEndDatePicker) {
         DatePickerModal(
             onDateSelected = { date ->
-                viewModel.handleIntent(FinancesIntent.UpdateEndDate(date))
+                viewModel.handleIntent(FinancesIntent.UpdateEndDate(date ))
                 showEndDatePicker = false
             },
             onDismiss = { showEndDatePicker = false }
