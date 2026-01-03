@@ -1,5 +1,6 @@
 package com.example.urbane.ui.admin.finances.model
 
+import android.net.Uri
 import com.example.urbane.data.model.Expense
 import com.example.urbane.data.model.Transaction
 
@@ -25,10 +26,13 @@ enum class TransactionType {
     INGRESO,
     EGRESO
 }
+
 sealed class FinancesSuccess {
     object ExpenseRegistered : FinancesSuccess()
     object ReportGenerated : FinancesSuccess()
+    data class PDFGenerated(val uri: Uri, val fileName: String) : FinancesSuccess()
 }
+
 sealed class FinancesIntent {
     data class UpdateAmount(val amount: String) : FinancesIntent()
     data class UpdateDescription(val description: String) : FinancesIntent()
@@ -36,5 +40,5 @@ sealed class FinancesIntent {
     data class UpdateStartDate(val date: String?) : FinancesIntent()
     data class UpdateEndDate(val date: String?) : FinancesIntent()
     object GenerateReport : FinancesIntent()
-    object GeneratePDF : FinancesIntent()
+    data class GeneratePDF(val context: android.content.Context) : FinancesIntent()
 }

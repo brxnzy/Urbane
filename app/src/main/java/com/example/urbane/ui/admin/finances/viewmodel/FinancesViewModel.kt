@@ -1,5 +1,8 @@
-
+import android.content.Context
+import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.local.SessionManager
@@ -7,11 +10,16 @@ import com.example.urbane.data.repository.FinancesRepository
 import com.example.urbane.ui.admin.finances.model.FinancesIntent
 import com.example.urbane.ui.admin.finances.model.FinancesState
 import com.example.urbane.ui.admin.finances.model.FinancesSuccess
+import com.example.urbane.utils.PdfGenerator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class FinancesViewModel(sessionManager: SessionManager) : ViewModel() {
+class FinancesViewModel(
+    private val sessionManager: SessionManager
+) : ViewModel() {
     private val _state = MutableStateFlow(FinancesState())
     val state = _state.asStateFlow()
     private val repository = FinancesRepository(sessionManager)
@@ -26,22 +34,19 @@ class FinancesViewModel(sessionManager: SessionManager) : ViewModel() {
             }
             is FinancesIntent.RegisterExpense -> registerExpense()
 
-            // Nuevos intents para reporte financiero
             is FinancesIntent.UpdateStartDate -> {
                 _state.value = _state.value.copy(startDate = intent.date)
-                // Si ambas fechas están seleccionadas, cargar reporte automáticamente
                 if (_state.value.endDate != null && intent.date != null) {
                     loadReport()
                 }
             }
             is FinancesIntent.UpdateEndDate -> {
                 _state.value = _state.value.copy(endDate = intent.date)
-                // Si ambas fechas están seleccionadas, cargar reporte automáticamente
                 if (_state.value.startDate != null && intent.date != null) {
                     loadReport()
                 }
             }
-            is FinancesIntent.GeneratePDF -> generatePDF()
+            is FinancesIntent.GeneratePDF -> generatePDF(intent.context)
             else -> {}
         }
     }
@@ -116,10 +121,8 @@ class FinancesViewModel(sessionManager: SessionManager) : ViewModel() {
                     errorMessage = null
                 )
 
-                // Cargar transacciones del rango de fechas
                 val transactions = repository.getTransactionsByDateRange(startDate, endDate)
 
-                // Calcular totales
                 val totalIngresos = transactions
                     .filter { it.type == com.example.urbane.ui.admin.finances.model.TransactionType.INGRESO }
                     .sumOf { it.amount }
@@ -146,10 +149,61 @@ class FinancesViewModel(sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-    private fun generatePDF() {
-        // TODO: Implementar generación de PDF
-        Log.d("FinancesViewModel", "Generar PDF - Función pendiente de implementación")
-        // Aquí irá la lógica para generar el PDF del reporte
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun generatePDF(context: Context) {
+        viewModelScope.launch {
+            try {
+                _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+
+                val currentState = _state.value
+
+                if (currentState.startDate == null || currentState.endDate == null) {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        errorMessage = "Seleccione un rango de fechas"
+                    )
+                    return@launch
+                }
+
+                if (currentState.filteredTransactions.isEmpty()) {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        errorMessage = "No hay transacciones para generar el reporte"
+                    )
+                    return@launch
+                }
+
+                // Generar PDF en hilo de background
+                val (pdfUri, fileName) = PdfGenerator.generateFinancialReport(
+                    context = context,
+                    startDate = currentState.startDate,
+                    endDate = currentState.endDate,
+                    transactions = currentState.filteredTransactions,
+                    totalIngresos = currentState.totalIngresos,
+                    totalEgresos = currentState.totalEgresos
+                )
+
+                if (pdfUri != null && fileName != null) {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        success = FinancesSuccess.PDFGenerated(pdfUri, fileName)
+                    )
+                    Log.d("FinancesViewModel", "PDF generado exitosamente: $fileName")
+                } else {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        errorMessage = "Error al generar el PDF"
+                    )
+                }
+
+            } catch (e: Exception) {
+                Log.e("FinancesViewModel", "Error generando PDF: ${e.message}", e)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    errorMessage = "Error al generar PDF: ${e.message}"
+                )
+            }
+        }
     }
 
     fun loadExpenses() {

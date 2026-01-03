@@ -182,7 +182,6 @@ fun ExpensesScreen(viewModel: FinancesViewModel) {
             sheetState = sheetState,
             onDismiss = {
                 showBottomSheet = false
-
                 viewModel.handleIntent(FinancesIntent.UpdateAmount(""))
                 viewModel.handleIntent(FinancesIntent.UpdateDescription(""))
             }

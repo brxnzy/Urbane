@@ -1,5 +1,10 @@
 package com.example.urbane.ui.admin.finances.view
+
 import FinancesViewModel
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,8 +35,14 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,285 +51,357 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.urbane.ui.admin.finances.model.FinancesIntent
+import com.example.urbane.ui.admin.finances.model.FinancesSuccess
 import com.example.urbane.ui.admin.finances.model.TransactionType
 import com.example.urbane.ui.admin.finances.view.components.AccordionSection
 import com.example.urbane.ui.admin.finances.view.components.DatePickerModal
 import com.example.urbane.ui.admin.finances.view.components.TransactionCard
 import com.example.urbane.utils.formatDate
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinancialReportScreen(viewModel: FinancesViewModel) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
     var ingresosExpanded by remember { mutableStateOf(false) }
     var egresosExpanded by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Reporte Financiero",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
+    // Manejar el éxito de la generación del PDF
+    LaunchedEffect(state.success) {
+        when (val success = state.success) {
+            is FinancesSuccess.PDFGenerated -> {
+                val result = snackbarHostState.showSnackbar(
+                    message = "${success.fileName} guardado en Descargas",
+                    actionLabel = "Abrir",
+                    duration = SnackbarDuration.Long
+                )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            OutlinedCard(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { showStartDatePicker = true }
-            ) {
-                Column(
-                    modifier = Modifier.padding(12.dp)
-                ) {
-                    Text(
-                        text = "Fecha Inicio",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
+                if (result == SnackbarResult.ActionPerformed) {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(success.uri, "application/pdf")
+                            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        }
+
+                        context.startActivity(Intent.createChooser(intent, "Abrir PDF"))
+                    } catch (e: ActivityNotFoundException) {
+                        snackbarHostState.showSnackbar(
+                            message = "No se encontró una aplicación para abrir PDF",
+                            duration = SnackbarDuration.Short
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = formatDate(state.startDate) ?: "Seleccionar",
-                            style = MaterialTheme.typography.bodyLarge
+                    } catch (e: Exception) {
+                        snackbarHostState.showSnackbar(
+                            message = "Error al abrir el archivo",
+                            duration = SnackbarDuration.Short
                         )
                     }
                 }
+                viewModel.resetSuccess()
             }
-
-            OutlinedCard(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { showEndDatePicker = true }
-            ) {
-                Column(
-                    modifier = Modifier.padding(12.dp)
-                ) {
-                    Text(
-                        text = "Fecha Fin",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = formatDate(state.endDate),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
-            }
+            else -> {}
         }
+    }
 
-        Spacer(modifier = Modifier.height(24.dp))
+    // Mostrar errores
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let { error ->
+            snackbarHostState.showSnackbar(
+                message = error,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 
-        if (state.startDate != null && state.endDate != null) {
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Reporte Financiero",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Card(
-                    modifier = Modifier.weight(1f),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f)
-                    )
+                OutlinedCard(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { showStartDatePicker = true }
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(12.dp)
                     ) {
+                        Text(
+                            text = "Fecha Inicio",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.ArrowUpward,
+                                imageVector = Icons.Default.DateRange,
                                 contentDescription = null,
-                                tint = Color(0xFF4CAF50),
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Ingresos",
-                                style = MaterialTheme.typography.labelMedium,
+                                text = formatDate(state.startDate) ?: "Seleccionar",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+
+                OutlinedCard(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { showEndDatePicker = true }
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Text(
+                            text = "Fecha Fin",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = formatDate(state.endDate) ?: "Seleccionar",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if (state.startDate != null && state.endDate != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowUpward,
+                                    contentDescription = null,
+                                    tint = Color(0xFF4CAF50),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Ingresos",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Color(0xFF4CAF50)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "$${String.format("%.2f", state.totalIngresos)}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
                                 color = Color(0xFF4CAF50)
                             )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "$${String.format("%.2f", state.totalIngresos)}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF4CAF50)
-                        )
                     }
-                }
-                Card(
-                    modifier = Modifier.weight(1f),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFF44336).copy(alpha = 0.1f)
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFF44336).copy(alpha = 0.1f)
+                        )
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier.padding(16.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowDownward,
-                                contentDescription = null,
-                                tint = Color(0xFFF44336),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDownward,
+                                    contentDescription = null,
+                                    tint = Color(0xFFF44336),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Egresos",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Color(0xFFF44336)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Egresos",
-                                style = MaterialTheme.typography.labelMedium,
+                                text = "$${String.format("%.2f", state.totalEgresos)}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
                                 color = Color(0xFFF44336)
                             )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                AccordionSection(
+                    title = "Ingresos o Transacciones",
+                    count = state.filteredTransactions.count { it.type == TransactionType.INGRESO },
+                    expanded = ingresosExpanded,
+                    onToggle = { ingresosExpanded = !ingresosExpanded },
+                    color = Color(0xFF4CAF50)
+                ) {
+                    val ingresos = state.filteredTransactions.filter { it.type == TransactionType.INGRESO }
+                    if (ingresos.isEmpty()) {
                         Text(
-                            text = "$${String.format("%.2f", state.totalEgresos)}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFF44336)
+                            text = "No hay ingresos en este período",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 300.dp)
+                        ) {
+                            items(ingresos) { transaction ->
+                                TransactionCard(transaction = transaction)
+                                if (transaction != ingresos.last()) {
+                                    HorizontalDivider()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                AccordionSection(
+                    title = "Egresos",
+                    count = state.filteredTransactions.count { it.type == TransactionType.EGRESO },
+                    expanded = egresosExpanded,
+                    onToggle = { egresosExpanded = !egresosExpanded },
+                    color = Color(0xFFF44336)
+                ) {
+                    val egresos = state.filteredTransactions.filter { it.type == TransactionType.EGRESO }
+                    if (egresos.isEmpty()) {
+                        Text(
+                            text = "No hay egresos en este período",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 300.dp)
+                        ) {
+                            items(egresos) { transaction ->
+                                TransactionCard(transaction = transaction)
+                                if (transaction != egresos.last()) {
+                                    HorizontalDivider()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = { viewModel.handleIntent(FinancesIntent.GeneratePDF(context)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    enabled = !state.isLoading
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Generar PDF",
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            AccordionSection(
-                title = "Ingresos o Transacciones",
-                count = state.filteredTransactions.count { it.type == TransactionType.INGRESO },
-                expanded = ingresosExpanded,
-                onToggle = { ingresosExpanded = !ingresosExpanded },
-                color = Color(0xFF4CAF50)
-            ) {
-                val ingresos = state.filteredTransactions.filter { it.type == TransactionType.INGRESO }
-                if (ingresos.isEmpty()) {
-                    Text(
-                        text = "No hay ingresos en este período",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 300.dp)
-                    ) {
-                        items(ingresos) { transaction ->
-                            TransactionCard(transaction = transaction)
-                            if (transaction != ingresos.last()) {
-                                HorizontalDivider()
-                            }
-                        }
-                    }
+            if (state.isLoadingReport) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            AccordionSection(
-                title = "Egresos",
-                count = state.filteredTransactions.count { it.type == TransactionType.EGRESO },
-                expanded = egresosExpanded,
-                onToggle = { egresosExpanded = !egresosExpanded },
-                color = Color(0xFFF44336)
-            ) {
-                val egresos = state.filteredTransactions.filter { it.type == TransactionType.EGRESO }
-                if (egresos.isEmpty()) {
-                    Text(
-                        text = "No hay egresos en este período",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 300.dp)
-                    ) {
-                        items(egresos) { transaction ->
-                            TransactionCard(transaction = transaction)
-                            if (transaction != egresos.last()) {
-                                HorizontalDivider()
-                            }
-                        }
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = { viewModel.handleIntent(FinancesIntent.GeneratePDF) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PictureAsPdf,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Generar PDF",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-        }
-        if (state.isLoadingReport) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
             }
         }
     }
+
     if (showStartDatePicker) {
         DatePickerModal(
             onDateSelected = { date ->
-                viewModel.handleIntent(FinancesIntent.UpdateStartDate(date as String?))
+                viewModel.handleIntent(FinancesIntent.UpdateStartDate(date))
                 showStartDatePicker = false
             },
             onDismiss = { showStartDatePicker = false }
         )
     }
+
     if (showEndDatePicker) {
         DatePickerModal(
             onDateSelected = { date ->
-                viewModel.handleIntent(FinancesIntent.UpdateEndDate(date as String?))
+                viewModel.handleIntent(FinancesIntent.UpdateEndDate(date))
                 showEndDatePicker = false
             },
             onDismiss = { showEndDatePicker = false }
