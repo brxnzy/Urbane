@@ -11,5 +11,6 @@ data class CurrentUser(
     val accessToken: String = "",
     val refreshToken: String ="",
     val roleId: String = "",
-    val userData: UserResidentialRole?
+    val userData: UserResidentialRole?,
+    val residentialId: Int = 0
 )

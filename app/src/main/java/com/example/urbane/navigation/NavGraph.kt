@@ -1,6 +1,7 @@
 package com.example.urbane.navigation
 
 import AddResidenceScreen
+import AuditLogsScreen
 import FinancesViewModel
 import android.annotation.SuppressLint
 import android.os.Build
@@ -33,6 +34,7 @@ import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
+import com.example.urbane.ui.admin.settings.viewmodel.AuditLogsViewModel
 import com.example.urbane.ui.admin.users.view.AddUserScreen
 import com.example.urbane.ui.admin.users.view.UserDetailScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
@@ -67,6 +69,7 @@ fun MainNavigation(
     val finesDetailViewModel = FinesDetailViewModel(sessionManager)
     val incidentsViewModel = IncidentsViewModel(sessionManager)
     val financesViewModel = FinancesViewModel(sessionManager)
+    val auditLogsViewModel = AuditLogsViewModel(sessionManager)
 
 
 
@@ -289,6 +292,12 @@ fun MainNavigation(
 
         composable(Routes.ADMIN_RESIDENCES_ADD) {
             AddResidenceScreen(residencesViewModel){
+                navController.popBackStack()
+            }
+        }
+
+        composable(Routes.ADMIN_SETTINGS_LOGS) {
+            AuditLogsScreen(auditLogsViewModel){
                 navController.popBackStack()
             }
         }

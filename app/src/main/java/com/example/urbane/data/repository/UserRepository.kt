@@ -4,32 +4,35 @@ import com.example.urbane.BuildConfig
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Contract
+import com.example.urbane.data.model.CreateUserRequest
 import com.example.urbane.data.model.Residential
 import com.example.urbane.data.model.Role
 import com.example.urbane.data.model.UrrIds
 import com.example.urbane.data.model.User
 import com.example.urbane.data.model.UserResidentialRole
 import com.example.urbane.data.remote.supabase
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.jsonPrimitive
-import io.ktor.client.*
-import io.ktor.client.engine.android.Android
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.jsonObject
-import com.example.urbane.data.model.CreateUserRequest
 import com.example.urbane.utils.getResidentialId
+import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.rpc
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
 
@@ -55,6 +58,58 @@ class UserRepository(val sessionManager: SessionManager) {
         } catch (e: Exception) {
             Log.e("UserRepository", "Error al obtener role_id", e)
             null
+        }
+    }
+
+    // Esta es como getCurrentUser pero para un residencial específico
+    suspend fun getCurrentUserForResidential(
+        currentUserId: String,
+        currentUserEmail: String,
+        residentialId: Int
+    ): UserResidentialRole? {
+        try {
+            val user = supabase.from("users")
+                .select(columns = Columns.list("id", "name", "idCard", "createdAt", "photoUrl")) {
+                    filter {
+                        eq("id", currentUserId)
+                    }
+                }.decodeSingle<User>()
+
+            val urr = supabase.from("users_residentials_roles")
+                .select(columns = Columns.list("user_id", "residential_id", "role_id")) {
+                    filter {
+                        eq("user_id", currentUserId)
+                        eq("residential_id", residentialId) // ✅ Filtro específico
+                    }
+                }
+                .decodeSingle<UrrIds>()
+
+            val residential = supabase.from("residentials")
+                .select(columns = Columns.list("id", "name", "address", "phone", "logoUrl")) {
+                    filter {
+                        eq("id", residentialId)
+                    }
+                }
+                .decodeSingle<Residential>()
+
+            val role = supabase.from("roles")
+                .select(columns = Columns.list("id", "name")) {
+                    filter {
+                        eq("id", urr.role_id)
+                    }
+                }
+                .decodeSingle<Role>()
+
+            val userE = user.copy(email = currentUserEmail)
+
+            return UserResidentialRole(
+                user = userE,
+                residential = residential,
+                role = role
+            )
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error: ${e.message}")
+            return null
         }
     }
 
@@ -125,6 +180,38 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
+    // En UserRepository.kt
+    suspend fun getUserResidentials(userId: String): List<Residential> {
+        return try {
+            val urrList = supabase.from("users_residentials_roles")
+                .select(columns = Columns.list("residential_id")) {
+                    filter {
+                        eq("user_id", userId)
+                    }
+                }
+                .decodeList<UrrResidentialId>()  // Solo necesitas el residential_id
+
+            // Obtener datos de cada residencial
+            urrList.map { urr ->
+                supabase.from("residentials")
+                    .select(columns = Columns.list("id", "name", "address", "phone", "logoUrl")) {
+                        filter {
+                            eq("id", urr.residential_id)
+                        }
+                    }
+                    .decodeSingle<Residential>()
+            }
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error obteniendo residenciales: ${e.message}")
+            emptyList()
+        }
+    }
+
+    // Modelo auxiliar
+    @Serializable
+    data class UrrResidentialId(
+        val residential_id: Int
+    )
 
     suspend fun createUser(
         name: String,

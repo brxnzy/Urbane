@@ -37,33 +37,86 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
     val userRepository = UserRepository(sessionManager)
 
+    private var tempUserId: String? = null
+    private var tempEmail: String? = null
+    private var tempAccessToken: String? = null
+    private var tempRefreshToken: String? = null
+    private var tempRoleId: String? = null
+
 
     @RequiresApi(Build.VERSION_CODES.P)
     fun processIntent(intent: LoginIntent) {
         when (intent) {
-
             is LoginIntent.EmailChanged -> {
                 _state.update { it.copy(email = intent.email) }
             }
-
             is LoginIntent.PasswordChanged -> {
                 _state.update { it.copy(password = intent.password) }
             }
-
             is LoginIntent.Submit -> {
                 handleSubmit()
             }
-
             is LoginIntent.ClearError -> {
                 _state.update { it.copy(errorMessage = null) }
             }
-
             LoginIntent.Logout -> {
-                onLogoutClicked {  }
+                onLogoutClicked { }
+            }
+            // ✅ NUEVO
+            is LoginIntent.ResidentialSelected -> {
+                handleResidentialSelection(intent.residentialId)
             }
         }
     }
 
+    // ✅ NUEVA función
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun handleResidentialSelection(residentialId: Int) {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true, showResidentialSelector = false) }
+
+                // Usar los datos guardados temporalmente
+                val userId = tempUserId ?: throw Exception("No user data")
+                val email = tempEmail ?: throw Exception("No email")
+
+                // Obtener userData con el residencial específico
+                val userData = userRepository.getCurrentUserForResidential(userId, email, residentialId)
+
+                val currentUser = CurrentUser(
+                    userId = userId,
+                    email = email,
+                    accessToken = tempAccessToken!!,
+                    refreshToken = tempRefreshToken!!,
+                    roleId = tempRoleId!!,
+                    userData
+                )
+
+                sessionManager.saveSession(currentUser)
+                saveFcmToken(userId, residentialId, tempRoleId!!)
+
+                // Limpiar temporales
+                clearTempData()
+
+                _state.update { it.copy(isLoading = false, success = true) }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message ?: "Error al seleccionar residencial"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun clearTempData() {
+        tempUserId = null
+        tempEmail = null
+        tempAccessToken = null
+        tempRefreshToken = null
+        tempRoleId = null
+    }
     @RequiresApi(Build.VERSION_CODES.P)
     private fun handleSubmit() {
         viewModelScope.launch {
@@ -93,7 +146,38 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
                 val email = session.user!!.email ?: state.value.email
                 val roleId = userRepository.getUserRole(userId)
-                val userData = userRepository.getCurrentUser(userId,email)
+
+// ✅ AGREGAR ESTO AQUÍ
+                val residentials = userRepository.getUserResidentials(userId)
+
+                if (residentials.isEmpty()) {
+                    throw Exception("Usuario sin residencial asignado")
+                }
+
+// Si tiene más de 1 residencial, mostrar selector
+                if (residentials.size > 1) {
+                    // Guardar datos temporalmente
+                    tempUserId = userId
+                    tempEmail = email
+                    tempAccessToken = session.accessToken
+                    tempRefreshToken = session.refreshToken
+                    tempRoleId = roleId.toString()
+
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            showResidentialSelector = true,
+                            availableResidentials = residentials
+                        )
+                    }
+                    return@launch // Detener aquí y esperar selección
+                }
+
+// Si solo tiene 1 residencial, continuar normal
+                val userData = userRepository.getCurrentUser(userId, email)
+                Log.d("LoginVM", "data del usuario $userData")
+
+// ... resto del código actual sin tocar                val userData = userRepository.getCurrentUser(userId,email)
                 Log.d("LoginVM","data del usuario $userData")
 
                 val currentUser = CurrentUser(

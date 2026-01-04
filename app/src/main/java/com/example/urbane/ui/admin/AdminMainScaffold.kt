@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Dashboard
@@ -103,7 +104,12 @@ fun AdminMainScaffold(
                     .width(270.dp)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                DrawerContent(sessionManager,navController,loginViewModel,currentRoute) { route ->
+                DrawerContent(
+                    sessionManager,
+                    navController,
+                    loginViewModel,
+                    currentRoute
+                ) { route ->
                     navController.navigate(route) {
                         popUpTo(Routes.ADMIN) { inclusive = false }
                         launchSingleTop = true
@@ -117,28 +123,40 @@ fun AdminMainScaffold(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(text= when(currentRoute){
-                            Routes.ADMIN_USERS -> stringResource(R.string.usuarios)
-                            Routes.ADMIN_PAYMENTS -> stringResource(R.string.pagos)
-                            Routes.ADMIN_RESIDENCES -> stringResource(R.string.residencias)
-                            Routes.ADMIN_INCIDENTS -> stringResource(R.string.incidencias)
-                            Routes.ADMIN_CONTRACTS -> stringResource(R.string.contratos)
-                            Routes.ADMIN_FINES -> stringResource(R.string.multas)
-                            Routes.ADMIN_FINANCES -> stringResource(R.string.finanzas)
-                            Routes.ADMIN -> "Dashboard"
-                            else -> "Panel Admin"
-                        }, style = MaterialTheme.typography.displayMedium)
+                        Text(
+                            text = when (currentRoute) {
+                                Routes.ADMIN_USERS -> stringResource(R.string.usuarios)
+                                Routes.ADMIN_PAYMENTS -> stringResource(R.string.pagos)
+                                Routes.ADMIN_RESIDENCES -> stringResource(R.string.residencias)
+                                Routes.ADMIN_INCIDENTS -> stringResource(R.string.incidencias)
+                                Routes.ADMIN_CONTRACTS -> stringResource(R.string.contratos)
+                                Routes.ADMIN_FINES -> stringResource(R.string.multas)
+                                Routes.ADMIN_FINANCES -> stringResource(R.string.finanzas)
+                                Routes.ADMIN_SETTINGS -> stringResource(R.string.configuraci_n)
+                                Routes.ADMIN -> "Dashboard"
+                                else -> "Panel Admin"
+                            }, style = MaterialTheme.typography.displayMedium
+                        )
 
 
-                            },
+                    },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Panel", modifier = Modifier.size(30.dp))
+                            Icon(
+                                Icons.Default.Menu,
+                                contentDescription = "Panel",
+                                modifier = Modifier.size(30.dp)
+                            )
                         }
                     },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
+                    actions ={
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Default.Sync, null)
+                        }
+                    }
 
                 )
 
@@ -152,13 +170,25 @@ fun AdminMainScaffold(
                         modifier = Modifier.padding(16.dp),
                         navController = navController
                     )
-                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(residencesViewModel,navController,modifier = Modifier.padding(16.dp), showResidenceDeletedMessage)
-                    Routes.ADMIN_INCIDENTS-> IncidentsScreen(incidentsViewModel)
-                    Routes.ADMIN_FINES-> FinesScreen(finesViewModel, navController)
+
+                    Routes.ADMIN_RESIDENCES -> ResidencesScreen(
+                        residencesViewModel,
+                        navController,
+                        modifier = Modifier.padding(16.dp),
+                        showResidenceDeletedMessage
+                    )
+
+                    Routes.ADMIN_INCIDENTS -> IncidentsScreen(incidentsViewModel)
+                    Routes.ADMIN_FINES -> FinesScreen(finesViewModel, navController)
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(paymentsViewModel, navController)
                     Routes.ADMIN_FINANCES -> FinancesScreen(financesViewModel)
-                    Routes.ADMIN_SETTINGS -> SettingsScreen(sessionManager)
-                    Routes.ADMIN_CONTRACTS -> ContractsScreen(modifier = Modifier.padding(16.dp),navController, contractsViewModel)
+                    Routes.ADMIN_SETTINGS -> SettingsScreen(sessionManager, navController)
+                    Routes.ADMIN_CONTRACTS -> ContractsScreen(
+                        modifier = Modifier.padding(16.dp),
+                        navController,
+                        contractsViewModel
+                    )
+
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
             }
@@ -167,84 +197,155 @@ fun AdminMainScaffold(
 }
 
 @Composable
-fun DrawerContent(sessionManager: SessionManager,navController: NavHostController,loginViewModel: LoginViewModel, currentRoute: String, onDestinationClicked: (String) -> Unit) {
+fun DrawerContent(
+    sessionManager: SessionManager,
+    navController: NavHostController,
+    loginViewModel: LoginViewModel,
+    currentRoute: String,
+    onDestinationClicked: (String) -> Unit
+) {
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
     val user = userState.value
 
-    Column(modifier = Modifier.fillMaxSize(),
+    Column(
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-    Column(modifier = Modifier
-        .padding(top = 35.dp,
-            )
-    ) {
-        if (user?.userData?.residential?.logoUrl?.isBlank() == true) {
-            Image(
-                painter = rememberAsyncImagePainter(user.userData.residential.logoUrl),
-                contentDescription = "Logo del residencial",
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .size(100.dp)
-            )
-        } else {
-        Image(
-            painter = painterResource(R.drawable.logo),
-            contentDescription = null,
+        Column(
             modifier = Modifier
-                .size(60.dp)
-                .padding(start = 15.dp)
-        )
-    }
-        Text(
-            user?.userData?.residential?.name ?: "Panel" ,
-            modifier = Modifier.padding(12.dp),
-            style = MaterialTheme.typography.titleLarge,
-        )
-        HorizontalDivider(modifier = Modifier.padding(bottom = 6.dp))
-        DrawerItem("Dashboard", Icons.Outlined.Dashboard , Routes.ADMIN, currentRoute, onDestinationClicked)
-        DrawerItem(stringResource(R.string.usuarios), Icons.Outlined.Person, Routes.ADMIN_USERS, currentRoute, onDestinationClicked)
-        DrawerItem(stringResource(R.string.residencias), Icons.Outlined.House, Routes.ADMIN_RESIDENCES, currentRoute, onDestinationClicked)
-        DrawerItem(stringResource(R.string.incidencias),Icons.Outlined.ReportProblem, Routes.ADMIN_INCIDENTS, currentRoute, onDestinationClicked)
-        DrawerItem(stringResource(R.string.pagos), Icons.Outlined.Payments, Routes.ADMIN_PAYMENTS, currentRoute, onDestinationClicked)
-        DrawerItem(stringResource(R.string.contratos), Icons.Outlined.Assignment, Routes.ADMIN_CONTRACTS, currentRoute, onDestinationClicked)
-        DrawerItem(stringResource(R.string.finanzas), Icons.Outlined.Analytics, Routes.ADMIN_FINANCES, currentRoute, onDestinationClicked)
-        DrawerItem(stringResource(R.string.multas), Icons.Outlined.Gavel, Routes.ADMIN_FINES, currentRoute, onDestinationClicked)
-        DrawerItem(stringResource(R.string.configuraci_n), Icons.Outlined.Settings, Routes.ADMIN_SETTINGS, currentRoute, onDestinationClicked)
-
-    }
-
-    Column(modifier = Modifier.padding(bottom = 45.dp)) {
-
-        Button(
-            onClick = {loginViewModel.onLogoutClicked { navController.navigate(Routes.LOGIN)
-            {popUpTo(0) { inclusive = true }
-                launchSingleTop = true } }},
-
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
-                contentColor = Color.White
-
-            ),
-            shape =  RoundedCornerShape(
-                topStart = 10.dp,
-                bottomStart = 10.dp,
-                topEnd = 10.dp,
-                bottomEnd = 10.dp
-            )
+                .padding(
+                    top = 35.dp,
+                )
         ) {
-            Row (modifier = Modifier.padding(vertical = 5.dp),horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ){
-
-                Icon(Icons.Default.Logout, contentDescription = "Cerrar sesion")
-                Text("Cerrar Sesion", style = MaterialTheme.typography.bodyMedium)
-
+            if (user?.userData?.residential?.logoUrl?.isBlank() == true) {
+                Image(
+                    painter = rememberAsyncImagePainter(user.userData.residential.logoUrl),
+                    contentDescription = "Logo del residencial",
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .size(100.dp)
+                )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.logo),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(60.dp)
+                        .padding(start = 15.dp)
+                )
             }
+            Text(
+                user?.userData?.residential?.name ?: "Panel",
+                modifier = Modifier.padding(12.dp),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            HorizontalDivider(modifier = Modifier.padding(bottom = 6.dp))
+            DrawerItem(
+                "Dashboard",
+                Icons.Outlined.Dashboard,
+                Routes.ADMIN,
+                currentRoute,
+                onDestinationClicked
+            )
+            DrawerItem(
+                stringResource(R.string.usuarios),
+                Icons.Outlined.Person,
+                Routes.ADMIN_USERS,
+                currentRoute,
+                onDestinationClicked
+            )
+            DrawerItem(
+                stringResource(R.string.residencias),
+                Icons.Outlined.House,
+                Routes.ADMIN_RESIDENCES,
+                currentRoute,
+                onDestinationClicked
+            )
+            DrawerItem(
+                stringResource(R.string.incidencias),
+                Icons.Outlined.ReportProblem,
+                Routes.ADMIN_INCIDENTS,
+                currentRoute,
+                onDestinationClicked
+            )
+            DrawerItem(
+                stringResource(R.string.pagos),
+                Icons.Outlined.Payments,
+                Routes.ADMIN_PAYMENTS,
+                currentRoute,
+                onDestinationClicked
+            )
+            DrawerItem(
+                stringResource(R.string.contratos),
+                Icons.Outlined.Assignment,
+                Routes.ADMIN_CONTRACTS,
+                currentRoute,
+                onDestinationClicked
+            )
+            DrawerItem(
+                stringResource(R.string.finanzas),
+                Icons.Outlined.Analytics,
+                Routes.ADMIN_FINANCES,
+                currentRoute,
+                onDestinationClicked
+            )
+            DrawerItem(
+                stringResource(R.string.multas),
+                Icons.Outlined.Gavel,
+                Routes.ADMIN_FINES,
+                currentRoute,
+                onDestinationClicked
+            )
+            DrawerItem(
+                stringResource(R.string.configuraci_n),
+                Icons.Outlined.Settings,
+                Routes.ADMIN_SETTINGS,
+                currentRoute,
+                onDestinationClicked
+            )
+
         }
 
-    }
+        Column(modifier = Modifier.padding(bottom = 45.dp)) {
+
+            Button(
+                onClick = {
+                    loginViewModel.onLogoutClicked {
+                        navController.navigate(Routes.LOGIN)
+                        {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Red,
+                    contentColor = Color.White
+
+                ),
+                shape = RoundedCornerShape(
+                    topStart = 10.dp,
+                    bottomStart = 10.dp,
+                    topEnd = 10.dp,
+                    bottomEnd = 10.dp
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+
+                    Icon(Icons.Default.Logout, contentDescription = "Cerrar sesion")
+                    Text("Cerrar Sesion", style = MaterialTheme.typography.bodyMedium)
+
+                }
+            }
+
+        }
 
     }
 }

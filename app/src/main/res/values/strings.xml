@@ -147,4 +147,17 @@
     <string name="egresos">Egresos</string>
     <string name="finanzas">Finanzas</string>
     <string name="registrar_egreso">Registrar Egreso</string>
+
+    <string name="audit_residence_created">
+Se creó la residencia %1$s
+</string>
+
+    <string name="audit_residence_updated">
+Se actualizó la residencia de %1$s a %2$s
+</string>
+
+    <string name="audit_unknown">
+Acción registrada
+</string>
+
 </resources>

@@ -50,13 +50,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.urbane.data.local.SessionManager
+import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.auth.model.CurrentUser
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(sessionManager: SessionManager) {
+fun SettingsScreen(sessionManager: SessionManager, navController: NavController) {
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
     val user = userState.value
 
@@ -125,7 +127,7 @@ fun SettingsScreen(sessionManager: SessionManager) {
                 icon = Icons.Default.Warning,
                 title = "Auditoria",
                 subtitle = "Registro de acciones y cambios realizados por los usuarios",
-                onClick = { /* TODO */ }
+                onClick = { navController.navigate(Routes.ADMIN_SETTINGS_LOGS) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))

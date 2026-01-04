@@ -9,21 +9,53 @@ import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.rpc
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 
 class ResidencesRepository(val sessionManager: SessionManager) {
-    suspend fun createResidence(name:String, type:String, description:String){
+
+    val auditLogRepository = AuditLogsRepository(sessionManager)
+
+    suspend fun createResidence(
+        name: String,
+        type: String,
+        description: String
+    ) {
         try {
             val residentialId = getResidentialId(sessionManager)
-            Log.d("ResidencesRepository","intentando crear residencia")
-            val data = Residence(name =name, type =type, description =description, available = true, residentialId =residentialId)
-            Log.d("ResidencesRepository","DATOS A INSERTAR $data")
-            supabase.from("residences").insert(data)
-        }catch (e: Exception){
 
-            Log.e("ResidencesRepository",e.toString())
+            val residence = Residence(
+                name = name,
+                type = type,
+                description = description,
+                available = true,
+                residentialId = residentialId
+            )
+
+            val result = supabase
+                .from("residences")
+                .insert(residence) {
+                    select()
+                }.decodeSingle<Residence>()
+
+            print(result)
+
+            Log.d("ResidencesRepository", "intentando loguear la accion")
+            auditLogRepository.logAction(
+                action = "RESIDENCE_CREATED",
+                entity = "residences",
+                entityId = result.id.toString(),
+                data = buildJsonObject {
+                    put("name", JsonPrimitive(name))
+                    put("type", JsonPrimitive(type))
+                }
+            )
+
+        } catch (e: Exception) {
+            Log.e("ResidencesRepository", e.toString())
         }
-
     }
+
 
     suspend fun getResidences(): List<Residence> {
         try {
@@ -31,7 +63,7 @@ class ResidencesRepository(val sessionManager: SessionManager) {
 
             val residences = supabase
                 .from("residences")
-                .select (){
+                .select() {
                     filter {
                         eq("residentialId", residentialId)
                     }
@@ -49,7 +81,7 @@ class ResidencesRepository(val sessionManager: SessionManager) {
         return try {
             supabase
                 .from("residences_view")
-                .select (){
+                .select() {
                     filter {
                         eq("id", id)
                     }

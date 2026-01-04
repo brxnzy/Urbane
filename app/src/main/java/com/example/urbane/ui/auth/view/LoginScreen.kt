@@ -2,6 +2,8 @@ package com.example.urbane.ui.auth.view
 
 
 import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,15 +45,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
+import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.auth.model.LoginIntent
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
-import android.widget.Toast
-import androidx.annotation.RequiresApi
-import androidx.navigation.NavController
-import androidx.compose.runtime.livedata.observeAsState
-import com.example.urbane.navigation.Routes
 
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -203,6 +203,15 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
                 modifier = Modifier.clickable{
                     toRegister()
                 })
+        }
+
+        if (state.showResidentialSelector) {
+            ResidentialSelectorDialog(
+                residentials = state.availableResidentials,
+                onResidentialSelected = { residentialId ->
+                    viewModel.processIntent(LoginIntent.ResidentialSelected(residentialId))
+                }
+            )
         }
 
     }
