@@ -20,6 +20,7 @@ import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -50,15 +51,19 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
             is LoginIntent.EmailChanged -> {
                 _state.update { it.copy(email = intent.email) }
             }
+
             is LoginIntent.PasswordChanged -> {
                 _state.update { it.copy(password = intent.password) }
             }
+
             is LoginIntent.Submit -> {
                 handleSubmit()
             }
+
             is LoginIntent.ClearError -> {
                 _state.update { it.copy(errorMessage = null) }
             }
+
             LoginIntent.Logout -> {
                 onLogoutClicked { }
             }
@@ -66,6 +71,15 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
             is LoginIntent.ResidentialSelected -> {
                 handleResidentialSelection(intent.residentialId)
             }
+
+            LoginIntent.ShowResidentialSelector -> {
+                loadAvailableResidentials()
+            }
+
+            LoginIntent.DismissResidentialSelector -> {
+                dismissResidentialSelector()
+            }
+
         }
     }
 
@@ -76,30 +90,50 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
             try {
                 _state.update { it.copy(isLoading = true, showResidentialSelector = false) }
 
-                // Usar los datos guardados temporalmente
-                val userId = tempUserId ?: throw Exception("No user data")
-                val email = tempEmail ?: throw Exception("No email")
+                // Verificar si es durante login o cambio de sesión activa
+                if (tempUserId != null) {
+                    // ✅ Durante el login inicial
+                    val userId = tempUserId ?: throw Exception("No user data")
+                    val email = tempEmail ?: throw Exception("No email")
 
-                // Obtener userData con el residencial específico
-                val userData = userRepository.getCurrentUserForResidential(userId, email, residentialId)
+                    val userData = userRepository.getCurrentUserForResidential(userId, email, residentialId)
 
-                val currentUser = CurrentUser(
-                    userId = userId,
-                    email = email,
-                    accessToken = tempAccessToken!!,
-                    refreshToken = tempRefreshToken!!,
-                    roleId = tempRoleId!!,
-                    userData
-                )
+                    val currentUser = CurrentUser(
+                        userId = userId,
+                        email = email,
+                        accessToken = tempAccessToken!!,
+                        refreshToken = tempRefreshToken!!,
+                        roleId = tempRoleId!!,
+                        userData
+                    )
 
-                sessionManager.saveSession(currentUser)
-                saveFcmToken(userId, residentialId, tempRoleId!!)
+                    sessionManager.saveSession(currentUser)
+                    saveFcmToken(userId, residentialId, tempRoleId!!)
 
-                // Limpiar temporales
-                clearTempData()
+                    clearTempData()
 
-                _state.update { it.copy(isLoading = false, success = true) }
+                    _state.update { it.copy(isLoading = false, success = true) }
+                } else {
+                    // ✅ Cambio de residencial en sesión activa
+                    val currentUser = sessionManager.sessionFlow.first()
+                    if (currentUser == null) throw Exception("No hay sesión activa")
+
+                    val userData = userRepository.getCurrentUserForResidential(
+                        currentUser.userId,
+                        currentUser.email,
+                        residentialId
+                    )
+
+                    val updatedUser = currentUser.copy(userData = userData)
+                    sessionManager.saveSession(updatedUser)
+
+                    // Actualizar FCM token con nuevo residencial
+                    saveFcmToken(currentUser.userId, residentialId, currentUser.roleId)
+
+                    _state.update { it.copy(isLoading = false) }
+                }
             } catch (e: Exception) {
+                Log.e("LoginVM", "Error seleccionando residencial: ${e.message}")
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -117,6 +151,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
         tempRefreshToken = null
         tempRoleId = null
     }
+
     @RequiresApi(Build.VERSION_CODES.P)
     private fun handleSubmit() {
         viewModelScope.launch {
@@ -138,8 +173,14 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
                 val disabled = userRepository.isUserDisabled(userId)
                 Log.d("LoginVM", "$disabled")
-                if (disabled == true){
-                    _state.update { it.copy(isLoading = false, disabled = true, errorMessage = null) }
+                if (disabled == true) {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            disabled = true,
+                            errorMessage = null
+                        )
+                    }
                     supabase.auth.signOut()
                     return@launch
                 }
@@ -178,7 +219,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 Log.d("LoginVM", "data del usuario $userData")
 
 // ... resto del código actual sin tocar                val userData = userRepository.getCurrentUser(userId,email)
-                Log.d("LoginVM","data del usuario $userData")
+                Log.d("LoginVM", "data del usuario $userData")
 
                 val currentUser = CurrentUser(
                     userId = userId,
@@ -220,8 +261,54 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
             }
         }
     }
+
+
+    fun loadAvailableResidentials() {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true) }
+
+                val currentUser = sessionManager.sessionFlow.first()
+                if (currentUser == null) {
+                    _state.update { it.copy(isLoading = false) }
+                    return@launch
+                }
+
+                val residentials = userRepository.getUserResidentials(currentUser.userId)
+
+                if (residentials.size > 1) {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            showResidentialSelector = true,
+                            availableResidentials = residentials
+                        )
+                    }
+                } else {
+                    // Solo tiene 1 residencial, no mostrar selector
+                    _state.update { it.copy(isLoading = false) }
+                }
+            } catch (e: Exception) {
+                Log.e("LoginVM", "Error cargando residenciales: ${e.message}")
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error al cargar residenciales"
+                    )
+                }
+            }
+        }
+
+
+    }
+
+    // ✅ NUEVA función para cerrar el dialog
+    fun dismissResidentialSelector() {
+        _state.update { it.copy(showResidentialSelector = false) }
+    }
+
     @OptIn(ExperimentalTime::class)
-    private suspend fun saveFcmToken(userId: String, residentialId:Int, roleId: String) {
+    private suspend fun saveFcmToken(userId: String, residentialId: Int, roleId: String) {
         try {
             val token = Firebase.messaging.token.await()
             Log.d("LoginVM", "Token FCM obtenido: $token")
@@ -251,31 +338,32 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
     }
 
     suspend fun performLogout() {
-            try {
-                supabase.auth.signOut()
-                sessionManager.clearSession()
-                _state.update { it.copy(success = true,  ) }
-                _currentUser.value = null
-            } catch (e: Exception) {
-                Log.e("LoginViewModel", "Error logout: ${e.message}")
+        try {
+            supabase.auth.signOut()
+            sessionManager.clearSession()
+            _state.update { it.copy(success = true) }
+            _currentUser.value = null
+        } catch (e: Exception) {
+            Log.e("LoginViewModel", "Error logout: ${e.message}")
 
         }
     }
+
     fun reset() {
         _state.value = LoginState()
     }
+
     fun onLogoutClicked(toLogin: () -> Unit) {
         viewModelScope.launch {
             try {
 
-        performLogout()
-        toLogin()
-            }catch (e:Exception){
-                Log.e("LOGOUT",e.toString())
+                performLogout()
+                toLogin()
+            } catch (e: Exception) {
+                Log.e("LOGOUT", e.toString())
             }
         }
     }
-
 
 
 }

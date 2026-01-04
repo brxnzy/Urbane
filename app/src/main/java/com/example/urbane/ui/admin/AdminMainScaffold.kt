@@ -18,7 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Dashboard
@@ -45,6 +45,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,6 +73,8 @@ import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.settings.view.SettingsScreen
 import com.example.urbane.ui.admin.users.view.UsersScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
+import com.example.urbane.ui.auth.model.LoginIntent
+import com.example.urbane.ui.auth.view.ResidentialSelectorDialog
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
@@ -94,6 +97,8 @@ fun AdminMainScaffold(
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val loginState by loginViewModel.state.collectAsState() // ✅ Observar estado
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -152,11 +157,20 @@ fun AdminMainScaffold(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.background
                     ),
-                    actions ={
-                        IconButton(onClick = { }) {
-                            Icon(Icons.Default.Sync, null)
+                    actions = {
+                        IconButton(
+                            onClick = {
+                                loginViewModel.processIntent(LoginIntent.ShowResidentialSelector)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SwapHoriz,
+                                contentDescription = "Cambiar residencial",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
+
 
                 )
 
@@ -192,6 +206,17 @@ fun AdminMainScaffold(
                     Routes.ADMIN -> Dashboard(sessionManager)
                 }
             }
+        }
+        if (loginState.showResidentialSelector) {
+            ResidentialSelectorDialog(
+                residentials = loginState.availableResidentials,
+                onResidentialSelected = { residentialId ->
+                    loginViewModel.processIntent(LoginIntent.ResidentialSelected(residentialId))
+                },
+                onDismiss = {
+                    loginViewModel.processIntent(LoginIntent.DismissResidentialSelector)
+                }
+            )
         }
     }
 }
