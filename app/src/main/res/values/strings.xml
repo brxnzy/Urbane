@@ -148,14 +148,19 @@
     <string name="finanzas">Finanzas</string>
     <string name="registrar_egreso">Registrar Egreso</string>
 
-    <string name="audit_residence_created">
-Se creó la residencia %1$s
-</string>
+    <!-- Strings de auditoría para Residences -->
 
-    <string name="audit_residence_updated">
-Se actualizó la residencia de %1$s a %2$s
-</string>
+    <!-- RESIDENCE_CREATED -->
+    <string name="audit_residence_created">creó la residencia %1$s</string>
 
+    <!-- RESIDENCE_UPDATED - Muestra cambios de nombre, tipo y descripción -->
+    <string name="audit_residence_updated">actualizó la residencia: nombre de "%1$s" a "%2$s", tipo de "%3$s" a "%4$s", descripción de "%5$s" a "%6$s"</string>
+
+    <!-- RESIDENCE_VACATED -->
+    <string name="audit_residence_vacated">desocupó la residencia %1$s</string>
+
+    <!-- RESIDENCE_DELETED -->
+    <string name="audit_residence_deleted">eliminó la residencia %1$s</string>
     <string name="audit_unknown">
 Acción registrada
 </string>

@@ -6,6 +6,8 @@ import com.example.urbane.data.model.AuditLog
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.JsonObject
 
@@ -14,10 +16,21 @@ class AuditLogsRepository(val sessionManager: SessionManager) {
     suspend fun getAllLogs(): List<AuditLog> {
         try {
             val residentialId = getResidentialId(sessionManager)
-            val logs = supabase.from("logs").select {
+            val logs = supabase.from("logs").select(columns = Columns.list(
+                "id",
+                "adminId",
+                "action",
+                "entity",
+                "entityId",
+                "data",
+                "createdAt",
+                "residentialId",
+                "admin:users(id, name, photoUrl)",
+            )) {
                 filter {
                     eq("residentialId", residentialId!!)
                 }
+                    order("createdAt", Order.DESCENDING)
             }.decodeList<AuditLog>()
             return logs
         } catch (e: Exception) {
