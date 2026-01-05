@@ -16,9 +16,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.outlined.Analytics
@@ -30,8 +31,6 @@ import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ReportProblem
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -199,7 +198,7 @@ fun AdminMainScaffold(
                     Routes.ADMIN_FINES -> FinesScreen(finesViewModel, navController)
                     Routes.ADMIN_PAYMENTS -> PaymentsScreen(paymentsViewModel, navController)
                     Routes.ADMIN_FINANCES -> FinancesScreen(financesViewModel)
-                    Routes.ADMIN_SETTINGS -> SettingsScreen(sessionManager, navController)
+                    Routes.ADMIN_SETTINGS -> SettingsScreen(sessionManager, navController, loginViewModel)
                     Routes.ADMIN_CONTRACTS -> ContractsScreen(
                         modifier = Modifier.padding(16.dp),
                         navController,
@@ -233,10 +232,11 @@ fun DrawerContent(
     onDestinationClicked: (String) -> Unit
 ) {
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
+
     val user = userState.value
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column(
@@ -245,7 +245,7 @@ fun DrawerContent(
                     top = 35.dp,
                 )
         ) {
-            if (user?.userData?.residential?.logoUrl?.isBlank() == true) {
+            if (user?.userData?.residential?.logoUrl?.isNotBlank() == true) {
                 Image(
                     painter = rememberAsyncImagePainter(user.userData.residential.logoUrl),
                     contentDescription = "Logo del residencial",
@@ -334,46 +334,46 @@ fun DrawerContent(
 
         }
 
-        Column(modifier = Modifier.padding(bottom = 45.dp)) {
-
-            Button(
-                onClick = {
-                    loginViewModel.onLogoutClicked {
-                        navController.navigate(Routes.LOGIN)
-                        {
-                            popUpTo(0) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red,
-                    contentColor = Color.White
-
-                ),
-                shape = RoundedCornerShape(
-                    topStart = 10.dp,
-                    bottomStart = 10.dp,
-                    topEnd = 10.dp,
-                    bottomEnd = 10.dp
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(vertical = 5.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-
-                    Icon(Icons.Default.Logout, contentDescription = "Cerrar sesion")
-                    Text("Cerrar Sesion", style = MaterialTheme.typography.bodyMedium)
-
-                }
-            }
-
-        }
+//        Column(modifier = Modifier.padding(bottom = 45.dp)) {
+//
+//            Button(
+//                onClick = {
+//                    loginViewModel.onLogoutClicked {
+//                        navController.navigate(Routes.LOGIN)
+//                        {
+//                            popUpTo(0) { inclusive = true }
+//                            launchSingleTop = true
+//                        }
+//                    }
+//                },
+//
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(10.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color.Red,
+//                    contentColor = Color.White
+//
+//                ),
+//                shape = RoundedCornerShape(
+//                    topStart = 10.dp,
+//                    bottomStart = 10.dp,
+//                    topEnd = 10.dp,
+//                    bottomEnd = 10.dp
+//                )
+//            ) {
+//                Row(
+//                    modifier = Modifier.padding(vertical = 5.dp),
+//                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+//                ) {
+//
+//                    Icon(Icons.Default.Logout, contentDescription = "Cerrar sesion")
+//                    Text("Cerrar Sesion", style = MaterialTheme.typography.bodyMedium)
+//
+//                }
+//            }
+//
+//        }
 
     }
 }

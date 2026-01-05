@@ -80,6 +80,7 @@ fun IncidentsScreen(
             val message = when (success) {
                 is IncidentsSuccess.IncidentRejected -> "Incidencia rechazada correctamente"
                 is IncidentsSuccess.IncidentAttended -> "Incidencia atendida correctamente"
+                is IncidentsSuccess.IncidentResolved -> "Incidencia marcada como resuelta"
             }
             snackbarHostState.showSnackbar(
                 message = message,

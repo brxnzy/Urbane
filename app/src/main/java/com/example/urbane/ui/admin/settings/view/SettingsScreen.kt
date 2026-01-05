@@ -58,10 +58,11 @@ import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.auth.model.CurrentUser
+import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(sessionManager: SessionManager, navController: NavController) {
+fun SettingsScreen(sessionManager: SessionManager, navController: NavController, loginViewModel: LoginViewModel) {
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
     val user = userState.value
     var notificationsEnabled by remember { mutableStateOf(true) }
@@ -138,7 +139,7 @@ fun SettingsScreen(sessionManager: SessionManager, navController: NavController)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            LogoutButton()
+            LogoutButton(loginViewModel, navController)
 
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -353,28 +354,36 @@ fun SettingItemWithSwitch(
 }
 
 @Composable
-fun LogoutButton() {
+fun LogoutButton(loginViewModel: LoginViewModel, navController: NavController) {
     Button(
-        onClick = { /* TODO */ },
+        onClick = {
+            loginViewModel.onLogoutClicked {
+                navController.navigate(Routes.LOGIN)
+                {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+         },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .height(48.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFFFEBEE)
+            containerColor = Color.Red
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
         Icon(
             imageVector = Icons.Default.Logout,
             contentDescription = null,
-            tint = Color(0xFFD32F2F),
+            tint = Color.White,
             modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Cerrar sesión",
-            color = Color(0xFFD32F2F),
+            color = Color.White,
             fontWeight = FontWeight.SemiBold,
             fontSize = 16.sp
         )

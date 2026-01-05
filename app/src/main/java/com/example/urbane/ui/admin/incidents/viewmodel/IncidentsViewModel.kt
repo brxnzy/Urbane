@@ -27,6 +27,7 @@ class IncidentsViewModel(sessionManager: SessionManager): ViewModel() {
             is IncidentsIntent.AttendIncident -> attendIncident()
             is IncidentsIntent.ClearSelection -> clearSelection()
             is IncidentsIntent.RejectIncident -> rejectIncident(intent.id)
+            is IncidentsIntent.ResolveIncident -> resolveIncident(intent.id)
             else -> {}
         }
     }
@@ -53,6 +54,21 @@ class IncidentsViewModel(sessionManager: SessionManager): ViewModel() {
                 _state.update { it.copy(errorMessage = null) }
                 repository.rejectIncident(id)
                 _state.update { it.copy(success = IncidentsSuccess.IncidentRejected) }
+                loadIncidents()
+            } catch (e: Exception) {
+                Log.e("IncidentsViewModel", "Error al rechazar la incidencia: $e")
+                _state.update { it.copy(errorMessage = "Error al rechazar la incidencia: ${e.message}") }
+
+            }
+        }
+    }
+
+    private fun resolveIncident(id: Int) {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(errorMessage = null) }
+                repository.resolveIncident(id)
+                _state.update { it.copy(success = IncidentsSuccess.IncidentResolved) }
                 loadIncidents()
             } catch (e: Exception) {
                 Log.e("IncidentsViewModel", "Error al rechazar la incidencia: $e")

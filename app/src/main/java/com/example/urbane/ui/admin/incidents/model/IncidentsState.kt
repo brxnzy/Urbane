@@ -19,6 +19,7 @@ sealed class IncidentsIntent {
     data class UpdateStartTime(val time: String) : IncidentsIntent()
     data class UpdateAdminResponse(val response: String) : IncidentsIntent()
     data class RejectIncident(val id: Int) : IncidentsIntent()
+    data class ResolveIncident(val id: Int) : IncidentsIntent()
     data object AttendIncident : IncidentsIntent()
     data object ClearSelection : IncidentsIntent()
 }
@@ -26,4 +27,5 @@ sealed class IncidentsIntent {
 sealed class IncidentsSuccess{
     object IncidentRejected : IncidentsSuccess()
     object IncidentAttended : IncidentsSuccess()
+    object IncidentResolved : IncidentsSuccess()
 }

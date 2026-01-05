@@ -106,6 +106,24 @@ class IncidentsRepository(val sessionManager: SessionManager) {
         }
     }
 
+    suspend fun resolveIncident(id: Int){
+        try {
+            supabase.from("incidents").update({
+                set("status", "Resuelto")
+            }) {
+                filter {
+                    eq("id", id)
+                }
+            }
+
+            Log.d("IncidentsRepository", "La incidencia con ID $id ha sido resuelta")
+
+        }catch (e: Exception){
+            Log.e("IncidentsRepository", "Error al resolver la incidencia: $e")
+            throw e
+        }
+    }
+
 
     suspend fun attendIncident(
         incidentId: Int,

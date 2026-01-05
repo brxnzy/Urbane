@@ -166,57 +166,91 @@ fun IncidentCard(
                             Spacer(modifier = Modifier.height(2.dp))
                         }
 
-                        if (incident.status == "Pendiente") {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Button(
-                                    onClick = { onAttendClick(incident) },
+                        // ✅ Botones según status
+                        when (incident.status) {
+                            "Pendiente" -> {
+                                Column(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(12.dp)
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Text("Atender")
-                                }
-                                Button(
-                                    onClick = { showRejectDialog = true },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Red,
-                                        contentColor = Color.White
-                                    ),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Text("Rechazar")
+                                    Button(
+                                        onClick = { onAttendClick(incident) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text("Atender")
+                                    }
+                                    Button(
+                                        onClick = { showRejectDialog = true },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.Red,
+                                            contentColor = Color.White
+                                        ),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text("Rechazar")
+                                    }
                                 }
                             }
                         }
                     }
                 } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Column(modifier = Modifier.padding(top = 12.dp)) {
-                            Text(
-                                text = ("Por: " + incident.residentName["name"]),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            if (incident.createdAt != null) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Column(modifier = Modifier.padding(top = 12.dp)) {
                                 Text(
-                                    text = formatDate(incident.createdAt),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF9CA3AF),
-                                    modifier = Modifier.padding(top = 2.dp),
-                                    fontWeight = FontWeight.Medium
+                                    text = ("Por: " + incident.residentName["name"]),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold
                                 )
+                                if (incident.createdAt != null) {
+                                    Text(
+                                        text = formatDate(incident.createdAt),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF9CA3AF),
+                                        modifier = Modifier.padding(top = 2.dp),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
 
-                            if(incident.status == "Atendido") {
-                                Spacer(modifier = Modifier.height(3.dp))
+                            // ✅ Botones Pendiente al lado derecho
+                            if (incident.status == "Pendiente") {
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Button(
+                                        onClick = { onAttendClick(incident) },
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text("Atender")
+                                    }
+                                    Button(
+                                        onClick = { showRejectDialog = true },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.Red,
+                                            contentColor = Color.White
+                                        ),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text("Rechazar")
+                                    }
+                                }
+                            }
+                        }
 
+                        // ✅ Fecha pautada y botón Resolver al mismo nivel (abajo)
+                        if (incident.status == "En Curso") {
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Surface(
                                     shape = RoundedCornerShape(6.dp),
                                     color = Color(0xFFDCFCE7)
@@ -241,26 +275,18 @@ fun IncidentCard(
                                         )
                                     }
                                 }
-                            }
-                        }
 
-                        if (incident.status == "Pendiente") {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                // ✅ Botón Resolver solo si está En Curso
                                 Button(
-                                    onClick = { onAttendClick(incident) },
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Text("Atender")
-                                }
-                                Button(
-                                    onClick = { showRejectDialog = true },
+                                    onClick = {
+                                        viewModel.handleIntent(IncidentsIntent.ResolveIncident(incident.id!!))
+                                    },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Red,
                                         contentColor = Color.White
                                     ),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
-                                    Text("Rechazar")
+                                    Text("Resolver")
                                 }
                             }
                         }
