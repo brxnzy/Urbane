@@ -34,7 +34,9 @@ import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
+import com.example.urbane.ui.admin.settings.view.ResidentialScreen
 import com.example.urbane.ui.admin.settings.viewmodel.AuditLogsViewModel
+import com.example.urbane.ui.admin.settings.viewmodel.ResidentialViewModel
 import com.example.urbane.ui.admin.users.view.AddUserScreen
 import com.example.urbane.ui.admin.users.view.UserDetailScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
@@ -70,6 +72,7 @@ fun MainNavigation(
     val incidentsViewModel = IncidentsViewModel(sessionManager)
     val financesViewModel = FinancesViewModel(sessionManager)
     val auditLogsViewModel = AuditLogsViewModel(sessionManager)
+    val residentialViewModel = ResidentialViewModel(sessionManager)
 
 
 
@@ -95,7 +98,7 @@ fun MainNavigation(
             }
         }
         composable(Routes.REGISTER) {
-            val registerViewModel = RegisterViewModel()
+            val registerViewModel = RegisterViewModel(sessionManager)
             RegisterScreen(
                 registerViewModel,
                 navController,
@@ -301,6 +304,13 @@ fun MainNavigation(
                 navController.popBackStack()
             }
         }
+
+        composable(Routes.ADMIN_SETTINGS_RESIDENTIALS) {
+            ResidentialScreen(residentialViewModel){
+                navController.popBackStack()
+            }
+        }
+
 
         composable(Routes.ADMIN_FINES_ADD) {
             AddFineScreen(finesViewModel){

@@ -159,5 +159,9 @@ Se actualizó la residencia de %1$s a %2$s
     <string name="audit_unknown">
 Acción registrada
 </string>
+    <string name="administraci_n">Administración</string>
+    <string name="gestion_de_residenciales">Gestion de Residenciales</string>
+    <string name="gestiona_tus_residenciales_disponibles">Gestiona tus residenciales disponibles</string>
+    <string name="mis_residenciales">Mis residenciales</string>
 
 </resources>

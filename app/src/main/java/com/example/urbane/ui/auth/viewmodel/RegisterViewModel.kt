@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.R
+import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.data.repository.ResidentialRepository
 import com.example.urbane.ui.auth.model.RegisterIntent
@@ -29,7 +30,7 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 
-class RegisterViewModel() : ViewModel() {
+class RegisterViewModel(val sessionManager: SessionManager) : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state.asStateFlow()
@@ -89,7 +90,7 @@ class RegisterViewModel() : ViewModel() {
             Log.d("Registerr", "Inicio de handleSubmit")
 
             try {
-                val resId = ResidentialRepository().getResidentialId(state.value.residentialName)
+                val resId = ResidentialRepository(sessionManager).getResidentialId(state.value.residentialName)
                 Log.d("Registerr", "ID del residencial obtenido: $resId")
 
                 val bucket = supabase.storage.from("residential_logos")

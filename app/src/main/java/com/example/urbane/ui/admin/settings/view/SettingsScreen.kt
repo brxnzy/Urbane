@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.House
@@ -47,11 +48,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.auth.model.CurrentUser
@@ -61,10 +64,7 @@ import com.example.urbane.ui.auth.model.CurrentUser
 fun SettingsScreen(sessionManager: SessionManager, navController: NavController) {
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
     val user = userState.value
-
     var notificationsEnabled by remember { mutableStateOf(true) }
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -72,10 +72,17 @@ fun SettingsScreen(sessionManager: SessionManager, navController: NavController)
                 .verticalScroll(rememberScrollState())
                 .background(Color.White)
         ) {
-            // Profile Section
             ProfileSection(user)
 
             Spacer(modifier = Modifier.height(8.dp))
+
+            SectionHeader(stringResource(R.string.administraci_n))
+            SettingItem(
+                icon = Icons.Default.Apartment,
+                title = stringResource(R.string.gestion_de_residenciales),
+                subtitle = stringResource(R.string.gestiona_tus_residenciales_disponibles),
+                onClick = {navController.navigate(Routes.ADMIN_SETTINGS_RESIDENTIALS)}
+            )
 
             SectionHeader("Preferencias")
             SettingItemWithSwitch(

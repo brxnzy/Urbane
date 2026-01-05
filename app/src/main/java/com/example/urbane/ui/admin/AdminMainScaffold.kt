@@ -1,5 +1,7 @@
 package com.example.urbane.ui.admin
 import FinancesViewModel
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -79,6 +81,7 @@ import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
 
+@RequiresApi(Build.VERSION_CODES.P)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminMainScaffold(
