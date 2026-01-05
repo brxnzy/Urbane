@@ -76,9 +76,6 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 loadAvailableResidentials()
             }
 
-            LoginIntent.DismissResidentialSelector -> {
-                dismissResidentialSelector()
-            }
 
         }
     }
@@ -188,16 +185,14 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 val email = session.user!!.email ?: state.value.email
                 val roleId = userRepository.getUserRole(userId)
 
-// ✅ AGREGAR ESTO AQUÍ
                 val residentials = userRepository.getUserResidentials(userId)
 
                 if (residentials.isEmpty()) {
                     throw Exception("Usuario sin residencial asignado")
                 }
 
-// Si tiene más de 1 residencial, mostrar selector
                 if (residentials.size > 1) {
-                    // Guardar datos temporalmente
+
                     tempUserId = userId
                     tempEmail = email
                     tempAccessToken = session.accessToken
@@ -211,14 +206,13 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                             availableResidentials = residentials
                         )
                     }
-                    return@launch // Detener aquí y esperar selección
+                    return@launch
                 }
 
-// Si solo tiene 1 residencial, continuar normal
+
                 val userData = userRepository.getCurrentUser(userId, email)
                 Log.d("LoginVM", "data del usuario $userData")
 
-// ... resto del código actual sin tocar                val userData = userRepository.getCurrentUser(userId,email)
                 Log.d("LoginVM", "data del usuario $userData")
 
                 val currentUser = CurrentUser(
@@ -235,7 +229,7 @@ class LoginViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 sessionManager.saveSession(currentUser)
                 Log.d("LoginVM", "Sesión guardada en SessionManager")
 
-                saveFcmToken(userId, userData!!.residential.id, roleId.toString())
+                saveFcmToken(userId, userData!!.residential.id!!, roleId.toString())
 
                 _state.update { it.copy(isLoading = false, success = true, errorMessage = null) }
             } catch (e: Exception) {

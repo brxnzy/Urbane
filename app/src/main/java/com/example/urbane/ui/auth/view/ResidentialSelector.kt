@@ -27,13 +27,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.urbane.data.model.Residential
+import com.example.urbane.navigation.Routes
 
 @Composable
 fun ResidentialSelectorDialog(
     residentials: List<Residential>,
     onResidentialSelected: (Int) -> Unit,
-    onDismiss: () -> Unit = {}
+    navController: NavController
 ) {
     AlertDialog(
         onDismissRequest = { /* No permitir cerrar sin seleccionar */ },
@@ -52,7 +54,11 @@ fun ResidentialSelectorDialog(
                 items(residentials) { residential ->
                     ResidentialCard(
                         residential = residential,
-                        onClick = { onResidentialSelected(residential.id) }
+                        onClick = {
+                            onResidentialSelected(residential.id!!)
+                            navController.navigate(Routes.ADMIN)
+
+                        }
                     )
                 }
             }

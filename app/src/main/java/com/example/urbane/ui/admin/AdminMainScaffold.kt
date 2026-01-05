@@ -215,9 +215,7 @@ fun AdminMainScaffold(
                 onResidentialSelected = { residentialId ->
                     loginViewModel.processIntent(LoginIntent.ResidentialSelected(residentialId))
                 },
-                onDismiss = {
-                    loginViewModel.processIntent(LoginIntent.DismissResidentialSelector)
-                }
+                navController
             )
         }
     }

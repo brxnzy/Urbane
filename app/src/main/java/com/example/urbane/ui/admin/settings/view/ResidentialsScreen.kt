@@ -49,6 +49,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -77,6 +78,10 @@ fun ResidentialScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    LaunchedEffect(Unit) {
+        viewModel.loadResidentials()
+    }
 
     Scaffold(
         topBar = {
@@ -120,7 +125,7 @@ fun ResidentialScreen(
             .fillMaxSize()
             .padding(innerPadding)
         ) {
-            if (state.isLoading && state.residentials.isEmpty()) {
+            if (state.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -193,6 +198,7 @@ fun ResidentialScreen(
                 sheetState = sheetState,
                 isEditMode = state.isEditMode,
                 residential = state.selectedResidential,
+                isLoading = state.isLoading, // ✅ Pasar estado de loading
                 onDismiss = {
                     viewModel.processIntent(ResidentialIntent.DismissBottomSheet)
                 },
@@ -313,6 +319,7 @@ fun ResidentialFormBottomSheet(
     sheetState: SheetState,
     isEditMode: Boolean,
     residential: Residential?,
+    isLoading: Boolean, // ✅ Nuevo parámetro
     onDismiss: () -> Unit,
     onSave: (String, String?, String?, Uri?) -> Unit
 ) {
@@ -321,7 +328,6 @@ fun ResidentialFormBottomSheet(
     var phone by remember { mutableStateOf(residential?.phone ?: "") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // ✅ Launcher para seleccionar imagen
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -340,7 +346,6 @@ fun ResidentialFormBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Título
             Text(
                 text = if (isEditMode) "Editar Residencial" else "Crear Residencial",
                 style = MaterialTheme.typography.headlineSmall,
@@ -352,7 +357,9 @@ fun ResidentialFormBottomSheet(
             Card(
                 modifier = Modifier
                     .size(140.dp)
-                    .clickable { imagePickerLauncher.launch("image/*") },
+                    .clickable(enabled = !isLoading) { // ✅ Deshabilitar si está cargando
+                        imagePickerLauncher.launch("image/*")
+                    },
                 shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
@@ -361,7 +368,6 @@ fun ResidentialFormBottomSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     when {
-                        // Nueva imagen seleccionada
                         selectedImageUri != null -> {
                             AsyncImage(
                                 model = selectedImageUri,
@@ -372,7 +378,6 @@ fun ResidentialFormBottomSheet(
                                 contentScale = ContentScale.Crop
                             )
                         }
-                        // Logo existente
                         !residential?.logoUrl.isNullOrBlank() -> {
                             AsyncImage(
                                 model = residential?.logoUrl,
@@ -385,7 +390,6 @@ fun ResidentialFormBottomSheet(
                                 placeholder = painterResource(R.drawable.logo)
                             )
                         }
-                        // Placeholder
                         else -> {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -407,7 +411,6 @@ fun ResidentialFormBottomSheet(
                         }
                     }
 
-                    // Badge de edición
                     if (selectedImageUri != null || !residential?.logoUrl.isNullOrBlank()) {
                         Box(
                             modifier = Modifier
@@ -449,7 +452,8 @@ fun ResidentialFormBottomSheet(
                 label = { Text("Nombre *") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) }
+                leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
+                enabled = !isLoading // ✅ Deshabilitar si está cargando
             )
 
             OutlinedTextField(
@@ -458,7 +462,8 @@ fun ResidentialFormBottomSheet(
                 label = { Text("Dirección") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
+                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
+                enabled = !isLoading // ✅ Deshabilitar si está cargando
             )
 
             OutlinedTextField(
@@ -467,19 +472,28 @@ fun ResidentialFormBottomSheet(
                 label = { Text("Teléfono") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) }
+                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                enabled = !isLoading // ✅ Deshabilitar si está cargando
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Botones
+            // ✅ Mostrar loader si está cargando
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
                     onClick = onDismiss,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = !isLoading // ✅ Deshabilitar si está cargando
                 ) {
                     Text("Cancelar")
                 }
@@ -489,16 +503,24 @@ fun ResidentialFormBottomSheet(
                         if (name.isNotBlank()) {
                             onSave(
                                 name,
-                                address.takeIf { it.isNotBlank() },
-                                phone.takeIf { it.isNotBlank() },
+                                address,
+                                phone,
                                 selectedImageUri
                             )
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    enabled = name.isNotBlank()
+                    enabled = name.isNotBlank() && address.isNotBlank() && phone.isNotBlank() && !isLoading // ✅ Deshabilitar si está cargando o nombre vacío
                 ) {
-                    Text(if (isEditMode) "Actualizar" else "Crear")
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(if (isEditMode) "Actualizar" else "Crear")
+                    }
                 }
             }
 

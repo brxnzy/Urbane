@@ -25,13 +25,9 @@ class ResidentialViewModel(
     private val _state = MutableStateFlow(ResidentialState())
     val state: StateFlow<ResidentialState> = _state.asStateFlow()
 
-    init {
-        loadResidentials()
-    }
 
     fun processIntent(intent: ResidentialIntent) {
         when (intent) {
-            ResidentialIntent.LoadResidentials -> loadResidentials()
             ResidentialIntent.DismissBottomSheet -> dismissBottomSheet()
             ResidentialIntent.ShowCreateSheet -> showCreateSheet()
             is ResidentialIntent.ShowEditSheet -> showEditSheet(intent.residential)
@@ -47,7 +43,7 @@ class ResidentialViewModel(
         }
     }
 
-    private fun loadResidentials() {
+    fun loadResidentials() {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true, error = null) }
@@ -106,7 +102,7 @@ class ResidentialViewModel(
                 val success = repository.updateResidential(residential, newImageUri)
 
                 if (success) {
-                    _state.update { it.copy(showBottomSheet = false, selectedResidential = null) }
+                    _state.update { it.copy(showBottomSheet = false, selectedResidential = null, isLoading = false) }
                     loadResidentials()
                 } else {
                     _state.update {
@@ -128,10 +124,10 @@ class ResidentialViewModel(
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true) }
-                val success = repository.createResidential(name, address, phone, imageUri)
+                val success = repository.createResidential(name, address!!, phone!!, imageUri)
 
                 if (success) {
-                    _state.update { it.copy(showBottomSheet = false) }
+                    _state.update { it.copy(showBottomSheet = false, isLoading = false) }
                     loadResidentials()
                 } else {
                     _state.update {

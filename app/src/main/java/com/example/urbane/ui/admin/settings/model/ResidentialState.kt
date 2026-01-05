@@ -15,7 +15,7 @@ data class ResidentialState(
 
 // Intents
 sealed class ResidentialIntent {
-    data object LoadResidentials : ResidentialIntent()
+
     data object ShowCreateSheet : ResidentialIntent()
     data class ShowEditSheet(val residential: Residential) : ResidentialIntent()
     data object DismissBottomSheet :ResidentialIntent()

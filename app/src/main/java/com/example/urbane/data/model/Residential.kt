@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Residential(
-    val id: Int,
+    val id: Int? = null,
     val name: String,
     val address: String,
     val phone: String,

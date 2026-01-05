@@ -210,7 +210,9 @@ fun LoginScreen(viewModel: LoginViewModel,sessionManager: SessionManager,navCont
                 residentials = state.availableResidentials,
                 onResidentialSelected = { residentialId ->
                     viewModel.processIntent(LoginIntent.ResidentialSelected(residentialId))
-                }
+                },
+                navController = navController,
+
             )
         }
 

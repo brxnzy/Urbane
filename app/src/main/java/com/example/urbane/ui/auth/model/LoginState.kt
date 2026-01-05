@@ -26,5 +26,5 @@ sealed class LoginIntent {
     // ✅ Nuevo intent para seleccionar residencial
     data class ResidentialSelected(val residentialId: Int) : LoginIntent()
     data object ShowResidentialSelector : LoginIntent() // ✅ NUEVO
-    data object DismissResidentialSelector : LoginIntent()
+
 }

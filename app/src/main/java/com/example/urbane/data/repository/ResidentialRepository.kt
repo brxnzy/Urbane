@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Residential
+import com.example.urbane.data.model.UrrIds
 import com.example.urbane.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
@@ -96,7 +97,7 @@ class ResidentialRepository(val sessionManager: SessionManager,private val conte
                     set("logoUrl", finalLogoUrl)
                 }) {
                     filter {
-                        eq("id", residential.id)
+                        eq("id", residential.id!!)
                     }
                 }
             true
@@ -108,8 +109,8 @@ class ResidentialRepository(val sessionManager: SessionManager,private val conte
 
     suspend fun createResidential(
         name: String,
-        address: String?,
-        phone: String?,
+        address: String,
+        phone: String,
         imageUri: Uri?
     ): Boolean {
         return try {
@@ -119,18 +120,17 @@ class ResidentialRepository(val sessionManager: SessionManager,private val conte
 
             val newResidential = supabase.from("residentials")
                 .insert(
-                    mapOf(
-                        "name" to name,
-                        "address" to address,
-                        "phone" to phone,
-                        "logoUrl" to null
+                    Residential(
+                        name =  name,
+                        address = address,
+                        phone =  phone,
+                        logoUrl = null
                     )
                 ) {
                     select()
                 }
                 .decodeSingle<Residential>()
 
-            // Si hay imagen, subirla y actualizar URL
             if (imageUri != null) {
                 val fileName = name.replace(" ", "_")
 
@@ -151,19 +151,18 @@ class ResidentialRepository(val sessionManager: SessionManager,private val conte
                             set("logoUrl", logoUrl)
                         }) {
                             filter {
-                                eq("id", newResidential.id)
+                                eq("id", newResidential.id!!)
                             }
                         }
                 }
             }
 
-            // Asignar al usuario
             supabase.from("users_residentials_roles")
                 .insert(
-                    mapOf(
-                        "user_id" to userId,
-                        "residential_id" to newResidential.id,
-                        "role_id" to roleId
+                    UrrIds(
+                         userId,
+                         newResidential.id!!,
+                        roleId
                     )
                 )
 

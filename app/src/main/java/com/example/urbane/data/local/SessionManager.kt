@@ -57,7 +57,7 @@ class SessionManager(context: Context) {
 
     val residentialIdFlow: Flow<Int> = dataStore.data.map { prefs ->
         val userDataJson = prefs[USER_DATA]
-        if (!userDataJson.isNullOrEmpty()) {
+        (if (!userDataJson.isNullOrEmpty()) {
             try {
                 val userData = Json.decodeFromString<UserResidentialRole>(userDataJson)
                 // Obtener el id del objeto residential
@@ -67,7 +67,7 @@ class SessionManager(context: Context) {
             }
         } else {
             0
-        }
+        }) as Int
     }
 
     suspend fun clearSession() {
