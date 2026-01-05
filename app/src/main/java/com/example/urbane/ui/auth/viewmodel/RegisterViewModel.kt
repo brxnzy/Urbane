@@ -30,7 +30,7 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 
-class RegisterViewModel(val sessionManager: SessionManager) : ViewModel() {
+class RegisterViewModel(val sessionManager: SessionManager, val context: Context) : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state.asStateFlow()
@@ -90,7 +90,7 @@ class RegisterViewModel(val sessionManager: SessionManager) : ViewModel() {
             Log.d("Registerr", "Inicio de handleSubmit")
 
             try {
-                val resId = ResidentialRepository(sessionManager).getResidentialId(state.value.residentialName)
+                val resId = ResidentialRepository(sessionManager, context).getResidentialId(state.value.residentialName)
                 Log.d("Registerr", "ID del residencial obtenido: $resId")
 
                 val bucket = supabase.storage.from("residential_logos")

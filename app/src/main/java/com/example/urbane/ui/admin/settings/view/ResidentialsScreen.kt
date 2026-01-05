@@ -1,5 +1,9 @@
 package com.example.urbane.ui.admin.settings.view
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,18 +17,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -74,7 +78,6 @@ fun ResidentialScreen(
     val state by viewModel.state.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -88,7 +91,7 @@ fun ResidentialScreen(
                     IconButton(onClick = { goBack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Panel",
+                            contentDescription = "Volver",
                             modifier = Modifier.size(30.dp)
                         )
                     }
@@ -100,7 +103,9 @@ fun ResidentialScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {  },
+                onClick = {
+                    viewModel.processIntent(ResidentialIntent.ShowCreateSheet)
+                },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(
@@ -110,82 +115,53 @@ fun ResidentialScreen(
                 )
             }
         }
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+    ) { innerPadding ->
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+        ) {
+            if (state.isLoading && state.residentials.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Mis Residenciales",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    FloatingActionButton(
-                        onClick = {
-                            viewModel.processIntent(ResidentialIntent.ShowCreateSheet)
-                        },
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ) {
-                        Icon(Icons.Default.Add, "Crear residencial")
+                    CircularProgressIndicator()
+                }
+            } else if (state.residentials.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "No tienes residenciales",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
-
-                if (state.isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                } else if (state.residentials.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.Home,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "No tienes residenciales",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(state.residentials) { residential ->
-                            ResidentialCard(
-                                residential = residential,
-                                onEdit = {
-                                    viewModel.processIntent(
-                                        ResidentialIntent.ShowEditSheet(residential)
-                                    )
-                                },
-                                onDelete = {
-                                    viewModel.processIntent(
-                                        ResidentialIntent.RemoveResidential(residential.id)
-                                    )
-                                }
-                            )
-                        }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(state.residentials) { residential ->
+                        ResidentialCard(
+                            residential = residential,
+                            onEdit = {
+                                viewModel.processIntent(
+                                    ResidentialIntent.ShowEditSheet(residential)
+                                )
+                            }
+                        )
                     }
                 }
             }
@@ -211,6 +187,7 @@ fun ResidentialScreen(
             }
         }
 
+        // BottomSheet
         if (state.showBottomSheet) {
             ResidentialFormBottomSheet(
                 sheetState = sheetState,
@@ -219,22 +196,22 @@ fun ResidentialScreen(
                 onDismiss = {
                     viewModel.processIntent(ResidentialIntent.DismissBottomSheet)
                 },
-                onSave = { name, address, phone, logoUrl ->
+                onSave = { name, address, phone, imageUri ->
                     if (state.isEditMode && state.selectedResidential != null) {
                         viewModel.processIntent(
                             ResidentialIntent.UpdateResidential(
                                 state.selectedResidential!!.copy(
                                     name = name,
-                                    address = address!!,
-                                    phone = phone!!,
-                                    logoUrl = logoUrl
-                                )
+                                    address = address ?: "",
+                                    phone = phone ?: ""
+                                ),
+                                imageUri
                             )
                         )
                     } else {
                         viewModel.processIntent(
                             ResidentialIntent.CreateResidential(
-                                name, address, phone, logoUrl
+                                name, address, phone, imageUri
                             )
                         )
                     }
@@ -247,11 +224,8 @@ fun ResidentialScreen(
 @Composable
 fun ResidentialCard(
     residential: Residential,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onEdit: () -> Unit
 ) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -322,52 +296,16 @@ fun ResidentialCard(
                 }
             }
 
-            Row {
-                IconButton(onClick = onEdit) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-//                IconButton(onClick = { showDeleteDialog = true }) {
-//                    Icon(
-//                        imageVector = Icons.Default.Delete,
-//                        contentDescription = "Eliminar",
-//                        tint = MaterialTheme.colorScheme.error
-//                    )
-//                }
+            IconButton(onClick = onEdit) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Editar",
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
-
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("¿Eliminar asignación?") },
-            text = { Text("Esto eliminará tu acceso a este residencial. No se eliminarán los datos del residencial.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDelete()
-                        showDeleteDialog = false
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Eliminar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
-                }
-            }
-        )
-    }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -376,12 +314,19 @@ fun ResidentialFormBottomSheet(
     isEditMode: Boolean,
     residential: Residential?,
     onDismiss: () -> Unit,
-    onSave: (String, String?, String?, String?) -> Unit
+    onSave: (String, String?, String?, Uri?) -> Unit
 ) {
     var name by remember { mutableStateOf(residential?.name ?: "") }
     var address by remember { mutableStateOf(residential?.address ?: "") }
     var phone by remember { mutableStateOf(residential?.phone ?: "") }
-    var logoUrl by remember { mutableStateOf(residential?.logoUrl ?: "") }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // ✅ Launcher para seleccionar imagen
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -390,11 +335,12 @@ fun ResidentialFormBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ✅ Título centrado arriba
+            // Título
             Text(
                 text = if (isEditMode) "Editar Residencial" else "Crear Residencial",
                 style = MaterialTheme.typography.headlineSmall,
@@ -402,63 +348,108 @@ fun ResidentialFormBottomSheet(
                 textAlign = TextAlign.Center
             )
 
-            // ✅ Mostrar logo si existe
-            if (!logoUrl.isNullOrBlank()) {
-                Card(
-                    modifier = Modifier.size(120.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            // ✅ Preview de imagen
+            Card(
+                modifier = Modifier
+                    .size(140.dp)
+                    .clickable { imagePickerLauncher.launch("image/*") },
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        AsyncImage(
-                            model = logoUrl,
-                            contentDescription = "Logo del residencial",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(8.dp),
-                            contentScale = ContentScale.Fit,
-                            error = painterResource(R.drawable.logo),
-                            placeholder = painterResource(R.drawable.logo)
-                        )
+                    when {
+                        // Nueva imagen seleccionada
+                        selectedImageUri != null -> {
+                            AsyncImage(
+                                model = selectedImageUri,
+                                contentDescription = "Logo seleccionado",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                        // Logo existente
+                        !residential?.logoUrl.isNullOrBlank() -> {
+                            AsyncImage(
+                                model = residential?.logoUrl,
+                                contentDescription = "Logo actual",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp),
+                                contentScale = ContentScale.Crop,
+                                error = painterResource(R.drawable.logo),
+                                placeholder = painterResource(R.drawable.logo)
+                            )
+                        }
+                        // Placeholder
+                        else -> {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AddAPhoto,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Seleccionar logo",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
                     }
-                }
-            } else {
-                Card(
-                    modifier = Modifier.size(120.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+
+                    // Badge de edición
+                    if (selectedImageUri != null || !residential?.logoUrl.isNullOrBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(8.dp)
+                        ) {
+                            FloatingActionButton(
+                                onClick = { imagePickerLauncher.launch("image/*") },
+                                modifier = Modifier.size(36.dp),
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Cambiar imagen",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = Color.White
+                                )
+                            }
+                        }
                     }
                 }
             }
 
+            if (selectedImageUri != null) {
+                Text(
+                    text = "✓ Nueva imagen seleccionada",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ✅ Formulario
+            // Formulario
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nombre *") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                leadingIcon = {
-                    Icon(Icons.Default.Home, contentDescription = null)
-                }
+                leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) }
             )
 
             OutlinedTextField(
@@ -467,9 +458,7 @@ fun ResidentialFormBottomSheet(
                 label = { Text("Dirección") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                leadingIcon = {
-                    Icon(Icons.Default.LocationOn, contentDescription = null)
-                }
+                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
             )
 
             OutlinedTextField(
@@ -478,24 +467,12 @@ fun ResidentialFormBottomSheet(
                 label = { Text("Teléfono") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                leadingIcon = {
-                    Icon(Icons.Default.Phone, contentDescription = null)
-                }
-            )
-
-            OutlinedTextField(
-                value = logoUrl,
-                onValueChange = { logoUrl = it },
-                label = { Text("URL del Logo") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                leadingIcon = {
-                    Icon(Icons.Default.Image, contentDescription = null)
-                }
+                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Botones
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -514,7 +491,7 @@ fun ResidentialFormBottomSheet(
                                 name,
                                 address.takeIf { it.isNotBlank() },
                                 phone.takeIf { it.isNotBlank() },
-                                logoUrl.takeIf { it.isNotBlank() }
+                                selectedImageUri
                             )
                         }
                     },

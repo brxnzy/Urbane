@@ -1,5 +1,4 @@
 package com.example.urbane.navigation
-
 import AddResidenceScreen
 import AuditLogsScreen
 import FinancesViewModel
@@ -72,9 +71,7 @@ fun MainNavigation(
     val incidentsViewModel = IncidentsViewModel(sessionManager)
     val financesViewModel = FinancesViewModel(sessionManager)
     val auditLogsViewModel = AuditLogsViewModel(sessionManager)
-    val residentialViewModel = ResidentialViewModel(sessionManager)
-
-
+    val residentialViewModel = ResidentialViewModel(sessionManager,context)
 
     NavHost(
         navController = navController,
@@ -98,7 +95,7 @@ fun MainNavigation(
             }
         }
         composable(Routes.REGISTER) {
-            val registerViewModel = RegisterViewModel(sessionManager)
+            val registerViewModel = RegisterViewModel(sessionManager,context)
             RegisterScreen(
                 registerViewModel,
                 navController,

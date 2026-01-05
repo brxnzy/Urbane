@@ -1,4 +1,6 @@
 package com.example.urbane.ui.admin.settings.viewmodel
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,10 +16,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ResidentialViewModel(
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val context: Context
 ) : ViewModel() {
 
-    private val repository = ResidentialRepository(sessionManager)
+    private val repository = ResidentialRepository(sessionManager, context)
 
     private val _state = MutableStateFlow(ResidentialState())
     val state: StateFlow<ResidentialState> = _state.asStateFlow()
@@ -32,9 +35,12 @@ class ResidentialViewModel(
             ResidentialIntent.DismissBottomSheet -> dismissBottomSheet()
             ResidentialIntent.ShowCreateSheet -> showCreateSheet()
             is ResidentialIntent.ShowEditSheet -> showEditSheet(intent.residential)
-            is ResidentialIntent.UpdateResidential -> updateResidential(intent.residential)
+            is ResidentialIntent.UpdateResidential -> updateResidential(
+                intent.residential,
+                newImageUri = intent.newImageUri
+            )
             is ResidentialIntent.CreateResidential -> createResidential(
-                intent.name, intent.address, intent.phone, intent.logoUrl
+                intent.name, intent.address, intent.phone, intent.imageUri
             )
             is ResidentialIntent.RemoveResidential -> removeResidential(intent.residentialId)
             ResidentialIntent.DismissError -> dismissError()
@@ -93,58 +99,47 @@ class ResidentialViewModel(
         }
     }
 
-    private fun updateResidential(residential: Residential) {
+    private fun updateResidential(residential: Residential, newImageUri: Uri?) {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true) }
-                val success = repository.updateResidential(residential)
+                val success = repository.updateResidential(residential, newImageUri)
 
                 if (success) {
                     _state.update { it.copy(showBottomSheet = false, selectedResidential = null) }
-                    loadResidentials() // Recargar lista
+                    loadResidentials()
                 } else {
                     _state.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "Error al actualizar residencial"
-                        )
+                        it.copy(isLoading = false, error = "Error al actualizar residencial")
                     }
                 }
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Error: ${e.message}"
-                    )
-                }
+                _state.update { it.copy(isLoading = false, error = "Error: ${e.message}") }
             }
         }
     }
 
-    private fun createResidential(name: String, address: String?, phone: String?, logoUrl: String?) {
+    private fun createResidential(
+        name: String,
+        address: String?,
+        phone: String?,
+        imageUri: Uri?
+    ) {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true) }
-                val success = repository.createResidential(name, address, phone, logoUrl)
+                val success = repository.createResidential(name, address, phone, imageUri)
 
                 if (success) {
                     _state.update { it.copy(showBottomSheet = false) }
                     loadResidentials()
                 } else {
                     _state.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "Error al crear residencial"
-                        )
+                        it.copy(isLoading = false, error = "Error al crear residencial")
                     }
                 }
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Error: ${e.message}"
-                    )
-                }
+                _state.update { it.copy(isLoading = false, error = "Error: ${e.message}") }
             }
         }
     }
