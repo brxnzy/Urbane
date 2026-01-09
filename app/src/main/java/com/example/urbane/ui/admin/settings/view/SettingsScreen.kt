@@ -15,24 +15,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.House
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Poll
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -47,17 +41,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.navigation.Routes
-import com.example.urbane.ui.auth.model.CurrentUser
+import com.example.urbane.ui.admin.settings.view.components.LogoutButton
+import com.example.urbane.ui.admin.settings.view.components.ProfileSection
+import com.example.urbane.ui.admin.settings.view.components.SectionHeader
+import com.example.urbane.ui.admin.settings.view.components.SettingItem
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,6 +79,13 @@ fun SettingsScreen(sessionManager: SessionManager, navController: NavController,
                 subtitle = stringResource(R.string.gestiona_tus_residenciales_disponibles),
                 onClick = {navController.navigate(Routes.ADMIN_SETTINGS_RESIDENTIALS)}
             )
+            SettingItem(
+                icon = Icons.Default.Poll,
+                title = "Encuestas",
+                subtitle = "Crea y administra  encuestas para la toma de decisiones del residencial.",
+                onClick = { navController.navigate(Routes.ADMIN_SETTINGS_SURVEYS) }
+            )
+
 
             SectionHeader("Preferencias")
             SettingItemWithSwitch(
@@ -153,139 +155,6 @@ fun SettingsScreen(sessionManager: SessionManager, navController: NavController,
             )
         }
     }
-@Composable
-fun ProfileSection(user: CurrentUser?) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { /* TODO */ }
-            .background(Color.White)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        if (user?.userData?.user?.photoUrl != null) {
-            AsyncImage(
-                model = user.userData.user.photoUrl,
-                contentDescription = "Foto de perfil",
-                modifier = Modifier
-                    .size(70.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = null,
-                modifier = Modifier.size(76.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = user?.userData?.user?.name ?: "",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF000000)
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = user?.userData?.user?.email ?: "",
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-        }
-
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = Color.Gray
-        )
-    }
-
-    Divider(color = Color(0xFFE0E0E0))
-}
-
-@Composable
-fun SectionHeader(title: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFF5F5F5))
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Text(
-            text = title.uppercase(),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF666666),
-            letterSpacing = 0.5.sp
-        )
-    }
-}
-
-@Composable
-fun SettingItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFE0E0E0)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = Color(0xFF666666),
-                modifier = Modifier.size(20.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF000000)
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = subtitle,
-                fontSize = 13.sp,
-                color = Color.Gray
-            )
-        }
-
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = Color.Gray
-        )
-    }
-
-    Divider(
-        color = Color(0xFFE0E0E0),
-        modifier = Modifier.padding(start = 72.dp)
-    )
-}
 
 @Composable
 fun SettingItemWithSwitch(
@@ -353,39 +222,3 @@ fun SettingItemWithSwitch(
     )
 }
 
-@Composable
-fun LogoutButton(loginViewModel: LoginViewModel, navController: NavController) {
-    Button(
-        onClick = {
-            loginViewModel.onLogoutClicked {
-                navController.navigate(Routes.LOGIN)
-                {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
-                }
-            }
-         },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .height(48.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Red
-        ),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Logout,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "Cerrar sesión",
-            color = Color.White,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp
-        )
-    }
-}

@@ -34,9 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.urbane.R
 import com.example.urbane.data.model.AuditLog
 import com.example.urbane.ui.admin.settings.viewmodel.AuditLogsViewModel
 import com.example.urbane.utils.formatDate
@@ -57,7 +59,7 @@ fun AuditLogsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Registro de Auditoría") },
+                title = { Text(stringResource(R.string.registro_de_auditor_a)) },
                 navigationIcon = {
                     IconButton(onClick = goBack) {
                         Icon(
@@ -113,7 +115,7 @@ fun AuditLogsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No hay registros de auditoría",
+                        text = stringResource(R.string.no_hay_registros_de_auditor_a),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -178,12 +180,10 @@ fun LogItem(log: AuditLog) {
                 }
             }
 
-            // Contenido del log
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Nombre del admin
                 Text(
                     text = log.admin.name,
                     style = MaterialTheme.typography.titleSmall,
@@ -191,7 +191,6 @@ fun LogItem(log: AuditLog) {
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                // Acción realizada
                 Text(
                     text = getAuditMessage(context, log),
                     style = MaterialTheme.typography.bodyMedium,

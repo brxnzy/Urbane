@@ -23,5 +23,6 @@ object Routes {
     const val ADMIN_SETTINGS = "admin/settings"
     const val ADMIN_SETTINGS_LOGS = "admin/settings/logs"
     const val ADMIN_SETTINGS_RESIDENTIALS ="admin/settings/residentials"
+    const val ADMIN_SETTINGS_SURVEYS = "admin/settings/surveys"
 
 }

@@ -147,19 +147,9 @@
     <string name="egresos">Egresos</string>
     <string name="finanzas">Finanzas</string>
     <string name="registrar_egreso">Registrar Egreso</string>
-
-    <!-- Strings de auditoría para Residences -->
-
-    <!-- RESIDENCE_CREATED -->
     <string name="audit_residence_created">creó la residencia %1$s</string>
-
-    <!-- RESIDENCE_UPDATED - Muestra cambios de nombre, tipo y descripción -->
     <string name="audit_residence_updated">actualizó la residencia: nombre de "%1$s" a "%2$s", tipo de "%3$s" a "%4$s", descripción de "%5$s" a "%6$s"</string>
-
-    <!-- RESIDENCE_VACATED -->
     <string name="audit_residence_vacated">desocupó la residencia %1$s</string>
-
-    <!-- RESIDENCE_DELETED -->
     <string name="audit_residence_deleted">eliminó la residencia %1$s</string>
     <string name="audit_unknown">
 Acción registrada
@@ -168,5 +158,14 @@ Acción registrada
     <string name="gestion_de_residenciales">Gestion de Residenciales</string>
     <string name="gestiona_tus_residenciales_disponibles">Gestiona tus residenciales disponibles</string>
     <string name="mis_residenciales">Mis residenciales</string>
-
+    <string name="audit_user_disabled">deshabilitó al usuario %1$s (%2$s)</string>
+    <string name="audit_user_enabled">habilitó al usuario %1$s (%2$s)</string>
+    <string name="audit_user_enabled_with_residence">habilitó al usuario %1$s (%2$s) y lo asignó a la residencia %3$s</string>
+    <string name="audit_user_role_updated">cambió el rol del usuario %1$s (%2$s) de %3$s a %4$s</string>
+    <string name="audit_user_role_updated_with_residence">cambió el rol del usuario %1$s (%2$s) de %3$s a %4$s y lo asignó a la residencia %5$s</string>
+    <string name="role_unknown">desconocido</string>
+    <string name="audit_contract_updated">actualizó el contrato del residente %1$s (residencia %2$s): condiciones de "%3$s" a "%4$s", monto de $%5$,.2f a $%6$,.2f</string>
+    <string name="audit_payment_registered">registró un pago de $%1$,.2f para %2$s (mes %3$d/%4$d), cambió el estado de "%5$s" a "%6$s"</string>
+    <string name="registro_de_auditor_a">Registro de Auditoría</string>
+    <string name="no_hay_registros_de_auditor_a">No hay registros de auditoría</string>
 </resources>

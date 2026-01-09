@@ -17,6 +17,7 @@ import com.example.urbane.data.model.Payment
 import com.example.urbane.data.model.PaymentTransaction
 import com.example.urbane.data.model.Service
 import com.example.urbane.data.model.TransactionDetail
+import com.example.urbane.data.model.User
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.ui.admin.payments.model.SelectedPayment
 import com.example.urbane.utils.getResidentialId
@@ -27,6 +28,8 @@ import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.float
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
@@ -40,6 +43,7 @@ import java.time.Instant
 class PaymentRepository(
     private val sessionManager: SessionManager
 ) {
+    val auditLogRepository = AuditLogsRepository(sessionManager)
     suspend fun getPaymentsByUser(id: String): List<Payment> {
         return try {
             supabase
@@ -66,10 +70,12 @@ class PaymentRepository(
 
         } catch (e: Exception) {
 
-            Log.e("PaymentRepository","Error obteniendo pagos: $e")
+            Log.e("PaymentRepository", "Error obteniendo pagos: $e")
             throw e
         }
     }
+
+
     suspend fun registerPayment(payments: List<SelectedPayment>): List<Int> {
         val residentialId = getResidentialId(sessionManager) ?: 0
         val transactionIds = mutableListOf<Int>()
@@ -83,16 +89,16 @@ class PaymentRepository(
             Log.d(
                 "PAYMENTBUG",
                 """
-        registerPayments → INICIO
-        paymentId=${p.paymentId}
-        mes=${p.mes}/${p.year}
-        montoTotalBase=${p.montoTotal}
-        montoPendienteCuota=${p.montoPendiente}
-        totalMultas=${p.totalMultas}
-        montoPagarVisual=${p.montoPagar}
-        isPagoCompleto=${p.isPagoCompleto}
-        invoiceFileName=$invoiceFileName
-        """.trimIndent()
+    registerPayments → INICIO
+    paymentId=${p.paymentId}
+    mes=${p.mes}/${p.year}
+    montoTotalBase=${p.montoTotal}
+    montoPendienteCuota=${p.montoPendiente}
+    totalMultas=${p.totalMultas}
+    montoPagarVisual=${p.montoPagar}
+    isPagoCompleto=${p.isPagoCompleto}
+    invoiceFileName=$invoiceFileName
+    """.trimIndent()
             )
 
             // 1️⃣ Insertar transacción CON el fileName
@@ -101,7 +107,7 @@ class PaymentRepository(
                 amount = p.montoPagar,
                 method = "Efectivo",
                 residentialId = residentialId,
-                invoiceFileName = invoiceFileName  // ✅ NUEVO
+                invoiceFileName = invoiceFileName
             )
 
             val inserted = supabase.from("payments_transactions")
@@ -123,11 +129,18 @@ class PaymentRepository(
             Log.d(
                 "PAYMENTBUG",
                 """
-        registerPayments → payment DB
-        amount=${paymentDb.amount}
-        paidAmount=${paymentDb.paidAmount}
-        """.trimIndent()
+    registerPayments → payment DB
+    amount=${paymentDb.amount}
+    paidAmount=${paymentDb.paidAmount}
+    """.trimIndent()
             )
+
+            // Obtener datos del residente para auditoría
+            val resident = supabase.from("users")
+                .select(columns = Columns.list("name")) {
+                    filter { eq("id", paymentDb.residentId) }
+                }
+                .decodeSingle<User>()
 
             // 3️⃣ ✅ Actualizar solo el paidAmount (dinero recibido)
             val nuevoPaidAmount = paymentDb.paidAmount + p.montoPagar
@@ -146,15 +159,15 @@ class PaymentRepository(
             Log.d(
                 "PAYMENTBUG",
                 """
-        registerPayments → CALCULO
-        montoPagar=${p.montoPagar}
-        cuotaBase=${paymentDb.amount}
-        totalMultas=${p.totalMultas}
-        deudaTotal=$deudaTotal
-        nuevoPaidAmount=$nuevoPaidAmount
-        pendienteTotal=$pendienteTotal
-        nuevoStatus=$nuevoStatus
-        """.trimIndent()
+    registerPayments → CALCULO
+    montoPagar=${p.montoPagar}
+    cuotaBase=${paymentDb.amount}
+    totalMultas=${p.totalMultas}
+    deudaTotal=$deudaTotal
+    nuevoPaidAmount=$nuevoPaidAmount
+    pendienteTotal=$pendienteTotal
+    nuevoStatus=$nuevoStatus
+    """.trimIndent()
             )
 
             // 6️⃣ Update del payment
@@ -167,10 +180,29 @@ class PaymentRepository(
                 }
 
             Log.d("PAYMENTBUG", "registerPayments → UPDATE realizado paymentId=${p.paymentId}")
+
+            // Log de auditoría
+            auditLogRepository.logAction(
+                action = "PAYMENT_REGISTERED",
+                entity = "payments",
+                entityId = p.paymentId.toString(),
+                data = buildJsonObject {
+                    put("residentName", JsonPrimitive(resident.name))
+                    put("month", JsonPrimitive(p.mes))
+                    put("year", JsonPrimitive(p.year))
+                    put("amountPaid", JsonPrimitive(p.montoPagar))
+                    put("previousPaidAmount", JsonPrimitive(paymentDb.paidAmount))
+                    put("newPaidAmount", JsonPrimitive(nuevoPaidAmount))
+                    put("previousStatus", JsonPrimitive(paymentDb.status))
+                    put("newStatus", JsonPrimitive(nuevoStatus))
+                    put("invoiceFileName", JsonPrimitive(invoiceFileName))
+                }
+            )
         }
 
         return transactionIds
     }
+
     suspend fun getAllPayments(): List<Payment> {
         return try {
             val residentialId = getResidentialId(sessionManager)
@@ -404,7 +436,8 @@ class PaymentRepository(
         y += 20
 
         invoice.lines.forEach {
-            val line = "Mes ${it.month}/${it.year} - Pagado: ${it.transactionAmount} - Estado: ${it.paymentStatus}"
+            val line =
+                "Mes ${it.month}/${it.year} - Pagado: ${it.transactionAmount} - Estado: ${it.paymentStatus}"
             canvas.drawText(line, 40f, y.toFloat(), paint)
             y += 18
         }
@@ -437,19 +470,20 @@ class PaymentRepository(
             .from("invoices")
             .publicUrl(fileName)
     }
-        suspend fun updateInvoiceUrlForTransactions(
-            transactionIds: List<Int>,
-            invoiceUrl: String
-        ) {
-            supabase.from("payments_transactions")
-                .update({
-                    set("invoiceUrl", invoiceUrl)
-                }) {
-                    filter {
-                        isIn("id", transactionIds)
-                    }
+
+    suspend fun updateInvoiceUrlForTransactions(
+        transactionIds: List<Int>,
+        invoiceUrl: String
+    ) {
+        supabase.from("payments_transactions")
+            .update({
+                set("invoiceUrl", invoiceUrl)
+            }) {
+                filter {
+                    isIn("id", transactionIds)
                 }
-        }
+            }
+    }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun downloadInvoiceFromSupabase(
