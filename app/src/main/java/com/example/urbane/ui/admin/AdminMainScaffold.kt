@@ -113,8 +113,6 @@ fun AdminMainScaffold(
             ) {
                 DrawerContent(
                     sessionManager,
-                    navController,
-                    loginViewModel,
                     currentRoute
                 ) { route ->
                     navController.navigate(route) {
@@ -224,8 +222,6 @@ fun AdminMainScaffold(
 @Composable
 fun DrawerContent(
     sessionManager: SessionManager,
-    navController: NavHostController,
-    loginViewModel: LoginViewModel,
     currentRoute: String,
     onDestinationClicked: (String) -> Unit
 ) {

@@ -2,6 +2,7 @@ package com.example.urbane.navigation
 import AddResidenceScreen
 import AuditLogsScreen
 import FinancesViewModel
+import SurveysViewModel
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -37,7 +38,6 @@ import com.example.urbane.ui.admin.settings.view.ResidentialScreen
 import com.example.urbane.ui.admin.settings.view.SurveysScreen
 import com.example.urbane.ui.admin.settings.viewmodel.AuditLogsViewModel
 import com.example.urbane.ui.admin.settings.viewmodel.ResidentialViewModel
-import com.example.urbane.ui.admin.settings.viewmodel.SurveysViewModel
 import com.example.urbane.ui.admin.users.view.AddUserScreen
 import com.example.urbane.ui.admin.users.view.UserDetailScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
@@ -74,7 +74,9 @@ fun MainNavigation(
     val financesViewModel = FinancesViewModel(sessionManager)
     val auditLogsViewModel = AuditLogsViewModel(sessionManager)
     val residentialViewModel = ResidentialViewModel(sessionManager,context)
-    val surveysViewModel = SurveysViewModel()
+    val surveysViewModel = SurveysViewModel(sessionManager)
+
+
 
     NavHost(
         navController = navController,
