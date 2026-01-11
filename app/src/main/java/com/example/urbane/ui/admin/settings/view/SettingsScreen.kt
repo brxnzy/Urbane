@@ -21,12 +21,12 @@ import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.House
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Poll
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -66,7 +66,8 @@ fun SettingsScreen(sessionManager: SessionManager, navController: NavController,
                 .fillMaxSize()
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
+
         ) {
             ProfileSection(user)
 
@@ -86,22 +87,20 @@ fun SettingsScreen(sessionManager: SessionManager, navController: NavController,
                 onClick = { navController.navigate(Routes.ADMIN_SETTINGS_SURVEYS) }
             )
 
-
-            SectionHeader("Preferencias")
-            SettingItemWithSwitch(
-                icon = Icons.Default.Notifications,
-                title = "Notificaciones",
-                subtitle = "Mensajes, grupos y tonos de llamada",
-                checked = notificationsEnabled,
-                onCheckedChange = { notificationsEnabled = it }
-            )
-            SettingItem(
-                icon = Icons.Default.Palette,
-                title = "Tema",
-                subtitle = "Claro, oscuro, automático",
-                onClick = { /* TODO */ }
-            )
-
+//            SectionHeader("Preferencias")
+//            SettingItemWithSwitch(
+//                icon = Icons.Default.Notifications,
+//                title = "Notificaciones",
+//                subtitle = "Mensajes, grupos y tonos de llamada",
+//                checked = notificationsEnabled,
+//                onCheckedChange = { notificationsEnabled = it }
+//            )
+//            SettingItem(
+//                icon = Icons.Default.Palette,
+//                title = "Tema",
+//                subtitle = "Claro, oscuro, automático",
+//                onClick = { /* TODO */ }
+//            )a
             SectionHeader("Finanzas")
             SettingItem(
                 icon = Icons.Default.Notifications,

@@ -1,6 +1,5 @@
 package com.example.urbane.ui.admin.settings.view.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,15 +38,15 @@ fun SettingItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .background(Color.White)
+//            .background(Color.White)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFE0E0E0)),
+                .clip(CircleShape),
+//                .background(Color(0xFFE0E0E0)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -65,13 +64,12 @@ fun SettingItem(
                 text = title,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF000000)
+//                color = Color(0xFF000000)
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = subtitle,
                 fontSize = 13.sp,
-                color = Color.Gray
             )
         }
 

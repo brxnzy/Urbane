@@ -36,7 +36,7 @@ fun ProfileSection(user: CurrentUser?) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { /* TODO */ }
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -59,20 +59,18 @@ fun ProfileSection(user: CurrentUser?) {
             )
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(16.dp).background(MaterialTheme.colorScheme.surface))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = user?.userData?.user?.name ?: "",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF000000)
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = user?.userData?.user?.email ?: "",
                 fontSize = 14.sp,
-                color = Color.Gray
             )
         }
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,8 +27,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.Card
@@ -44,6 +45,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,9 +64,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.urbane.data.model.Survey
 import com.example.urbane.data.model.SurveyOption
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.example.urbane.utils.formatDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +98,10 @@ fun SurveysScreen(
                             contentDescription = "Volver"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { paddingValues ->
@@ -113,7 +116,6 @@ fun SurveysScreen(
                     CircularProgressIndicator()
                 }
             }
-
             state.errorMessage != null -> {
                 Box(
                     modifier = Modifier
@@ -137,14 +139,12 @@ fun SurveysScreen(
                     }
                 }
             }
-
             else -> {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    // Filter Chips
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -163,7 +163,6 @@ fun SurveysScreen(
                             )
                         }
                     }
-
                     if (filteredSurveys.isEmpty()) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -189,7 +188,7 @@ fun SurveysScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                            contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(
@@ -205,22 +204,17 @@ fun SurveysScreen(
         }
     }
 }
-
 @Composable
 fun SurveyCard(survey: Survey) {
-    var expanded by remember { mutableStateOf(false) }
     val totalVotes = survey.options.sumOf { it.votes.size }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { expanded = !expanded },
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp,
-            pressedElevation = 4.dp
+            defaultElevation = 2.dp
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -229,7 +223,6 @@ fun SurveyCard(survey: Survey) {
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -243,109 +236,62 @@ fun SurveyCard(survey: Survey) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Surface(
+                        color = if (survey.active) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        shape = RoundedCornerShape(6.dp)
                     ) {
-                        Surface(
-                            color = if (survey.active) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            },
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                text = if (survey.active) "Activa" else "Cerrada",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
-                                color = if (survey.active) {
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                }
-                            )
-                        }
                         Text(
-                            text = "$totalVotes ${if (totalVotes == 1) "voto" else "votos"}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = if (survey.active) "Activa" else "Cerrada",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            color = if (survey.active) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
                         )
                     }
                 }
-
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (expanded) "Contraer" else "Expandir",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
-
-            // Date info
             Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "Creada el ${formatDate(survey.createdAt)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            if (!survey.active && survey.closedAt != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 Text(
-                    text = "Cerrada el ${formatDate(survey.closedAt)}",
+                    text = "Creada el ${formatDate(survey.createdAt)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Text(
+                    text = "•",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "$totalVotes ${if (totalVotes == 1) "voto" else "votos"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
             }
-
-            // Options preview (always visible)
             Spacer(modifier = Modifier.height(16.dp))
-            survey.options.take(if (expanded) survey.options.size else 2).forEach { option ->
-                OptionPreview(option = option, totalVotes = totalVotes)
+            survey.options.forEach { option ->
+                OptionSimpleView(option = option, totalVotes = totalVotes)
                 Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            // Expanded content
-            AnimatedVisibility(
-                visible = expanded,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
-            ) {
-                Column {
-                    if (survey.options.size > 2) {
-                        survey.options.drop(2).forEach { option ->
-                            OptionPreview(option = option, totalVotes = totalVotes)
-                            Spacer(modifier = Modifier.height(12.dp))
-                        }
-                    }
-
-                    // Detailed votes section
-                    if (totalVotes > 0) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Votos detallados",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-
-                        survey.options.forEach { option ->
-                            if (option.votes.isNotEmpty()) {
-                                OptionDetailedVotes(option = option)
-                                Spacer(modifier = Modifier.height(16.dp))
-                            }
-                        }
-                    }
-                }
             }
         }
     }
 }
 
 @Composable
-fun OptionPreview(option: SurveyOption, totalVotes: Int) {
+fun OptionSimpleView(option: SurveyOption, totalVotes: Int) {
+    var showVoters by remember { mutableStateOf(false) }
     val percentage = if (totalVotes > 0) {
         (option.votes.size.toFloat() / totalVotes * 100)
     } else 0f
@@ -409,88 +355,98 @@ fun OptionPreview(option: SurveyOption, totalVotes: Int) {
             color = MaterialTheme.colorScheme.primary,
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = "${option.votes.size} ${if (option.votes.size == 1) "voto" else "votos"}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-fun OptionDetailedVotes(option: SurveyOption) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                RoundedCornerShape(12.dp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${option.votes.size} ${if (option.votes.size == 1) "voto" else "votos"}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            .padding(16.dp)
-    ) {
-        Text(
-            text = option.text,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
 
-        option.votes.forEach { vote ->
-            Row(
+            if (option.votes.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { showVoters = !showVoters }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = if (showVoters) "Ocultar" else "Ver votantes",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Icon(
+                        imageVector = if (showVoters) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+        AnimatedVisibility(
+            visible = showVoters && option.votes.isNotEmpty(),
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Avatar
-                if (vote.resident.photoUrl != null) {
-                    AsyncImage(
-                        model = vote.resident.photoUrl,
-                        contentDescription = vote.resident.name,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(top = 12.dp)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
                     )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                option.votes.forEach { vote ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        if (vote.resident.photoUrl != null) {
+                            AsyncImage(
+                                model = vote.resident.photoUrl,
+                                contentDescription = vote.resident.name,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer)
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = vote.resident.name.firstOrNull()?.uppercase() ?: "?",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
                         Text(
-                            text = vote.resident.name.firstOrNull()?.uppercase() ?: "?",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            fontWeight = FontWeight.SemiBold
+                            text = vote.resident.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
-
-                Text(
-                    text = vote.resident.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
             }
         }
     }
 }
 
-fun formatDate(dateString: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-        val date = inputFormat.parse(dateString)
-        outputFormat.format(date ?: Date())
-    } catch (e: Exception) {
-        dateString
-    }
-}
