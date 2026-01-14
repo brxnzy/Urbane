@@ -13,7 +13,6 @@ fun getAuditMessage(
 
     return when (log.action) {
 
-
         "RESIDENCE_CREATED" -> {
             val name = data?.get("name")?.jsonPrimitive?.content ?: ""
             context.getString(

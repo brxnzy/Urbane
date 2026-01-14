@@ -182,7 +182,7 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
-    // En UserRepository.kt
+
     suspend fun getUserResidentials(userId: String): List<Residential> {
         return try {
             val urrList = supabase.from("users_residentials_roles")
@@ -191,9 +191,8 @@ class UserRepository(val sessionManager: SessionManager) {
                         eq("user_id", userId)
                     }
                 }
-                .decodeList<UrrResidentialId>()  // Solo necesitas el residential_id
+                .decodeList<UrrResidentialId>()
 
-            // Obtener datos de cada residencial
             urrList.map { urr ->
                 supabase.from("residentials")
                     .select(columns = Columns.list("id", "name", "address", "phone", "logoUrl")) {

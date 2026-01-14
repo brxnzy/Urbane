@@ -6,6 +6,10 @@ import com.example.urbane.data.remote.supabase
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 class SurveyRepository(val sessionManager: SessionManager) {
 
@@ -65,4 +69,42 @@ class SurveyRepository(val sessionManager: SessionManager) {
             throw e
         }
     }
+
+    suspend fun createSurvey(question: String, options: List<String>) {
+        try {
+            val residentialId = getResidentialId(sessionManager)
+                ?: throw Exception("No hay residential ID")
+
+            val surveyResponse = supabase.from("surveys")
+                .insert(
+                    buildJsonObject {
+                        put("question", question)
+                        put("residentialId", residentialId)
+                        put("active", true)
+                    }
+                ) {
+                    select(Columns.raw("id"))
+                }
+                .decodeSingle<JsonObject>()
+
+            val surveyId: JsonElement? = surveyResponse["id"]
+
+            val optionsToInsert = options.map { optionText ->
+                buildJsonObject {
+                    put("surveyId", surveyId!!)
+                    put("text", optionText)
+                }
+            }
+
+            supabase.from("surveys_option")
+                .insert(optionsToInsert)
+
+            Log.d("SurveyRepository", "Survey created successfully with ID: $surveyId")
+
+        } catch (e: Exception) {
+            Log.e("SurveyRepository", "Error creating survey: ${e.message}", e)
+            throw Exception("Error al crear la encuesta: ${e.message}")
+        }
+    }
+
 }

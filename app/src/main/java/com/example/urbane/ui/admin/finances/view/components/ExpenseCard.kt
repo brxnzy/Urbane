@@ -116,7 +116,6 @@ fun ExpenseCard(
                         text = expense.admin!!.name,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF374151)
                     )
                 }
 
