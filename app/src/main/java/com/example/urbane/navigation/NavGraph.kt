@@ -49,6 +49,7 @@ import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
 import com.example.urbane.ui.resident.view.ResidentScreen
 import com.example.urbane.ui.resident.viewmodel.PagosViewModel
+import com.example.urbane.ui.resident.viewmodel.ResidentHomeContentViewModel
 
 @RequiresApi(Build.VERSION_CODES.P)
 @SuppressLint("ViewModelConstructorInComposable", "ComposableDestinationInComposeScope")
@@ -75,6 +76,7 @@ fun MainNavigation(
     val auditLogsViewModel = AuditLogsViewModel(sessionManager)
     val residentialViewModel = ResidentialViewModel(sessionManager,context)
     val surveysViewModel = SurveysViewModel(sessionManager)
+    val residentHomeContentViewModel = ResidentHomeContentViewModel(sessionManager)
 
     NavHost(
         navController = navController,
@@ -324,7 +326,7 @@ fun MainNavigation(
             }
         }
         composable(Routes.RESIDENT){
-            ResidentScreen(sessionManager, loginViewModel, navController, pagosViewModel)
+            ResidentScreen(sessionManager, loginViewModel, navController, pagosViewModel, residentHomeContentViewModel)
         }
         composable(Routes.DISABLED){
             DisabledScreen {

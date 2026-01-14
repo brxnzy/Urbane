@@ -1,38 +1,79 @@
 package com.example.urbane.ui.resident.view
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
-import com.example.urbane.ui.auth.viewmodel.LoginViewModel
+import com.example.urbane.ui.resident.model.ResidentHomeIntent
+import com.example.urbane.ui.resident.view.components.AvailableSurveyCard
+import com.example.urbane.ui.resident.viewmodel.ResidentHomeContentViewModel
 
 @Composable
 fun ResidentHomeContent(
     sessionManager: SessionManager,
-    loginViewModel: LoginViewModel,
-    navController: NavController
+    viewModel: ResidentHomeContentViewModel
 ) {
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
     val user = userState.value
+    val homeState by viewModel.state.collectAsState()
 
     var visible by remember { mutableStateOf(false) }
 
@@ -142,7 +183,6 @@ fun ResidentHomeContent(
             }
         }
 
-        // Resumen de Cuenta mejorado
         item {
             AnimatedVisibility(
                 visible = visible,
@@ -180,7 +220,6 @@ fun ResidentHomeContent(
             }
         }
 
-        // Accesos Rápidos con scroll horizontal
         item {
             AnimatedVisibility(
                 visible = visible,
@@ -247,7 +286,7 @@ fun ResidentHomeContent(
             }
         }
 
-        // Notificaciones mejoradas
+        // Sección de Encuestas
         item {
             AnimatedVisibility(
                 visible = visible,
@@ -261,48 +300,115 @@ fun ResidentHomeContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Notificaciones",
+                            stringResource(R.string.encuestas),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
-                        TextButton(onClick = { }) {
-                            Text("Ver todas")
-                        }
                     }
                 }
             }
         }
 
-        items(3) { index ->
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(
-                    animationSpec = tween(600, delayMillis = 400 + (index * 100))
-                ) + slideInVertically(initialOffsetY = { it / 2 })
-            ) {
-                EnhancedNotificationItem(
-                    title = when(index) {
-                        0 -> "Mantenimiento Programado"
-                        1 -> "Recordatorio de Pago"
-                        else -> "Nueva Actualización"
-                    },
-                    message = when(index) {
-                        0 -> "Mañana 8:00 AM - 12:00 PM"
-                        1 -> "Vence en 3 días"
-                        else -> "Nueva versión disponible"
-                    },
-                    icon = when(index) {
-                        0 -> Icons.Default.Build
-                        1 -> Icons.Default.AttachMoney
-                        else -> Icons.Default.Info
-                    },
-                    time = when(index) {
-                        0 -> "Hace 2h"
-                        1 -> "Hace 5h"
-                        else -> "Ayer"
-                    },
-                    isNew = index == 0
-                )
+        // Encuestas disponibles
+        when {
+            homeState.isLoadingSurveys -> {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+            homeState.surveysError != null -> {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(2.dp, RoundedCornerShape(16.dp)),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "Error al cargar encuestas",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                homeState.surveysError!!,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                }
+            }
+            homeState.availableSurveys.isEmpty() -> {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(2.dp, RoundedCornerShape(16.dp)),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "📊",
+                                style = MaterialTheme.typography.displayMedium
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "No hay encuestas disponibles",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "Por ahora no hay encuestas activas",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+            else -> {
+                items(homeState.availableSurveys) { survey ->
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = fadeIn(animationSpec = tween(600)) +
+                                slideInVertically(initialOffsetY = { it / 2 })
+                    ) {
+                        AvailableSurveyCard(
+                            survey = survey,
+                            selectedOptionId = homeState.selectedOptions[survey.id],
+                            onOptionSelected = { optionId ->
+                                viewModel.processIntent(
+                                    ResidentHomeIntent.SelectSurveyOption(survey.id, optionId)
+                                )
+                            },
+                            onVote = {
+                                viewModel.processIntent(
+                                    ResidentHomeIntent.VoteSurvey(survey.id)
+                                )
+                            }
+                        )
+                    }
+                }
             }
         }
 
@@ -395,7 +501,6 @@ fun EnhancedQuickAccessCard(
             modifier = Modifier
                 .clickable {
                     pressed = true
-                    // Reset después de un momento
                 }
                 .background(Brush.linearGradient(gradient))
                 .padding(20.dp)
@@ -430,93 +535,6 @@ fun EnhancedQuickAccessCard(
                     color = Color.White.copy(alpha = 0.9f)
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun EnhancedNotificationItem(
-    title: String,
-    message: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    time: String,
-    isNew: Boolean = false
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { }
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isNew)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else
-                MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-                            )
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(28.dp),
-                    tint = Color.White
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (isNew) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF4CAF50))
-                        )
-                    }
-                }
-                Text(
-                    message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-                Text(
-                    time,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
-            Icon(
-                Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-            )
         }
     }
 }

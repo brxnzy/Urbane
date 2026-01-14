@@ -168,4 +168,5 @@ Acción registrada
     <string name="audit_payment_registered">registró un pago de $%1$,.2f para %2$s (mes %3$d/%4$d), cambió el estado de "%5$s" a "%6$s"</string>
     <string name="registro_de_auditor_a">Registro de Auditoría</string>
     <string name="no_hay_registros_de_auditor_a">No hay registros de auditoría</string>
+    <string name="encuestas">Encuestas</string>
 </resources>

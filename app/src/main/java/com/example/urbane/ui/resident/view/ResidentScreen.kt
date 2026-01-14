@@ -25,14 +25,17 @@ import androidx.navigation.compose.rememberNavController
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import com.example.urbane.ui.resident.viewmodel.PagosViewModel
+import com.example.urbane.ui.resident.viewmodel.ResidentHomeContentViewModel
 
 @Composable
 fun ResidentScreen(
     sessionManager: SessionManager,
     loginViewModel: LoginViewModel,
     navController: NavController,
-    pagosViewModel: PagosViewModel
-) {
+    pagosViewModel: PagosViewModel,
+    residentHomeContentViewModel: ResidentHomeContentViewModel,
+
+    ) {
     val innerNavController = rememberNavController()
 
     val userId by sessionManager.userIdFlow.collectAsState(initial = "")
@@ -47,7 +50,7 @@ fun ResidentScreen(
             modifier = Modifier.padding(padding)
         ) {
             composable("home") {
-                ResidentHomeContent(sessionManager, loginViewModel, navController)
+                ResidentHomeContent(sessionManager, residentHomeContentViewModel)
             }
 
             composable("pagos") {

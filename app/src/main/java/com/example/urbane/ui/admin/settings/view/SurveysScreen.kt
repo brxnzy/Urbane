@@ -39,7 +39,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.urbane.R
 import com.example.urbane.ui.admin.settings.model.SurveysIntent
 import com.example.urbane.ui.admin.settings.view.components.CreateSurveyBottomSheet
 import com.example.urbane.ui.admin.settings.view.components.SurveyCard
@@ -70,7 +72,7 @@ fun SurveysScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Encuestas") },
+                title = { Text(stringResource(R.string.encuestas)) },
                 navigationIcon = {
                     IconButton(onClick = goBack) {
                         Icon(

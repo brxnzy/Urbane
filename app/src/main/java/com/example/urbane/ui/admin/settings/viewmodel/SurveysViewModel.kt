@@ -1,5 +1,4 @@
 package com.example.urbane.ui.admin.settings.viewmodel
-
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -52,7 +51,6 @@ class SurveysViewModel(sessionManager: SessionManager) : ViewModel() {
             }
         }
     }
-
     private fun showCreateSheet() {
         _state.update {
             it.copy(
@@ -121,16 +119,12 @@ class SurveysViewModel(sessionManager: SessionManager) : ViewModel() {
     }
 
     private fun validateForm(question: String, options: List<String>): Boolean {
-        // La pregunta no debe estar vacía
         if (question.isBlank()) return false
 
-        // Debe haber al menos 2 opciones
         if (options.size < 2) return false
 
-        // Todas las opciones deben tener contenido
         if (options.any { it.isBlank() }) return false
 
-        // No debe haber opciones duplicadas
         if (options.distinct().size != options.size) return false
 
         return true
@@ -151,9 +145,7 @@ class SurveysViewModel(sessionManager: SessionManager) : ViewModel() {
                     question = _state.value.question,
                     options = _state.value.options
                 )
-
                 loadSurveys()
-
                 dismissBottomSheet()
 
             } catch (e: Exception) {
