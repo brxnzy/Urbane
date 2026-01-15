@@ -119,7 +119,36 @@ SUPABASE_URL=https://tu-proyecto.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Firebase: Descarga el archivo google-services.json desde la consola de Firebase y colócalo en la carpeta app/
 
+
+
+2. Dependencias
+
+```bash
+    implementation("androidx.navigation:navigation-compose:2.9.5")
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.4"))
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:auth-kt")
+    implementation("io.github.jan-tennert.supabase:functions-kt")
+    implementation("io.ktor:ktor-client-android:3.3.1")
+    implementation("io.ktor:ktor-client-cio:3.3.1")
+    implementation("io.ktor:ktor-client-websockets:3.3.1")
+    implementation("androidx.datastore:datastore-core-android:1.1.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.0")
+    implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.github.jan-tennert.supabase:storage-kt:2.2.20")
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.0")
+    implementation("io.ktor:ktor-client-core:2.3.3")
+    implementation("io.ktor:ktor-client-cio:2.3.3")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.3")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.3")
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+    implementation("com.google.firebase:firebase-messaging")
+
+```
 Sincroniza el proyecto (Sync Project with Gradle Files) y ejecuta 🚀
+
+
 
 ## 🧪 Estado actual del proyecto
 
