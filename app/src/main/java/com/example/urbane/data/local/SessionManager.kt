@@ -3,16 +3,12 @@ package com.example.urbane.data.local
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import com.example.urbane.data.model.UserResidentialRole
 import com.example.urbane.ui.auth.model.CurrentUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class SessionManager(context: Context) {
@@ -61,17 +57,21 @@ class SessionManager(context: Context) {
 
     val residentialIdFlow: Flow<Int> = dataStore.data.map { prefs ->
         val userDataJson = prefs[USER_DATA]
-        if (!userDataJson.isNullOrEmpty()) {
+        (if (!userDataJson.isNullOrEmpty()) {
             try {
                 val userData = Json.decodeFromString<UserResidentialRole>(userDataJson)
                 // Obtener el id del objeto residential
-                userData.residential.id ?: 0
+                userData.residential.id
             } catch (e: Exception) {
                 0
             }
         } else {
             0
-        }
+        }) as Int
+    }
+
+    suspend fun clearSession() {
+        dataStore.edit { it.clear() }
     }
 
 

@@ -4,8 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.local.SessionManager
-import com.example.urbane.data.model.User
-import com.example.urbane.data.repository.ResidencesRepository
 import com.example.urbane.data.repository.UserRepository
 import com.example.urbane.ui.admin.users.model.UserState
 import com.example.urbane.ui.admin.users.model.UsersIntent

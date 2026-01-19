@@ -6,17 +6,57 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,11 +64,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.urbane.ui.resident.viewmodel.IncidenciasViewModel
+import com.example.urbane.ui.common.getStatusColor
 import com.example.urbane.ui.resident.viewmodel.IncidenciasUiState
+import com.example.urbane.ui.resident.viewmodel.IncidenciasViewModel
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -37,18 +77,20 @@ import java.time.temporal.ChronoUnit
 fun IncidenciasScreen(
     residentId: String,
     residentialId: Int,
-    viewModel: IncidenciasViewModel = viewModel()
+    viewModel: IncidenciasViewModel = viewModel(),
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var errorToast by remember { mutableStateOf<String?>(null) }
     val uiState by viewModel.uiState.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
 
+
+
     LaunchedEffect(Unit) {
         Log.d("IncidenciasScreen", "Iniciando pantalla")
         Log.d("IncidenciasScreen", "ResidentId: $residentId")
         Log.d("IncidenciasScreen", "ResidentialId: $residentialId")
-        viewModel.loadIncidencias()
+        viewModel.loadIncidencias(residentId)
     }
 
     LaunchedEffect(errorToast) {
@@ -63,7 +105,7 @@ fun IncidenciasScreen(
             TopAppBar(
                 title = { Text("Incidencias") },
                 actions = {
-                    IconButton(onClick = { viewModel.loadIncidencias() }) {
+                    IconButton(onClick = { viewModel.loadIncidencias(residentId) }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Recargar")
                     }
                 }
@@ -122,7 +164,7 @@ fun IncidenciasScreen(
                 is IncidenciasUiState.Error -> {
                     ErrorState(
                         message = state.message,
-                        onRetry = { viewModel.loadIncidencias() },
+                        onRetry = { viewModel.loadIncidencias(residentId) },
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -240,26 +282,22 @@ fun IncidenciaCard(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Default.Warning,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(
-                            when(status) {
-                                "Resuelto" -> Color(0xFF4CAF50).copy(alpha = 0.2f)
-                                "En proceso" -> Color(0xFFFFA726).copy(alpha = 0.2f)
-                                else -> Color(0xFFE91E63).copy(alpha = 0.2f)
-                            }
-                        )
-                        .padding(8.dp),
-                    tint = when(status) {
-                        "Resuelto" -> Color(0xFF4CAF50)
-                        "En proceso" -> Color(0xFFFFA726)
-                        else -> Color(0xFFE91E63)
-                    }
-                )
+//                Icon(
+//                    Icons.Default.Warning,
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .size(40.dp)
+//                        .clip(CircleShape)
+//                        .background(
+//                            getStatusColor(status)
+//                        )
+//                        .padding(8.dp),
+//                    tint = when(status) {
+//                        "Resuelto" -> Color(0xFF4CAF50)
+//                        "En proceso" -> Color(0xFFFFA726)
+//                        else -> Color(0xFFE91E63)
+//                    }
+//                )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -381,22 +419,14 @@ fun IncidenciaCard(
 fun Chip(label: String) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = when(label) {
-            "Pagado", "Resuelto" -> Color(0xFF4CAF50).copy(alpha = 0.2f)
-            "En proceso" -> Color(0xFFFFA726).copy(alpha = 0.2f)
-            else -> Color(0xFFE91E63).copy(alpha = 0.2f)
-        }
+        color = getStatusColor(label)
     ) {
         Text(
             text = label,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = when(label) {
-                "Pagado", "Resuelto" -> Color(0xFF4CAF50)
-                "En proceso" -> Color(0xFFFFA726)
-                else -> Color(0xFFE91E63)
-            }
+            color = Color.White
         )
     }
 }

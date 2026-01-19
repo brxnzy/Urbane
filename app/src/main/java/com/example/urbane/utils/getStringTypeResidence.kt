@@ -1,8 +1,6 @@
 package com.example.urbane.utils
-
 import androidx.annotation.StringRes
 import com.example.urbane.R
-
 @StringRes
 fun getTipoPropiedadLabelRes(tipo: String?): Int {
     return when (tipo) {
@@ -14,4 +12,3 @@ fun getTipoPropiedadLabelRes(tipo: String?): Int {
         else -> R.string.sin_tipo
     }
 }
-

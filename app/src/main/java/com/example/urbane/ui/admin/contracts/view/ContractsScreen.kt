@@ -1,17 +1,40 @@
 package com.example.urbane.ui.admin.contracts.view
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.urbane.R
 import com.example.urbane.data.model.Contract
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.contracts.view.components.ContractCard
@@ -36,7 +59,6 @@ fun ContractsScreen(
 
     val filtros = listOf("Todos", "Activos", "Finalizados")
 
-    // Filtrar los contratos según el filtro seleccionado
     val contratosFiltrados = state.contracts.filter { contract ->
         when (filtroSeleccionado) {
             "Todos" -> true
@@ -45,7 +67,6 @@ fun ContractsScreen(
             else -> true
         }
     }
-
     Scaffold {
         Box(
             modifier = modifier
@@ -58,7 +79,6 @@ fun ContractsScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-
                 state.error != null -> {
                     Column(
                         modifier = Modifier
@@ -67,23 +87,22 @@ fun ContractsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Error al cargar contratos",
+                            text = stringResource(R.string.error_al_cargar_contratos),
                             style = MaterialTheme.typography.titleMedium,
                             color = Color(0xFF6B7280)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = state.error ?: "Error desconocido",
+                            text = state.error ?: stringResource(R.string.error_desconocido),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF9CA3AF)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = { viewModel.loadContracts() }) {
-                            Text("Reintentar")
+                            Text(stringResource(R.string.reintentar))
                         }
                     }
                 }
-
                 state.contracts.isEmpty() -> {
                     Column(
                         modifier = Modifier
@@ -92,13 +111,13 @@ fun ContractsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "No hay contratos",
+                            text = stringResource(R.string.no_hay_contratos),
                             style = MaterialTheme.typography.titleMedium,
                             color = Color(0xFF6B7280)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Los contratos aparecerán aquí cuando se registren",
+                            text = stringResource(R.string.los_contratos_aparecer_n_aqu_cuando_se_registren),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF9CA3AF)
                         )
@@ -107,7 +126,6 @@ fun ContractsScreen(
 
                 else -> {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // FilterChips con el mismo estilo que UsersScreen
                         LazyRow(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -126,8 +144,6 @@ fun ContractsScreen(
                                 )
                             }
                         }
-
-                        // Lista de contratos filtrados
                         if (contratosFiltrados.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -138,13 +154,13 @@ fun ContractsScreen(
                                     modifier = Modifier.padding(16.dp)
                                 ) {
                                     Text(
-                                        text = "No hay contratos ${filtroSeleccionado.lowercase()}",
+                                        text = "${stringResource(R.string.no_hay_contratos)} ${filtroSeleccionado.lowercase()}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = Color(0xFF6B7280)
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Intenta ajustar tu filtro",
+                                        text = stringResource(R.string.intenta_ajustar_tu_filtro),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = Color(0xFF9CA3AF)
                                     )

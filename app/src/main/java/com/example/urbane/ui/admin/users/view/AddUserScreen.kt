@@ -1,5 +1,6 @@
 package com.example.urbane.ui.admin.users.view
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
@@ -21,7 +26,9 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -32,9 +39,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,24 +60,15 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.urbane.R
-import com.example.urbane.ui.admin.users.model.UsersIntent
-import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
-import com.example.urbane.utils.formatIdCard
-import com.example.urbane.utils.isValidEmail
-import com.example.urbane.utils.isValidIdCard
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.LaunchedEffect
 import com.example.urbane.data.model.Residence
 import com.example.urbane.data.model.Role
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
+import com.example.urbane.ui.admin.users.model.UsersIntent
+import com.example.urbane.ui.admin.users.viewmodel.UsersViewModel
+import com.example.urbane.utils.formatIdCard
 import com.example.urbane.utils.getTipoPropiedadLabelRes
+import com.example.urbane.utils.isValidEmail
+import com.example.urbane.utils.isValidIdCard
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -206,8 +206,6 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                 ),
                 singleLine = true
             )
-
-            // Password field
             OutlinedTextField(
                 value = state.password,
                 onValueChange = {
@@ -241,8 +239,6 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
             if (!validPassword){
                 Text(stringResource(R.string.la_contrase_a_debe_contener_al_menos_8_caracteres), color = Color.Red)
             }
-
-
             ExposedDropdownMenuBox(
                 expanded = expandedRol,
                 onExpandedChange = { expandedRol = it }
@@ -251,7 +247,7 @@ fun AddUserScreen(viewModel: UsersViewModel, residencesViewModel: ResidencesView
                     value = selectedRol?.name ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Rol") },
+                    label = { Text(stringResource(R.string.rol)) },
                     leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedRol) },
                     modifier = Modifier
