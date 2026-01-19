@@ -1,29 +1,36 @@
 package com.example.urbane.ui.auth.viewmodel
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.R
+import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.data.repository.ResidentialRepository
 import com.example.urbane.ui.auth.model.RegisterIntent
 import com.example.urbane.ui.auth.model.RegisterState
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.exceptions.UnknownRestException
+import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 
-class RegisterViewModel() : ViewModel() {
+class RegisterViewModel(val sessionManager: SessionManager, val context: Context) : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state.asStateFlow()
@@ -65,8 +72,6 @@ class RegisterViewModel() : ViewModel() {
                 _state.update {it.copy(logoUrl = intent.logoUrl) }
             }
 
-
-
             is RegisterIntent.Submit -> {
                 handleSubmit(intent.context)
             }
@@ -85,7 +90,7 @@ class RegisterViewModel() : ViewModel() {
             Log.d("Registerr", "Inicio de handleSubmit")
 
             try {
-                val resId = ResidentialRepository().getResidentialId(state.value.residentialName)
+                val resId = ResidentialRepository(sessionManager, context).getResidentialId(state.value.residentialName)
                 Log.d("Registerr", "ID del residencial obtenido: $resId")
 
                 val bucket = supabase.storage.from("residential_logos")
@@ -126,16 +131,24 @@ class RegisterViewModel() : ViewModel() {
 
                 Log.d("Register", "Registro completado. Resultado: $result")
 
+                // ✅ NUEVO: Guardar token FCM después del registro
+                // (antes de cerrar sesión)
+                val session = supabase.auth.currentSessionOrNull()
+                val userId = session?.user?.id
+                if (userId != null && resId != null) {
+                    saveFcmToken(userId, resId, "administrador") // Registrando admin
+                }
+
                 supabase.auth.signOut()
                 Log.d("Register", "Sesión cerrada después del registro")
 
                 _state.update { it.copy(isLoading = false, success = true) }
                 Log.d("Register", "Estado actualizado a success")
 
-        } catch (e: Exception) {
+            } catch (e: Exception) {
                 val msg = when {
                     e.message?.contains("User already registered", ignoreCase = true) == true ->
-                      R.string.ya_existe_un_usuario_registrado_con_ese_correo_electr_nico
+                        R.string.ya_existe_un_usuario_registrado_con_ese_correo_electr_nico
 
                     e is UnknownRestException ->
                         R.string.la_c_dula_ingresada_ya_est_registrada_o_hay_un_dato_duplicado
@@ -144,7 +157,7 @@ class RegisterViewModel() : ViewModel() {
                             e.message?.contains("No address associated with hostname", ignoreCase = true) == true ->
                         R.string.sin_conexi_n_a_internet_verifica_tu_red_e_int_ntalo_de_nuevo
 
-                    else -> e.message ?:  R.string.error_desconocido_al_registrar_usuario
+                    else -> e.message ?: R.string.error_desconocido_al_registrar_usuario
                 }
 
                 Log.e("Registerr", "Error en el registro: $msg", e)
@@ -159,7 +172,34 @@ class RegisterViewModel() : ViewModel() {
             }
         }
     }
+    @OptIn(ExperimentalTime::class)
+    private suspend fun saveFcmToken(userId: String, residentialId:Int, roleId: String) {
+        try {
+            val token = Firebase.messaging.token.await()
+            Log.d("LoginVM", "Token FCM obtenido: $token")
 
+            val role = when (roleId) {
+                "1" -> "admin"
+                "2" -> "resident"
+                else -> "resident"
+            }
+
+            val tokenData = buildJsonObject {
+                put("user_id", userId)
+                put("residential_id", residentialId)
+                put("role", role)
+                put("fcm_token", token)
+                put("updated_at", Clock.System.now().toString())
+            }
+
+            supabase.from("user_tokens")
+                .upsert(tokenData)
+
+            Log.d("RegisterVM", "Token FCM guardado exitosamente")
+        } catch (e: Exception) {
+            Log.e("RegisterVM", "Error guardando token FCM: ${e.message}", e)
+        }
+    }
 
 }
 

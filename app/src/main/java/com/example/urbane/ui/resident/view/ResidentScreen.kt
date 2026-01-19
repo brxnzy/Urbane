@@ -2,19 +2,19 @@ package com.example.urbane.ui.resident.view
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Payment
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
@@ -25,17 +25,19 @@ import androidx.navigation.compose.rememberNavController
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import com.example.urbane.ui.resident.viewmodel.PagosViewModel
+import com.example.urbane.ui.resident.viewmodel.ResidentHomeContentViewModel
 
 @Composable
 fun ResidentScreen(
     sessionManager: SessionManager,
     loginViewModel: LoginViewModel,
     navController: NavController,
-    pagosViewModel: PagosViewModel
-) {
+    pagosViewModel: PagosViewModel,
+    residentHomeContentViewModel: ResidentHomeContentViewModel,
+
+    ) {
     val innerNavController = rememberNavController()
 
-    // Obtener los datos del usuario de la sesión usando flows
     val userId by sessionManager.userIdFlow.collectAsState(initial = "")
     val residentialId by sessionManager.residentialIdFlow.collectAsState(initial = 0)
 
@@ -48,7 +50,7 @@ fun ResidentScreen(
             modifier = Modifier.padding(padding)
         ) {
             composable("home") {
-                ResidentHomeContent(sessionManager, loginViewModel, navController)
+                ResidentHomeContent(sessionManager, residentHomeContentViewModel)
             }
 
             composable("pagos") {

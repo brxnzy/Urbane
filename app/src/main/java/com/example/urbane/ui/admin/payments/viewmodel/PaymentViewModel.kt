@@ -1,8 +1,6 @@
 package com.example.urbane.ui.admin.payments.viewmodel
 
 import android.content.Context
-import android.graphics.Paint
-import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -10,18 +8,19 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.local.SessionManager
-import com.example.urbane.data.model.InvoiceData
+import com.example.urbane.data.model.Payment
+import com.example.urbane.data.model.User
 import com.example.urbane.data.repository.PaymentRepository
 import com.example.urbane.data.repository.UserRepository
-import com.example.urbane.data.model.User
-import com.example.urbane.data.model.Payment
-import com.example.urbane.data.remote.supabase
-import com.example.urbane.ui.admin.payments.model.*
-import io.github.jan.supabase.storage.storage
-import kotlinx.coroutines.flow.*
+import com.example.urbane.ui.admin.payments.model.PaymentSuccess
+import com.example.urbane.ui.admin.payments.model.PaymentsIntent
+import com.example.urbane.ui.admin.payments.model.PaymentsState
+import com.example.urbane.ui.admin.payments.model.SelectedPayment
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
 
 
 class PaymentsViewModel(
@@ -108,7 +107,6 @@ class PaymentsViewModel(
         }
     }
 
-    // Seleccionar un residente
     private fun selectResident(resident: User) {
         viewModelScope.launch {
             try {
@@ -259,7 +257,6 @@ class PaymentsViewModel(
                     return@launch
                 }
 
-                // 🔎 LOG: qué se va a enviar realmente al repo
                 selected.forEach { sp ->
                     Log.d(
                         "PAYMENTBUG",

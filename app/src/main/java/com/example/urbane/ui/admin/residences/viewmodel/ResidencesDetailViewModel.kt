@@ -65,7 +65,6 @@ class ResidencesDetailViewModel(val sessionManager: SessionManager) : ViewModel(
                     description = description
                 )
 
-                // Recargar la residencia actualizada
                 val updatedResidence = residenceRepository.getResidenceById(id)
 
                 _state.update {
@@ -107,7 +106,8 @@ class ResidencesDetailViewModel(val sessionManager: SessionManager) : ViewModel(
                     it.copy(
                         isLoading = false,
                         success = ResidencesDetailSuccess.ResidenceDeleted,
-                        errorMessage = null
+                        errorMessage = null,
+                        residence = null
                     )
                 }
 
@@ -155,8 +155,8 @@ class ResidencesDetailViewModel(val sessionManager: SessionManager) : ViewModel(
     }
 
     fun loadResidence(id: Int) {
-        _state.update { it.copy(isLoading = true, residence = null, errorMessage = null) }
         viewModelScope.launch {
+        _state.update { it.copy(isLoading = true, residence = null, errorMessage = null) }
             if (_state.value.residence != null) return@launch
             try {
                 _state.update { it.copy(isLoading = true) }

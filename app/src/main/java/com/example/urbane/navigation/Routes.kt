@@ -1,5 +1,4 @@
 package com.example.urbane.navigation
-
 object Routes {
     const val SPLASH = "splash"
     const val DISABLED = "disabled"
@@ -15,13 +14,15 @@ object Routes {
     const val ADMIN_RESIDENCES_DETAIL= "admin/residences/{id}"
     const val ADMIN_CONTRACTS ="admin/contracts"
     const val ADMIN_CONTRACTS_DETAIL= "admin/contracts/{id}"
-    const val ADMIN_CLAIMS = "admin/claims"
+    const val ADMIN_INCIDENTS = "admin/incidents"
     const val ADMIN_PAYMENTS = "admin/payments"
     const val ADMIN_FINES = "admin/fines"
     const val ADMIN_FINES_ADD = "admin/fines/add"
-
     const val ADMIN_FINES_DETAIL = "admin/fines/{id}"
-
-
+    const val ADMIN_FINANCES = "admin/finances"
+    const val ADMIN_SETTINGS = "admin/settings"
+    const val ADMIN_SETTINGS_LOGS = "admin/settings/logs"
+    const val ADMIN_SETTINGS_RESIDENTIALS ="admin/settings/residentials"
+    const val ADMIN_SETTINGS_SURVEYS = "admin/settings/surveys"
 
 }

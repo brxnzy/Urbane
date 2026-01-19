@@ -34,9 +34,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.urbane.R
 import com.example.urbane.data.model.Residence
 import com.example.urbane.ui.common.InfoSection
 import com.example.urbane.ui.common.UserInfoItem
@@ -94,7 +96,7 @@ fun ResidenceDetail(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = residence.type ?: "Tipo no especificado",
+                text = residence.type,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -111,7 +113,7 @@ fun ResidenceDetail(
                     OutlinedTextField(
                         value = editedName,
                         onValueChange = onNameChange,
-                        label = { Text("Nombre") },
+                        label = { Text(stringResource(R.string.nombre)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) }
@@ -119,13 +121,13 @@ fun ResidenceDetail(
 
                     ExposedDropdownMenuBox(
                         expanded = expandedTipo,
-                        onExpandedChange = { onExpandedTipoChange(it) }
+                        onExpandedChange = onExpandedTipoChange
                     ) {
                         OutlinedTextField(
                             value = editedType,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Tipo de propiedad") },
+                            label = { Text(stringResource(R.string.tipo_de_propiedad)) },
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTipo)
                             },
@@ -155,8 +157,10 @@ fun ResidenceDetail(
                     OutlinedTextField(
                         value = editedDescription,
                         onValueChange = onDescriptionChange,
-                        label = { Text("Descripción") },
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                        label = { Text(stringResource(R.string.descripci_n)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
                         minLines = 1,
                         maxLines = 3,
                         leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) }
@@ -164,14 +168,14 @@ fun ResidenceDetail(
                 }
             } else {
                 UserInfoItem(
-                    label = "Descripción",
-                    value = residence.description ?: "No disponible"
+                    label = stringResource(R.string.descripci_n),
+                    value = residence.description
                 )
             }
 
             UserInfoItem(
                 label = "Estado",
-                value = if (residence.available == true) "Disponible" else "Ocupada",
+                value = if (residence.available) stringResource(R.string.disponible) else stringResource(R.string.ocupada),
                 valueColor = if (residence.available == true)
                     MaterialTheme.colorScheme.primary
                 else
@@ -179,27 +183,25 @@ fun ResidenceDetail(
             )
 
             UserInfoItem(
-                label = "Residente",
-                value = residence.residentName ?: "Sin residente"
+                label = stringResource(R.string.residente),
+                value = residence.residentName ?: stringResource(R.string.sin_residente)
             )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Botones
         if (isEditing) {
-            // Botones de edición
             Button(
                 onClick = onSaveEdit,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = hasChanges // Solo habilitado si hay cambios
+                enabled = hasChanges
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Save, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Guardar Cambios", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.guardar_cambios), style = MaterialTheme.typography.titleMedium)
                 }
             }
 
@@ -214,7 +216,7 @@ fun ResidenceDetail(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Close, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Cancelar", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.cancelar), style = MaterialTheme.typography.titleMedium)
                 }
             }
         } else {
@@ -228,7 +230,7 @@ fun ResidenceDetail(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Edit, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Editar", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.editar), style = MaterialTheme.typography.titleMedium)
                     }
                 }
 
@@ -247,7 +249,7 @@ fun ResidenceDetail(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.ExitToApp, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Desalojar", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.desalojar), style = MaterialTheme.typography.titleMedium)
                     }
                 }
             } else {
@@ -260,7 +262,7 @@ fun ResidenceDetail(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Edit, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Editar", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.editar), style = MaterialTheme.typography.titleMedium)
                     }
                 }
 
@@ -279,7 +281,7 @@ fun ResidenceDetail(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.DeleteForever, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Eliminar", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.eliminar), style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }

@@ -4,39 +4,39 @@ import com.example.urbane.BuildConfig
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Contract
+import com.example.urbane.data.model.CreateUserRequest
 import com.example.urbane.data.model.Residential
 import com.example.urbane.data.model.Role
 import com.example.urbane.data.model.UrrIds
 import com.example.urbane.data.model.User
 import com.example.urbane.data.model.UserResidentialRole
 import com.example.urbane.data.remote.supabase
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.jsonPrimitive
-import io.ktor.client.*
-import io.ktor.client.engine.android.Android
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.jsonObject
-import com.example.urbane.data.model.CreateUserRequest
 import com.example.urbane.utils.getResidentialId
+import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.rpc
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-
-
 class UserRepository(val sessionManager: SessionManager) {
-
-
-
+    val auditLogRepository = AuditLogsRepository(sessionManager)
     suspend fun getUserRole(userId: String): Int? {
         return try {
             Log.d("UserRepository", "=== getUserRole llamado con userId: $userId ===")
@@ -58,6 +58,57 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
+    suspend fun getCurrentUserForResidential(
+        currentUserId: String,
+        currentUserEmail: String,
+        residentialId: Int
+    ): UserResidentialRole? {
+        try {
+            val user = supabase.from("users")
+                .select(columns = Columns.list("id", "name", "idCard", "createdAt", "photoUrl")) {
+                    filter {
+                        eq("id", currentUserId)
+                    }
+                }.decodeSingle<User>()
+
+            val urr = supabase.from("users_residentials_roles")
+                .select(columns = Columns.list("user_id", "residential_id", "role_id")) {
+                    filter {
+                        eq("user_id", currentUserId)
+                        eq("residential_id", residentialId) // ✅ Filtro específico
+                    }
+                }
+                .decodeSingle<UrrIds>()
+
+            val residential = supabase.from("residentials")
+                .select(columns = Columns.list("id", "name", "address", "phone", "logoUrl")) {
+                    filter {
+                        eq("id", residentialId)
+                    }
+                }
+                .decodeSingle<Residential>()
+
+            val role = supabase.from("roles")
+                .select(columns = Columns.list("id", "name")) {
+                    filter {
+                        eq("id", urr.role_id)
+                    }
+                }
+                .decodeSingle<Role>()
+
+            val userE = user.copy(email = currentUserEmail)
+
+            return UserResidentialRole(
+                user = userE,
+                residential = residential,
+                role = role
+            )
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error: ${e.message}")
+            return null
+        }
+    }
+
     suspend fun getCurrentUser(
         currentUserId: String,
         currentUserEmail: String
@@ -69,7 +120,7 @@ class UserRepository(val sessionManager: SessionManager) {
                 "obteniendo datos del usuario, email $currentUserEmail id: $currentUserId"
             )
             val user = supabase.from("users")
-                .select(columns = Columns.list("id", "name", "idCard", "createdAt")) {
+                .select(columns = Columns.list("id", "name", "idCard", "createdAt", "photoUrl")) {
                     filter {
                         eq("id", currentUserId)
                     }
@@ -126,6 +177,37 @@ class UserRepository(val sessionManager: SessionManager) {
     }
 
 
+    suspend fun getUserResidentials(userId: String): List<Residential> {
+        return try {
+            val urrList = supabase.from("users_residentials_roles")
+                .select(columns = Columns.list("residential_id")) {
+                    filter {
+                        eq("user_id", userId)
+                    }
+                }
+                .decodeList<UrrResidentialId>()
+
+            urrList.map { urr ->
+                supabase.from("residentials")
+                    .select(columns = Columns.list("id", "name", "address", "phone", "logoUrl")) {
+                        filter {
+                            eq("id", urr.residential_id)
+                        }
+                    }
+                    .decodeSingle<Residential>()
+            }
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error obteniendo residenciales: ${e.message}")
+            emptyList()
+        }
+    }
+
+    // Modelo auxiliar
+    @Serializable
+    data class UrrResidentialId(
+        val residential_id: Int
+    )
+
     suspend fun createUser(
         name: String,
         email: String,
@@ -176,7 +258,6 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
-
     suspend fun getAllUsers(): List<User> {
         return try {
 
@@ -199,7 +280,6 @@ class UserRepository(val sessionManager: SessionManager) {
             emptyList()
         }
     }
-
     suspend fun getResidents(): List<User> {
         return try {
             val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
@@ -210,34 +290,6 @@ class UserRepository(val sessionManager: SessionManager) {
                         eq("residential_id", residentialId)
                         eq("role_name","resident")
                         eq( "active", true)
-                    }
-                }
-                .decodeList<User>()
-            Log.d("UserRepository","Usuarios obtenidos $users")
-            users
-
-        } catch (e: Exception) {
-            Log.e("UserRepository", "Error obteniendo los usuarios: $e")
-            emptyList()
-        }
-    }
-
-
-
-
-
-    suspend fun getOwners(): List<User> {
-        return try {
-
-            val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
-
-
-            val users = supabase
-                .from("users_view")
-                .select {
-                    filter {
-                        eq("residential_id", residentialId)
-                        eq("role_name","owner")
                     }
                 }
                 .decodeList<User>()
@@ -264,7 +316,6 @@ class UserRepository(val sessionManager: SessionManager) {
                 }
                 .decodeSingle<User>()
 
-
              Log.d("UserRepository","USUARIO POR ID CAPTURADO $user")
              return user
 
@@ -272,12 +323,21 @@ class UserRepository(val sessionManager: SessionManager) {
             Log.e("UserRepository", "Error el usuario por su id: $e")
             return null
         }
+    }
 
+    private fun getRoleName(roleId: Int): String {
+        return when (roleId) {
+            1 -> "admin"
+            2 -> "resident"
+            else -> "unknown"
+        }
     }
 
     suspend fun disableUser(id: String): Boolean {
         return try {
             Log.d("UserRepository","Id del user para deshabilitarlo $id")
+            val user = getUserById(id)
+
             val roles = supabase
                 .from("users_residentials_roles")
                 .select()
@@ -295,19 +355,16 @@ class UserRepository(val sessionManager: SessionManager) {
 
             val role = roles.first()
             val roleId = role.role_id
-
-
             val residentialId = role.residential_id
             Log.d("UserRepository", "Role del usuario $roleId y rol del residencial $residentialId")
 
-            // 2. Si es residente (role_id = 2)
+            // Si es residente (role_id = 2)
             if (roleId == 2) {
                 supabase.postgrest.rpc(
                     "reset_user_residential_role",
                     mapOf("uid" to id)
                 )
             }
-
 
             supabase.from("users")
                 .update(
@@ -335,6 +392,18 @@ class UserRepository(val sessionManager: SessionManager) {
                     }
                 }
 
+            // Log de auditoría
+            auditLogRepository.logAction(
+                action = "USER_DISABLED",
+                entity = "users",
+                entityId = id,
+                data = buildJsonObject {
+                    put("userName", JsonPrimitive(user?.name ?: ""))
+                    put("userEmail", JsonPrimitive(user?.email ?: ""))
+                    put("role", JsonPrimitive(getRoleName(roleId)))
+                }
+            )
+
             true
 
         } catch (e: Exception) {
@@ -345,12 +414,38 @@ class UserRepository(val sessionManager: SessionManager) {
 
     suspend fun enableUser(id: String, residenceId: Int?): Boolean {
         return try {
-
             val today = java.time.LocalDate.now().toString()
             val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
 
+            // Obtener datos del usuario
+            val user = getUserById(id)
+
+            // Obtener el rol del usuario
+            val roles = supabase
+                .from("users_residentials_roles")
+                .select()
+                {
+                    filter {
+                        eq("user_id", id)
+                    }
+                }
+                .decodeList<UrrIds>()
+
+            val roleId = roles.firstOrNull()?.role_id ?: 1
+
+            // Obtener nombre de residencia si aplica
+            var residenceName: String? = null
+
             // Si es residente, asignar residencia
             if (residenceId != null) {
+                val residence = supabase.from("residences")
+                    .select {
+                        filter { eq("id", residenceId) }
+                    }
+                    .decodeSingle<com.example.urbane.data.model.Residence>()
+
+                residenceName = residence.name
+
                 supabase.from("residences").update(
                     {
                         set("residentId", id)
@@ -365,14 +460,16 @@ class UserRepository(val sessionManager: SessionManager) {
                         set("residence_id", residenceId)
                     }
                 ) {
-                    filter { eq("user_id", id) }   // CORREGIDO
+                    filter { eq("user_id", id) }
                 }
 
-
-                val data = Contract(residentId = id, residenceId = residenceId, startDate = today, residentialId = residentialId as Int)
-               supabase.from("contracts")
-                    .insert(data)
-
+                val data = Contract(
+                    residentId = id,
+                    residenceId = residenceId,
+                    startDate = today,
+                    residentialId = residentialId as Int
+                )
+                supabase.from("contracts").insert(data)
             }
 
             supabase.from("users").update(
@@ -383,6 +480,21 @@ class UserRepository(val sessionManager: SessionManager) {
                 filter { eq("id", id) }
             }
 
+            // Log de auditoría
+            auditLogRepository.logAction(
+                action = "USER_ENABLED",
+                entity = "users",
+                entityId = id,
+                data = buildJsonObject {
+                    put("userName", JsonPrimitive(user?.name ?: ""))
+                    put("userEmail", JsonPrimitive(user?.email ?: ""))
+                    put("role", JsonPrimitive(getRoleName(roleId)))
+                    if (residenceName != null) {
+                        put("residenceName", JsonPrimitive(residenceName))
+                    }
+                }
+            )
+
             true
 
         } catch (e: Exception) {
@@ -391,6 +503,126 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
+    suspend fun updateUserRole(userId: String, newRoleId: Int, residenceId: Int?): Boolean {
+        try {
+            val today = java.time.LocalDate.now().toString()
+
+            // Obtener datos del usuario y su rol actual
+            val user = getUserById(userId)
+
+            val roles = supabase
+                .from("users_residentials_roles")
+                .select()
+                {
+                    filter {
+                        eq("user_id", userId)
+                    }
+                }
+                .decodeList<UrrIds>()
+
+            val oldRoleId = roles.firstOrNull()?.role_id ?: 1
+
+            // Obtener nombre de residencia si aplica
+            var residenceName: String? = null
+
+            if (newRoleId == 2) {
+                val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
+
+                if (residenceId == null) {
+                    return false
+                }
+
+                val residence = supabase.from("residences")
+                    .select {
+                        filter { eq("id", residenceId) }
+                    }
+                    .decodeSingle<com.example.urbane.data.model.Residence>()
+
+                residenceName = residence.name
+
+                supabase.from("residences").update(
+                    {
+                        set("residentId", userId)
+                        set("available", false)
+                    }
+                ) {
+                    filter { eq("id", residenceId) }
+                }
+
+                supabase.from("users_residentials_roles").update(
+                    {
+                        set("role_id", newRoleId)
+                    }
+                ){
+                    filter { eq("user_id", userId) }
+                }
+
+                val data = Contract(
+                    residentId = userId,
+                    residenceId = residenceId,
+                    startDate = today,
+                    residentialId = residentialId as Int
+                )
+                supabase.from("contracts").insert(data)
+
+                supabase.postgrest.rpc(
+                    "create_pending_payment_if_not_exists",
+                    buildJsonObject {
+                        put("p_resident_id", userId)
+                        put("p_residential_id", residentialId)
+                    }
+                )
+            } else {
+                supabase.postgrest.rpc(
+                    "reset_user_residential_role",
+                    mapOf("uid" to userId)
+                )
+
+                supabase.from("users_residentials_roles").update(
+                    {
+                        set("role_id", newRoleId)
+                    }
+                ){
+                    filter { eq("user_id", userId) }
+                }
+
+                supabase.from("contracts")
+                    .update(
+                        {
+                            set("active", false)
+                            set("endDate", today)
+                        }
+                    ){
+                        filter {
+                            eq("residentId", userId)
+                            eq("active", true)
+                        }
+                    }
+            }
+
+            // Log de auditoría
+            auditLogRepository.logAction(
+                action = "USER_ROLE_UPDATED",
+                entity = "users",
+                entityId = userId,
+                data = buildJsonObject {
+                    put("userName", JsonPrimitive(user?.name ?: ""))
+                    put("userEmail", JsonPrimitive(user?.email ?: ""))
+                    put("oldRole", JsonPrimitive(getRoleName(oldRoleId)))
+                    put("newRole", JsonPrimitive(getRoleName(newRoleId)))
+                    if (residenceName != null) {
+                        put("residenceName", JsonPrimitive(residenceName))
+                    }
+                }
+            )
+
+            return true
+
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error editando el rol del usuario $e")
+            return false
+        }
+    }
     suspend fun isUserDisabled(userId: String): Boolean? {
         val user = supabase.from("users")
             .select {
@@ -403,84 +635,6 @@ class UserRepository(val sessionManager: SessionManager) {
         Log.d("UserRepository","$user")
 
         return !user.active!!
-    }
-
-    suspend fun updateUserRole(userId: String, newRoleId: Int, residenceId: Int?): Boolean {
-        try {
-            val today = java.time.LocalDate.now().toString()
-
-            if (newRoleId == 2) {
-                val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
-
-                if (residenceId == null) {
-                    return false
-                }
-
-                 supabase.from("residences").update(
-                    {
-                        set("residentId", userId)
-                        set("available", false)
-
-                    }
-                ) {
-                     filter { eq("id", residenceId) }
-                 }
-
-                supabase.from("users_residentials_roles").update(
-                    {
-                        set("role_id", newRoleId)
-                    }
-                ){
-                    filter { eq("user_id", userId) }
-                }
-                val data = Contract(residentId = userId, residenceId = residenceId, startDate = today, residentialId = residentialId as Int)
-                supabase.from("contracts")
-                    .insert(data)
-
-                supabase.postgrest.rpc(
-                    "create_pending_payment_if_not_exists",
-                    buildJsonObject {
-                        put("p_resident_id", userId)
-                        put("p_residential_id", residentialId)
-                    }
-                )
-                return true
-            }
-
-
-
-            supabase.postgrest.rpc("reset_user_residential_role",
-                mapOf("uid" to userId)
-            )
-
-            supabase.from("users_residentials_roles").update(
-                {
-                    set("role_id", newRoleId)
-
-                }
-                ){
-                        filter { eq("user_id", userId) }
-            }
-
-            supabase.from("contracts")
-                .update(
-                    {
-                        set("active", false)
-                        set("endDate", today)
-                    }
-                ){
-                    filter {
-                        eq("residentId", userId)
-                        eq("active", true)
-                    }
-                }
-
-            return true
-
-        } catch (e: Exception) {
-            Log.e("UserRepository", "Error editando el rol del usuario $e")
-            return  false
-        }
     }
 }
 

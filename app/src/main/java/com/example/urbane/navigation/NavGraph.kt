@@ -1,6 +1,7 @@
 package com.example.urbane.navigation
-
 import AddResidenceScreen
+import AuditLogsScreen
+import FinancesViewModel
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -23,14 +24,21 @@ import com.example.urbane.ui.admin.AdminMainScaffold
 import com.example.urbane.ui.admin.contracts.view.ContractDetailScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsDetailViewModel
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
+import com.example.urbane.ui.admin.dashboard.viewmodel.DashboardViewModel
 import com.example.urbane.ui.admin.fines.view.AddFineScreen
 import com.example.urbane.ui.admin.fines.view.FinesDetailScreen
 import com.example.urbane.ui.admin.fines.viewmodel.FinesDetailViewModel
 import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
+import com.example.urbane.ui.admin.incidents.viewmodel.IncidentsViewModel
 import com.example.urbane.ui.admin.payments.viewmodel.PaymentsViewModel
 import com.example.urbane.ui.admin.residences.view.ResidencesDetailScreen
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesDetailViewModel
 import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
+import com.example.urbane.ui.admin.settings.view.ResidentialScreen
+import com.example.urbane.ui.admin.settings.view.SurveysScreen
+import com.example.urbane.ui.admin.settings.viewmodel.AuditLogsViewModel
+import com.example.urbane.ui.admin.settings.viewmodel.ResidentialViewModel
+import com.example.urbane.ui.admin.settings.viewmodel.SurveysViewModel
 import com.example.urbane.ui.admin.users.view.AddUserScreen
 import com.example.urbane.ui.admin.users.view.UserDetailScreen
 import com.example.urbane.ui.admin.users.viewmodel.UsersDetailViewModel
@@ -42,6 +50,7 @@ import com.example.urbane.ui.auth.viewmodel.LoginViewModel
 import com.example.urbane.ui.auth.viewmodel.RegisterViewModel
 import com.example.urbane.ui.resident.view.ResidentScreen
 import com.example.urbane.ui.resident.viewmodel.PagosViewModel
+import com.example.urbane.ui.resident.viewmodel.ResidentHomeContentViewModel
 
 @RequiresApi(Build.VERSION_CODES.P)
 @SuppressLint("ViewModelConstructorInComposable", "ComposableDestinationInComposeScope")
@@ -63,6 +72,13 @@ fun MainNavigation(
     val paymentsViewModel = PaymentsViewModel(sessionManager)
     val finesViewModel = FinesViewModel(sessionManager)
     val finesDetailViewModel = FinesDetailViewModel(sessionManager)
+    val incidentsViewModel = IncidentsViewModel(sessionManager)
+    val financesViewModel = FinancesViewModel(sessionManager)
+    val auditLogsViewModel = AuditLogsViewModel(sessionManager)
+    val residentialViewModel = ResidentialViewModel(sessionManager,context)
+    val surveysViewModel = SurveysViewModel(sessionManager)
+    val residentHomeContentViewModel = ResidentHomeContentViewModel(sessionManager)
+    val dashboardViewModel = DashboardViewModel(sessionManager)
 
     NavHost(
         navController = navController,
@@ -86,7 +102,7 @@ fun MainNavigation(
             }
         }
         composable(Routes.REGISTER) {
-            val registerViewModel = RegisterViewModel()
+            val registerViewModel = RegisterViewModel(sessionManager,context)
             RegisterScreen(
                 registerViewModel,
                 navController,
@@ -128,7 +144,10 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel,
+                dashboardViewModel
                 )
         }
         composable(Routes.ADMIN_RESIDENCES) {
@@ -156,6 +175,10 @@ fun MainNavigation(
                 contractsViewModel,
                 paymentsViewModel,
                 finesViewModel,
+                incidentsViewModel,
+                financesViewModel,
+                dashboardViewModel,
+
                 showResidenceDeletedMessage = residenceDeleted
             )
         }
@@ -170,7 +193,11 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel,
+                dashboardViewModel,
+
                 )
         }
 
@@ -184,7 +211,11 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel,
+                dashboardViewModel,
+
 
                 )
         }
@@ -199,23 +230,28 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel,
+                dashboardViewModel,
 
-            )
+
+                )
         }
-        composable(Routes.ADMIN_CLAIMS) {
+        composable(Routes.ADMIN_INCIDENTS) {
             AdminMainScaffold(
                 navController = navController,
-                currentRoute = Routes.ADMIN_CLAIMS,
+                currentRoute = Routes.ADMIN_INCIDENTS,
                 loginViewModel,
                 sessionManager,
                 residencesViewModel,
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
-
-
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel,
+                dashboardViewModel,
 
                 )
         }
@@ -230,8 +266,47 @@ fun MainNavigation(
                 usersViewModel,
                 contractsViewModel,
                 paymentsViewModel,
-                finesViewModel
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel,
+                dashboardViewModel,
+
                 )
+        }
+        composable(Routes.ADMIN_FINANCES) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_FINANCES,
+                loginViewModel,
+                sessionManager,
+                residencesViewModel,
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel,
+                dashboardViewModel,
+
+                )
+        }
+
+        composable(Routes.ADMIN_SETTINGS) {
+            AdminMainScaffold(
+                navController = navController,
+                currentRoute = Routes.ADMIN_SETTINGS,
+                loginViewModel,
+                sessionManager,
+                residencesViewModel,
+                usersViewModel,
+                contractsViewModel,
+                paymentsViewModel,
+                finesViewModel,
+                incidentsViewModel,
+                financesViewModel,
+                dashboardViewModel,
+
+            )
         }
         composable(Routes.ADMIN_USERS_ADD) {
             AddUserScreen(usersViewModel, residencesViewModel){
@@ -245,13 +320,32 @@ fun MainNavigation(
             }
         }
 
+        composable(Routes.ADMIN_SETTINGS_LOGS) {
+            AuditLogsScreen(auditLogsViewModel){
+                navController.popBackStack()
+            }
+        }
+
+        composable(Routes.ADMIN_SETTINGS_RESIDENTIALS) {
+            ResidentialScreen(residentialViewModel){
+                navController.popBackStack()
+            }
+        }
+
+        composable(Routes.ADMIN_SETTINGS_SURVEYS) {
+            SurveysScreen(surveysViewModel){
+                navController.popBackStack()
+            }
+        }
+
+
         composable(Routes.ADMIN_FINES_ADD) {
             AddFineScreen(finesViewModel){
                 navController.popBackStack()
             }
         }
         composable(Routes.RESIDENT){
-            ResidentScreen(sessionManager, loginViewModel, navController)
+            ResidentScreen(sessionManager, loginViewModel, navController, pagosViewModel, residentHomeContentViewModel)
         }
         composable(Routes.DISABLED){
             DisabledScreen {

@@ -39,15 +39,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.urbane.R
 import com.example.urbane.ui.admin.fines.model.FineDetailIntent
 import com.example.urbane.ui.admin.fines.viewmodel.FinesDetailViewModel
 import com.example.urbane.ui.common.InfoSection2
 import com.example.urbane.ui.common.UserInfoItem2
 import com.example.urbane.utils.formatDate
 import com.example.urbane.utils.intToMonth
+
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -62,10 +65,11 @@ fun FinesDetailScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val state by viewModel.state.collectAsState()
+    val multaCancelada = stringResource(R.string.multa_cancelada)
 
     LaunchedEffect(state.success) {
         if (state.success) {
-            snackbarHostState.showSnackbar("Multa cancelada")
+            snackbarHostState.showSnackbar(multaCancelada)
             viewModel.resetSuccess()
         }
     }
@@ -78,18 +82,18 @@ fun FinesDetailScreen(
                 title = {
                     Text(
                         text = if (!state.isLoading && state.fine != null) {
-                            "Multa de ${state.fine!!.resident?.name}"
+                            "${stringResource(R.string.multa_de)} ${state.fine!!.resident?.name}"
                         } else {
-                            "Multa"
+                            stringResource(R.string.multa)
                         },
                         style = MaterialTheme.typography.displayMedium
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { goBack() }) { // Sin mensaje al volver normal
+                    IconButton(onClick = { goBack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Atrás",
+                            contentDescription = stringResource(R.string.atr_s),
                             modifier = Modifier.size(30.dp)
                         )
                     }
@@ -132,13 +136,13 @@ fun FinesDetailScreen(
                 val status = fine.status.lowercase()
 
                 val bgColor = when (status) {
-                    "pagado", "paid" ->
+                    "pagado" ->
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
 
-                    "pendiente", "pending" ->
+                    "pendiente" ->
                         yellow.copy(alpha = 0.20f)
 
-                    "cancelada", "canceled", "cancelled" ->
+                    "cancelada" ->
                         red.copy(alpha = 0.20f)
 
                     else ->
@@ -146,26 +150,22 @@ fun FinesDetailScreen(
                 }
 
                 val icon = when (status) {
-                    "pagado", "paid" -> Icons.Default.CheckCircle
-                    "pendiente", "pending" -> Icons.Default.Schedule
-                    "cancelada", "canceled", "cancelled" -> Icons.Default.Cancel
+                    "pagado" -> Icons.Default.CheckCircle
+                    "pendiente" -> Icons.Default.Schedule
+                    "cancelada" -> Icons.Default.Cancel
                     else -> Icons.Default.Receipt
                 }
 
                 val iconTint = when (status) {
-                    "pagado", "paid" ->
+                    "pagado" ->
                         MaterialTheme.colorScheme.primary
-
-                    "pendiente", "pending" ->
+                    "pendiente" ->
                         yellow
-
-                    "cancelada", "canceled", "cancelled" ->
+                    "cancelada" ->
                         red
-
                     else ->
                         MaterialTheme.colorScheme.onSurfaceVariant
                 }
-
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -173,7 +173,6 @@ fun FinesDetailScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Box(
                         modifier = Modifier
                             .size(120.dp)
@@ -187,9 +186,7 @@ fun FinesDetailScreen(
                             modifier = Modifier.size(64.dp)
                         )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
                         text = fine.title,
                         style = MaterialTheme.typography.headlineSmall,
@@ -197,46 +194,36 @@ fun FinesDetailScreen(
                         textAlign = TextAlign.Center,
 
                     )
-
                     Spacer(modifier = Modifier.height(4.dp))
-
                     Text(
                         text = fine.status.replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.bodyMedium,
                         color = iconTint
                     )
-
                     Spacer(modifier = Modifier.height(32.dp))
-
                     InfoSection2 {
-
                         UserInfoItem2(
-                            label = "Monto",
+                            label = stringResource(R.string.monto),
                             value = "RD$ ${fine.amount}"
                         )
-
                         UserInfoItem2(
-                            label = "Descripción",
-                            value = fine.description ?: "No disponible"
+                            label = stringResource(R.string.descripci_n),
+                            value = fine.description ?: stringResource(R.string.no_disponible)
                         )
-
                         UserInfoItem2(
-                            label = "Residente",
-                            value = fine.resident?.name ?: "No asignado"
+                            label = stringResource(R.string.residente),
+                            value = fine.resident?.name ?: stringResource(R.string.no_asignado)
                         )
-
                         UserInfoItem2(
-                            label = "Fecha",
+                            label = stringResource(R.string.fecha),
                             value = formatDate(fine.createdAt)
                         )
-
                         UserInfoItem2(
-                            label = "Pago",
+                            label = stringResource(R.string.pago),
                             value = fine.paymentPeriod?.let {
                                 "${intToMonth(it.month)} ${it.year}"
-                            } ?: "No asociado"
+                            } ?: stringResource(R.string.no_asociado)
                         )
-
                     }
                     if (status == "pendiente" || status == "pending") {
 
@@ -254,7 +241,7 @@ fun FinesDetailScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Cancel, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Cancelar", style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(R.string.cancelar), style = MaterialTheme.typography.titleMedium)
                             }
                         }
                     }

@@ -52,10 +52,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.urbane.R
 import com.example.urbane.data.model.ContractService
 import com.example.urbane.data.model.Service
 import com.example.urbane.ui.admin.contracts.model.ContractsDetailIntent
@@ -87,13 +89,17 @@ fun ContractDetailScreen(
             editedAmount = contract.amount?.toString() ?: "0.0"
         }
     }
+    val contratoActualizado = stringResource(R.string.contrato_actualizado_correctamente)
+    val servicioAgregado = stringResource(R.string.servicio_agregado_correctamente)
+    val servicioEliminado = stringResource(R.string.servicio_eliminado_correctamente)
+
 
     LaunchedEffect(state.success) {
         state.success?.let { success ->
             val message = when (success) {
-                ContractsDetailSuccess.UpdateContract -> "Contrato actualizado correctamente"
-                ContractsDetailSuccess.AddService -> "Servicio agregado correctamente"
-                ContractsDetailSuccess.RemoveService -> "Servicio eliminado correctamente"
+                ContractsDetailSuccess.UpdateContract -> contratoActualizado
+                ContractsDetailSuccess.AddService -> servicioAgregado
+                ContractsDetailSuccess.RemoveService -> servicioEliminado
             }
             snackbarHostState.showSnackbar(message)
             viewmodel.handleIntent(ContractsDetailIntent.ClearMessages)
@@ -110,10 +116,10 @@ fun ContractDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalle del Contrato") },
+                title = { Text(stringResource(R.string.detalle_del_contrato)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Default.ArrowBack, stringResource(R.string.volver))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -152,7 +158,7 @@ fun ContractDetailScreen(
             ) {
                 Icon(
                     imageVector = if (isEditMode) Icons.Default.Check else Icons.Default.Edit,
-                    contentDescription = if (isEditMode) "Guardar" else "Editar"
+                    contentDescription = if (isEditMode) stringResource(R.string.guardar) else stringResource(R.string.editar)
                 )
             }
         }
@@ -178,28 +184,30 @@ fun ContractDetailScreen(
 
                     InfoSection {
                         ContractInfoItem(
-                            label = "Residente",
+                            label = stringResource(R.string.residente),
                             value = contract.residentName ?: "N/A"
                         )
 
                         ContractInfoItem(
-                            label = "Residencia",
+                            label = stringResource(R.string.residencia),
                             value = contract.residenceName ?: "N/A"
                         )
 
                         ContractInfoItem(
-                            label = "Fecha de inicio",
+                            label = stringResource(R.string.fecha_de_inicio),
                             value = contract.startDate
                         )
 
                         ContractInfoItem(
-                            label = "Fecha de fin",
+                            label = stringResource(R.string.fecha_de_fin),
                             value = contract.endDate ?: "N/A"
                         )
 
                         ContractInfoItem(
-                            label = "Estado",
-                            value = if(contract.active == true) "Activo" else "Inactivo",
+                            label = stringResource(R.string.estado),
+                            value = if(contract.active == true) stringResource(R.string.activo) else stringResource(
+                                R.string.inactivo
+                            ),
                             valueColor = if(contract.active == true) Color(0xFF4CAF50) else Color(0xFFF44336)
                         )
                     }
@@ -220,7 +228,7 @@ fun ContractDetailScreen(
                             value = editedAmount,
                             onValueChange = { editedAmount = it },
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Monto") },
+                            label = { Text(stringResource(R.string.monto)) },
                             prefix = { Text("$") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             singleLine = true
@@ -243,7 +251,7 @@ fun ContractDetailScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = "Condiciones especiales",
+                        text = stringResource(R.string.condiciones_especiales),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth()
@@ -258,7 +266,7 @@ fun ContractDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(min = 120.dp),
-                            placeholder = { Text("Ingrese las condiciones especiales...") },
+                            placeholder = { Text(stringResource(R.string.ingrese_las_condiciones_especiales)) },
                             maxLines = 6
                         )
                     } else {
@@ -268,7 +276,7 @@ fun ContractDetailScreen(
                         ) {
                             Text(
                                 text = contract.conditions?.takeIf { it.isNotBlank() }
-                                    ?: "Sin condiciones especiales",
+                                    ?: stringResource(R.string.sin_condiciones_especiales),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (contract.conditions?.isNotBlank() == true)
                                     Color.Black else Color.Gray,
@@ -284,7 +292,7 @@ fun ContractDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Servicios adicionales",
+                            text = stringResource(R.string.servicios_adicionales),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f)
@@ -296,7 +304,7 @@ fun ContractDetailScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = "Agregar servicio",
+                                    contentDescription = stringResource(R.string.agregar_servicio),
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -311,7 +319,7 @@ fun ContractDetailScreen(
                             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
                             Text(
-                                text = "Sin servicios adicionales",
+                                text = stringResource(R.string.sin_servicios_adicionales),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.Gray,
                                 modifier = Modifier.padding(16.dp)
@@ -482,7 +490,7 @@ private fun ServiceItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Eliminar servicio",
+                    contentDescription = stringResource(R.string.eliminar_servicio),
                     tint = Color.Red,
                     modifier = Modifier.size(20.dp)
                 )
@@ -505,10 +513,10 @@ private fun AddServiceDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Agregar Servicio") },
+        title = { Text(stringResource(R.string.agregar_servicio)) },
         text = {
             if (filteredServices.isEmpty()) {
-                Text("No hay más servicios disponibles para agregar")
+                Text(stringResource(R.string.no_hay_m_s_servicios_disponibles_para_agregar))
             } else {
                 Column(
                     modifier = Modifier
@@ -561,7 +569,7 @@ private fun AddServiceDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cerrar")
+                Text(stringResource(R.string.cerrar))
             }
         }
     )

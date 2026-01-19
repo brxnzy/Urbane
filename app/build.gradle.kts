@@ -1,10 +1,11 @@
+ import java.io.FileReader
 import java.util.Properties
-import java.io.FileReader
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
     kotlin("plugin.serialization") version "2.2.20"
 }
 
@@ -73,7 +74,10 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.github.jan-tennert.supabase:functions-kt")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
     implementation("io.ktor:ktor-client-android:3.3.1")
+    implementation("io.ktor:ktor-client-cio:3.3.1")
+    implementation("io.ktor:ktor-client-websockets:3.3.1")
     implementation("androidx.datastore:datastore-core-android:1.1.0")
     implementation("androidx.datastore:datastore-preferences:1.1.0")
     implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
@@ -85,6 +89,8 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:2.3.3")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.3")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.3")
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+    implementation("com.google.firebase:firebase-messaging")
     implementation(libs.androidx.compose.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

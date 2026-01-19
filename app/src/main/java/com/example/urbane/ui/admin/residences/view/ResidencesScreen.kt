@@ -3,9 +3,6 @@ package com.example.urbane.ui.admin.residences.view
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +18,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -34,9 +30,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,12 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.urbane.R
 import com.example.urbane.navigation.Routes
-import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.example.urbane.ui.admin.residences.view.components.ResidenceCard
+import com.example.urbane.ui.admin.residences.viewmodel.ResidencesViewModel
 import com.example.urbane.ui.admin.users.view.components.UsuarioCardSkeleton
 
 
@@ -72,12 +71,12 @@ fun ResidencesScreen(
     LaunchedEffect(Unit) {
         viewModel.loadResidences()
     }
-
-
+    val residenciaEliminadaCorrectamente =
+        stringResource(R.string.residencia_eliminada_exitosamente)
     LaunchedEffect(showResidenceDeletedMessage) {
         if (showResidenceDeletedMessage) {
             snackbarHostState.showSnackbar(
-                message = "Residencia eliminada exitosamente",
+                message = residenciaEliminadaCorrectamente,
                 withDismissAction = true,
                 duration = SnackbarDuration.Short
             )
@@ -100,9 +99,6 @@ fun ResidencesScreen(
 
         coincideNombre && coincideTipo && coincideEstado
     }
-
-
-
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -144,7 +140,7 @@ fun ResidencesScreen(
                     },
                     trailingIcon = {
                         IconButton(onClick = { filtroMenuExpandido = true }) {
-                            Icon(Icons.Default.FilterList, contentDescription = "Filtros")
+                            Icon(Icons.Default.FilterList, contentDescription = stringResource(R.string.filtros))
                         }
                     },
                     shape = RoundedCornerShape(12.dp),
@@ -157,7 +153,7 @@ fun ResidencesScreen(
                 ) {
 
                     Text(
-                        "Tipo de propiedad",
+                        stringResource(R.string.tipo_de_propiedad),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                         fontWeight = FontWeight.Bold
                     )
@@ -186,9 +182,8 @@ fun ResidencesScreen(
                     }
 
                     Divider()
-
                     Text(
-                        "Estado",
+                        stringResource(R.string.estado),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                         fontWeight = FontWeight.Bold
                     )
@@ -202,7 +197,7 @@ fun ResidencesScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Disponible", modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.disponible), modifier = Modifier.weight(1f))
                                 Checkbox(
                                     checked = estadoFiltro == "Disponible",
                                     onCheckedChange = {
@@ -222,7 +217,7 @@ fun ResidencesScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Ocupada", modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.ocupada), modifier = Modifier.weight(1f))
                                 Checkbox(
                                     checked = estadoFiltro == "Ocupada",
                                     onCheckedChange = {
@@ -232,15 +227,13 @@ fun ResidencesScreen(
                             }
                         }
                     )
-
                     Divider()
-
                     DropdownMenuItem(
                         onClick = {
                             tipoFiltro = null
                             estadoFiltro = null
                         },
-                        text = { Text("Limpiar filtros") }
+                        text = { Text(stringResource(R.string.limpiar_filtros)) }
                     )
                 }
 
@@ -263,7 +256,7 @@ fun ResidencesScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("No se encontraron residencias")
+                        Text(stringResource(R.string.no_se_encontraron_residencias))
                     }
                 }
 
