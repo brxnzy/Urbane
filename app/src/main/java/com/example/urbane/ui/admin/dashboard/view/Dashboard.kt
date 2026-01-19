@@ -75,7 +75,7 @@ fun Dashboard(sessionManager: SessionManager, viewModel : DashboardViewModel) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        OccupancySection()
+        OccupancySection(state)
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -185,7 +185,7 @@ fun IncomeExpenseRow(state: DashboardState) {
 }
 
 @Composable
-fun OccupancySection() {
+fun OccupancySection(state: DashboardState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp)
@@ -211,8 +211,15 @@ fun OccupancySection() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            val occupancyPercent =
+                if (state.totalResidences > 0) {
+                    (state.occupiedResidences.toFloat() / state.totalResidences.toFloat()) * 100f
+                } else {
+                    0f
+                }
+
             Text(
-                text = "85%",
+                text = "$occupancyPercent% " ,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -224,7 +231,7 @@ fun OccupancySection() {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "34 of 40 units occupied",
+                    text = "${state.occupiedResidences} of ${state.totalResidences} occupied",
                     fontSize = 12.sp
                 )
                 Text(
@@ -238,7 +245,7 @@ fun OccupancySection() {
             Spacer(modifier = Modifier.height(12.dp))
 
             LinearProgressIndicator(
-                progress = 0.85f,
+                progress = occupancyPercent / 100,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)

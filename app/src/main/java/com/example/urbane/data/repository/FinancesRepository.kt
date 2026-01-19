@@ -4,13 +4,13 @@ import android.util.Log
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Expense
 import com.example.urbane.data.model.Transaction
-import com.example.urbane.data.model.UserMinimal
 import com.example.urbane.data.remote.supabase
 import com.example.urbane.ui.admin.finances.model.TransactionType
 import com.example.urbane.utils.getCurrentUserId
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.Serializable
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -51,6 +51,7 @@ class FinancesRepository(private val sessionManager: SessionManager) {
                 filter {
                     eq("residentialId", residentialId!!)
                 }
+                order("createdAt", Order.DESCENDING)
             }.decodeList<Expense>()
 
         } catch (e: Exception) {
@@ -324,23 +325,6 @@ class FinancesRepository(private val sessionManager: SessionManager) {
         }
     }
 }
-
-
-data class FinancialSummary(
-    val totalIngresos: Double = 0.0,
-    val totalEgresos: Double = 0.0,
-    val balance: Double = 0.0,
-    val cantidadIngresos: Int = 0,
-    val cantidadEgresos: Int = 0
-)
-
-@Serializable
-data class PaymentResponse(
-    val id: Int,
-    val resident: UserMinimal? = null,
-    val createdAt: String,
-    val transactions: List<Transaction> = emptyList()
-)
 
 @Serializable
 data class TransactionResponse(

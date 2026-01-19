@@ -6,4 +6,6 @@ data class DashboardState(
     val balance: Double = 0.0,
     val income: Double = 0.0,
     val expense: Double = 0.0,
+    val totalResidences: Int = 0,
+    val occupiedResidences: Int = 0,
 )
