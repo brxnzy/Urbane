@@ -62,6 +62,8 @@ import com.example.urbane.data.local.SessionManager
 import com.example.urbane.navigation.Routes
 import com.example.urbane.ui.admin.contracts.view.ContractsScreen
 import com.example.urbane.ui.admin.contracts.viewmodel.ContractsViewModel
+import com.example.urbane.ui.admin.dashboard.view.Dashboard
+import com.example.urbane.ui.admin.dashboard.viewmodel.DashboardViewModel
 import com.example.urbane.ui.admin.finances.view.FinancesScreen
 import com.example.urbane.ui.admin.fines.view.FinesScreen
 import com.example.urbane.ui.admin.fines.viewmodel.FinesViewModel
@@ -95,6 +97,7 @@ fun AdminMainScaffold(
     finesViewModel: FinesViewModel,
     incidentsViewModel: IncidentsViewModel,
     financesViewModel: FinancesViewModel,
+    dashboardViewModel: DashboardViewModel,
     showResidenceDeletedMessage: Boolean = false
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -203,7 +206,7 @@ fun AdminMainScaffold(
                         contractsViewModel
                     )
 
-                    Routes.ADMIN -> Dashboard(sessionManager)
+                    Routes.ADMIN -> Dashboard(sessionManager, dashboardViewModel)
                 }
             }
         }

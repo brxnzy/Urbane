@@ -1,51 +1,60 @@
 package com.example.urbane.data.repository
+
 import android.util.Log
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.model.Expense
+import com.example.urbane.data.model.Transaction
 import com.example.urbane.data.model.UserMinimal
 import com.example.urbane.data.remote.supabase
-import com.example.urbane.data.model.Transaction
 import com.example.urbane.ui.admin.finances.model.TransactionType
 import com.example.urbane.utils.getCurrentUserId
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.serialization.Serializable
-import kotlin.collections.filter
-import kotlin.collections.firstOrNull
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
-class FinancesRepository (private val sessionManager: SessionManager){
+class FinancesRepository(private val sessionManager: SessionManager) {
 
-    suspend fun registerExpense(amount:Double,description: String){
+    suspend fun registerExpense(amount: Double, description: String) {
         try {
             val adminId = getCurrentUserId(sessionManager)
             val residentialId = getResidentialId(sessionManager)
-            val data = Expense(adminId = adminId, amount = amount, description = description, residentialId = residentialId!!)
+            val data = Expense(
+                adminId = adminId,
+                amount = amount,
+                description = description,
+                residentialId = residentialId!!
+            )
             supabase.from("expenses").insert(data)
-        }catch (e: Exception){
-            Log.e("FinancesRepository","Error creando egreso: $e")
+        } catch (e: Exception) {
+            Log.e("FinancesRepository", "Error creando egreso: $e")
         }
     }
 
-    suspend fun getAllExpenses(): List<Expense>{
+    suspend fun getAllExpenses(): List<Expense> {
         return try {
             val residentialId = getResidentialId(sessionManager)
-            supabase.from("expenses").select(columns = Columns.list(
-                "id",
-                "amount",
-                "description",
-                "createdAt",
-                "adminId",
-                "residentialId",
-                "admin:users(id,name,photoUrl)"
-            )) {
+            supabase.from("expenses").select(
+                columns = Columns.list(
+                    "id",
+                    "amount",
+                    "description",
+                    "createdAt",
+                    "adminId",
+                    "residentialId",
+                    "admin:users(id,name,photoUrl)"
+                )
+            ) {
                 filter {
                     eq("residentialId", residentialId!!)
                 }
             }.decodeList<Expense>()
 
-        }catch (e: Exception){
-            Log.e("FinancesRepository","Error obteniendo egresos: $e")
+        } catch (e: Exception) {
+            Log.e("FinancesRepository", "Error obteniendo egresos: $e")
             throw e
         }
 
@@ -92,11 +101,11 @@ class FinancesRepository (private val sessionManager: SessionManager){
         return try {
             val transactions = mutableListOf<Transaction>()
 
-            val ingresos = getIngresosByDateRange(startDate, endDate)
+            val ingresos = getIncomesByDateRange(startDate, endDate)
             transactions.addAll(ingresos)
 
             // Obtener EGRESOS (expenses)
-            val egresos = getEgresosByDateRange(startDate, endDate)
+            val egresos = getExpensesByDateRange(startDate, endDate)
             transactions.addAll(egresos)
 
             // Ordenar por fecha descendente
@@ -108,8 +117,113 @@ class FinancesRepository (private val sessionManager: SessionManager){
         }
     }
 
+    suspend fun getIncomesbyMonth(): Double {
+        return try {
+            val residentialId = getResidentialId(sessionManager)
 
-    private suspend fun getIngresosByDateRange(
+            val calendar = Calendar.getInstance()
+            val year = calendar.get(Calendar.YEAR)
+            val currentMonth = calendar.get(Calendar.MONTH)
+
+            calendar.set(year, currentMonth, 1, 0, 0, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            val startDate =
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(calendar.time)
+
+            calendar.add(Calendar.MONTH, 1)
+            val endDate =
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(calendar.time)
+
+            val payments = supabase.from("payments")
+                .select(
+                    columns = Columns.list(
+                        "id",
+                        "createdAt",
+                        "transactions:payments_transactions(id,amount,date:createdAt)",
+                        "resident:users(id,name,photoUrl)"
+                    )
+                ) {
+                    filter {
+                        eq("residentialId", residentialId!!)
+                        gte("createdAt", startDate)
+                        lt("createdAt", endDate)
+                        neq("createdAt", "null")
+                        neq("status", "Pendiente")
+                    }
+                }.decodeList<PaymentResponse>()
+
+            Log.d("FinancesRepository", "Pagos obtenidos para mes actual: ${payments.size}")
+
+            val totalIngresos = payments.sumOf { payment ->
+                payment.transactions.firstOrNull()?.amount ?: 0.0
+            }
+
+            Log.d("FinancesRepository", "Total ingresos mes actual: $totalIngresos")
+
+            totalIngresos
+
+        } catch (e: Exception) {
+            Log.e("FinancesRepository", "Error obteniendo ingresos del mes actual: $e")
+            0.0 // Retornar 0 en caso de error
+        }
+    }
+
+    suspend fun getExpensesByMonth(): Double {
+        return try {
+            val residentialId = getResidentialId(sessionManager)
+
+            // Obtener el mes y año actual
+            val calendar = Calendar.getInstance()
+            val year = calendar.get(Calendar.YEAR)
+            val currentMonth = calendar.get(Calendar.MONTH) // 0-11 (Enero = 0)
+
+            // Configurar fecha de inicio (primer día del mes actual a las 00:00:00)
+            calendar.set(year, currentMonth, 1, 0, 0, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            val startDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(calendar.time)
+
+            // Configurar fecha de fin (primer día del siguiente mes a las 00:00:00)
+            calendar.add(Calendar.MONTH, 1)
+            val endDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(calendar.time)
+
+            val expenses = supabase.from("expenses")
+                .select(
+                    columns = Columns.list(
+                        "id",
+                        "amount",
+                        "description",
+                        "createdAt",
+                        "adminId",
+                        "residentialId",
+                        "admin:users(id,name, photoUrl)"
+                    )
+                ) {
+                    filter {
+                        eq("residentialId", residentialId!!)
+                        gte("createdAt", startDate)
+                        lt("createdAt", endDate)
+                    }
+                }.decodeList<Expense>()
+
+            Log.d("FinancesRepository", "Egresos obtenidos para mes actual: ${expenses.size}")
+
+            // Sumar todos los montos de los egresos
+            val totalEgresos = expenses.sumOf { expense ->
+                expense.amount
+            }
+
+            Log.d("FinancesRepository", "Total egresos mes actual: $totalEgresos")
+
+            totalEgresos
+
+        } catch (e: Exception) {
+            Log.e("FinancesRepository", "Error obteniendo egresos del mes actual: $e")
+            0.0 // Retornar 0 en caso de error
+        }
+    }
+
+
+    private suspend fun getIncomesByDateRange(
         startDate: String,
         endDate: String
     ): List<Transaction> {
@@ -154,7 +268,8 @@ class FinancesRepository (private val sessionManager: SessionManager){
             emptyList()
         }
     }
-    private suspend fun getEgresosByDateRange(
+
+    private suspend fun getExpensesByDateRange(
         startDate: String,
         endDate: String
     ): List<Transaction> {
@@ -200,35 +315,8 @@ class FinancesRepository (private val sessionManager: SessionManager){
             emptyList()
         }
     }
-
-    suspend fun getFinancialSummary(
-        startDate: String,
-        endDate: String
-    ): FinancialSummary {
-        return try {
-            val transactions = getTransactionsByDateRange(startDate, endDate)
-
-            val totalIngresos = transactions
-                .filter { it.type == TransactionType.INGRESO }
-                .sumOf { it.amount }
-
-            val totalEgresos = transactions
-                .filter { it.type == TransactionType.EGRESO }
-                .sumOf { it.amount }
-
-            FinancialSummary(
-                totalIngresos = totalIngresos,
-                totalEgresos = totalEgresos,
-                balance = totalIngresos - totalEgresos,
-                cantidadIngresos = transactions.count { it.type == TransactionType.INGRESO },
-                cantidadEgresos = transactions.count { it.type == TransactionType.EGRESO }
-            )
-        } catch (e: Exception) {
-            Log.e("FinancesRepository", "Error obteniendo resumen financiero: $e")
-            FinancialSummary()
-        }
-    }
 }
+
 
 data class FinancialSummary(
     val totalIngresos: Double = 0.0,

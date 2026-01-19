@@ -76,8 +76,8 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:functions-kt")
     implementation("io.github.jan-tennert.supabase:realtime-kt")
     implementation("io.ktor:ktor-client-android:3.3.1")
-    implementation("io.ktor:ktor-client-cio:3.3.1")  // 🔥 Engine con WebSocket
-    implementation("io.ktor:ktor-client-websockets:3.3.1")  // 🔥 Plugin WebSocket
+    implementation("io.ktor:ktor-client-cio:3.3.1")
+    implementation("io.ktor:ktor-client-websockets:3.3.1")
     implementation("androidx.datastore:datastore-core-android:1.1.0")
     implementation("androidx.datastore:datastore-preferences:1.1.0")
     implementation("androidx.compose.material:material-icons-extended-android:1.7.8")

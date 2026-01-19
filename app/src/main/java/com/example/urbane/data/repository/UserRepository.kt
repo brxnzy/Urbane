@@ -35,13 +35,8 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-
-
 class UserRepository(val sessionManager: SessionManager) {
     val auditLogRepository = AuditLogsRepository(sessionManager)
-
-
-
     suspend fun getUserRole(userId: String): Int? {
         return try {
             Log.d("UserRepository", "=== getUserRole llamado con userId: $userId ===")
@@ -63,7 +58,6 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
-    // Esta es como getCurrentUser pero para un residencial específico
     suspend fun getCurrentUserForResidential(
         currentUserId: String,
         currentUserEmail: String,
@@ -264,7 +258,6 @@ class UserRepository(val sessionManager: SessionManager) {
         }
     }
 
-
     suspend fun getAllUsers(): List<User> {
         return try {
 
@@ -287,7 +280,6 @@ class UserRepository(val sessionManager: SessionManager) {
             emptyList()
         }
     }
-
     suspend fun getResidents(): List<User> {
         return try {
             val residentialId = getResidentialId(sessionManager) ?: emptyList<User>()
@@ -324,7 +316,6 @@ class UserRepository(val sessionManager: SessionManager) {
                 }
                 .decodeSingle<User>()
 
-
              Log.d("UserRepository","USUARIO POR ID CAPTURADO $user")
              return user
 
@@ -332,12 +323,8 @@ class UserRepository(val sessionManager: SessionManager) {
             Log.e("UserRepository", "Error el usuario por su id: $e")
             return null
         }
-
     }
 
-    // Agregar al inicio de la clase
-
-    // Función auxiliar para traducir roles
     private fun getRoleName(roleId: Int): String {
         return when (roleId) {
             1 -> "admin"
@@ -349,8 +336,6 @@ class UserRepository(val sessionManager: SessionManager) {
     suspend fun disableUser(id: String): Boolean {
         return try {
             Log.d("UserRepository","Id del user para deshabilitarlo $id")
-
-            // Obtener datos del usuario antes de deshabilitar
             val user = getUserById(id)
 
             val roles = supabase

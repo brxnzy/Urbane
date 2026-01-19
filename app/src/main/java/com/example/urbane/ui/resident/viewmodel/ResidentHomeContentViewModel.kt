@@ -60,8 +60,6 @@ class ResidentHomeContentViewModel(
             }
         }
     }
-
-
     private fun selectSurveyOption(surveyId: Int, optionId: Int) {
         _state.update {
             val newSelectedOptions = it.selectedOptions.toMutableMap()

@@ -169,4 +169,10 @@ Acción registrada
     <string name="registro_de_auditor_a">Registro de Auditoría</string>
     <string name="no_hay_registros_de_auditor_a">No hay registros de auditoría</string>
     <string name="encuestas">Encuestas</string>
+    <string name="incidencias_recientes">Incidencias Recientes</string>
+    <string name="gestionalas">Gestionalas</string>
+    <string name="egresos_este_mes">Egresos (este mes)</string>
+    <string name="ingresos_este_mes">Ingresos (este mes)</string>
+    <string name="balance_total">Balance total</string>
+    <string name="ocupaci_n">Ocupación</string>
 </resources>

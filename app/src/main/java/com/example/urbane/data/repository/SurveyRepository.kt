@@ -8,6 +8,7 @@ import com.example.urbane.utils.getCurrentUserId
 import com.example.urbane.utils.getResidentialId
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -53,6 +54,7 @@ class SurveyRepository(val sessionManager: SessionManager) {
                     filter {
                         eq("residentialId", residentialId!!)
                     }
+                    order("createdAt", Order.DESCENDING)
                 }
                 .decodeList<Survey>()
 

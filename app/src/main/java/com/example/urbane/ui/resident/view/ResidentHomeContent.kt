@@ -81,6 +81,10 @@ fun ResidentHomeContent(
         visible = true
     }
 
+
+    LaunchedEffect(Unit) {
+        viewModel.loadAvailableSurveys()
+    }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
