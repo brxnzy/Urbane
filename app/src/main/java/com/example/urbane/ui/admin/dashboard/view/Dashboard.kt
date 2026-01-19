@@ -20,13 +20,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,13 +39,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.urbane.R
 import com.example.urbane.data.local.SessionManager
+import com.example.urbane.data.model.UserMinimal
 import com.example.urbane.ui.admin.dashboard.model.DashboardState
 import com.example.urbane.ui.admin.dashboard.viewmodel.DashboardViewModel
+import com.example.urbane.utils.formatDate
 
 @Composable
-fun Dashboard(sessionManager: SessionManager, viewModel : DashboardViewModel) {
+fun Dashboard(sessionManager: SessionManager, viewModel: DashboardViewModel) {
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
     val user = userState.value
     val state by viewModel.state.collectAsState()
@@ -79,11 +80,11 @@ fun Dashboard(sessionManager: SessionManager, viewModel : DashboardViewModel) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        PendingPaymentsSection()
+        PendingPaymentsSection(state)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        RecentIncidentsSection()
+//        RecentIncidentsSection(state)
     }
 }
 
@@ -219,7 +220,7 @@ fun OccupancySection(state: DashboardState) {
                 }
 
             Text(
-                text = "$occupancyPercent% " ,
+                text = "$occupancyPercent% ",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -231,15 +232,10 @@ fun OccupancySection(state: DashboardState) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "${state.occupiedResidences} of ${state.totalResidences} occupied",
+                    text = "${state.occupiedResidences} of ${state.totalResidences} ocupadas",
                     fontSize = 12.sp
                 )
-                Text(
-                    text = "6 vacant",
-                    color = Color(0xFF4CAF50),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium
-                )
+
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -258,7 +254,7 @@ fun OccupancySection(state: DashboardState) {
 }
 
 @Composable
-fun PendingPaymentsSection() {
+fun PendingPaymentsSection(state: DashboardState) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -266,37 +262,38 @@ fun PendingPaymentsSection() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Pending Payments (Mora)",
+                text = "Pagos pendientes",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
             TextButton(onClick = { }) {
-                Text(text = "View All", color = MaterialTheme.colorScheme.primary)
+                Text("Ver todos", color = MaterialTheme.colorScheme.primary)
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
-
-        // Payment Item 1
-        PaymentItem(
-            unit = "Unit 402 - Julian R.",
-            days = "15 days overdue",
-            amount = "$1,250.00"
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Payment Item 2
-        PaymentItem(
-            unit = "Unit 108 - Maria G.",
-            days = "8 days overdue",
-            amount = "$950.00"
-        )
+        if (state.pendingPayments.isEmpty()) {
+            Text("No hay Pagos pendientes")
+        }else {
+            state.pendingPayments.forEach { payment ->
+                PaymentItem(
+                    user = payment.resident!!,
+                    createdAt = formatDate(payment.createdAt),
+                    amount = payment.amount
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
     }
 }
 
+
 @Composable
-fun PaymentItem(unit: String, days: String, amount: String) {
+fun PaymentItem(
+    user: UserMinimal,
+    createdAt: String,
+    amount: Float
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp)
@@ -307,164 +304,52 @@ fun PaymentItem(unit: String, days: String, amount: String) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFFFEBEE)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Person",
-                    tint = Color(0xFFF44336),
-                    modifier = Modifier.size(24.dp)
+
+            if (user.photoUrl != null) {
+                AsyncImage(
+                    model = user.photoUrl,
+                    contentDescription = user.name,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFFEBEE)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "User",
+                        tint = Color(0xFFF44336)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = unit,
+                    text = user.name,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp
                 )
                 Text(
-                    text = days,
-                    fontSize = 12.sp
+                    text = createdAt,
+                    fontSize = 12.sp,
+                    color = Color.Gray
                 )
             }
 
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = amount,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-
-            }
-        }
-    }
-}
-
-@Composable
-fun RecentIncidentsSection() {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
             Text(
-                text = stringResource(R.string.incidencias_recientes),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                text = "$${"%.2f".format(amount)}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
             )
-            TextButton(onClick = { }) {
-                Text(
-                    text = stringResource(R.string.gestionalas),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        IncidentItem(
-            title = "Water Leak - Kitchen",
-            description = "Unit 206 reported heavy leakage under the sink",
-            time = "Requested 2 hours ago",
-            status = "IN PROGRESS",
-            statusColor = Color(0xFFFF9800),
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        IncidentItem(
-            title = "Elevator Malfunction",
-            description = "Building B elevator is making grinding noise...",
-            time = "Requested 1 day ago",
-            status = "PENDING",
-            statusColor = Color(0xFF9E9E9E),
-        )
-    }
-}
-
-@Composable
-fun IncidentItem(
-    title: String,
-    description: String,
-    time: String,
-    status: String,
-    statusColor: Color,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE3F2FD)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = "Incident",
-                    tint = Color(0xFF2196F3),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = title,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp
-                    )
-                    Surface(
-                        color = statusColor.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text(
-                            text = status,
-                            color = statusColor,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = description,
-                    fontSize = 12.sp
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = time,
-                    color = Color.Gray,
-                    fontSize = 11.sp
-                )
-            }
         }
     }
 }
+

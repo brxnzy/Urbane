@@ -239,6 +239,46 @@ class PaymentRepository(
         }
     }
 
+    suspend fun pendingPayments(): List<Payment> {
+        return try {
+            val residentialId = getResidentialId(sessionManager)
+                ?: throw IllegalStateException("No residentialId en sesión")
+
+            val pagosBase = supabase.from("payments")
+                .select(
+                    Columns.raw(
+                        """
+                    id,
+                    residentId,
+                    month,
+                    year,
+                    amount,
+                    paidAmount,
+                    status,
+                    createdAt,
+                    resident:users(*)
+                    """.trimIndent()
+                    )
+                ) {
+                    filter {
+                        eq("residentialId", residentialId)
+                        eq("status","Pendiente")
+                    }
+                    order("createdAt", Order.DESCENDING)
+                }
+                .decodeList<Payment>()
+
+            pagosBase.map { pago ->
+                val transacciones = getPaymentTransactions(pago.id!!)
+                pago.copy(paymentTransactions = transacciones)
+            }
+
+        } catch (e: Exception) {
+            Log.e("PaymentRepository", "Error obteniendo pagos: $e")
+            throw IllegalStateException("Error obteniendo pagos: $e")
+        }
+    }
+
 
     suspend fun getPaymentTransactions(paymentId: Int): List<PaymentTransaction> {
         return try {
@@ -421,7 +461,6 @@ class PaymentRepository(
         val colorTextLight = Color.parseColor("#6B7280") // Gris claro
         val colorBorder = Color.parseColor("#E5E7EB") // Gris muy claro
 
-        // Pinceles
         val paintTitle = Paint().apply {
             textSize = 24f
             color = colorPrimary
@@ -468,19 +507,14 @@ class PaymentRepository(
             isAntiAlias = true
         }
 
-        // ====================
-        // HEADER CON FONDO
-        // ====================
         var y = 0f
 
-        // Rectángulo superior azul
         val paintHeaderBg = Paint().apply {
             color = colorPrimary
             style = Paint.Style.FILL
         }
         canvas.drawRect(0f, 0f, 595f, 120f, paintHeaderBg)
 
-        // Título principal
         y = 50f
         paintTitle.color = Color.WHITE
         canvas.drawText("FACTURA DE PAGO", 40f, y, paintTitle)

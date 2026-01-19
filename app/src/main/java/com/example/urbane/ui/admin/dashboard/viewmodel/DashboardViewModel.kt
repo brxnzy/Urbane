@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urbane.data.local.SessionManager
 import com.example.urbane.data.repository.FinancesRepository
+import com.example.urbane.data.repository.IncidentsRepository
+import com.example.urbane.data.repository.PaymentRepository
 import com.example.urbane.data.repository.ResidencesRepository
 import com.example.urbane.ui.admin.dashboard.model.DashboardState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,11 +32,12 @@ class DashboardViewModel(private val sessionManager: SessionManager) : ViewModel
                 val residences = residencesRepository.getResidences()
                 val totalResidences = residences.size
                 val occupiedResidences = residences.count { it.available == false }
+                val pendingPayments = PaymentRepository(sessionManager).pendingPayments()
+                val recentIncidents = IncidentsRepository(sessionManager).getIncidents().take(2)
+
                 _state.update {
-                    it.copy(isLoading = false,balance = balance, income = income, expense = expense, totalResidences = totalResidences, occupiedResidences = occupiedResidences, errorMessage = null)
+                    it.copy(isLoading = false,balance = balance, income = income, expense = expense, totalResidences = totalResidences, occupiedResidences = occupiedResidences, pendingPayments = pendingPayments ,  recentIncidents = recentIncidents,errorMessage = null)
                 }
-
-
 
             } catch (e: Exception) {
                 Log.e("DashboardViewModel", "Error cargando datos del dashboard", e)

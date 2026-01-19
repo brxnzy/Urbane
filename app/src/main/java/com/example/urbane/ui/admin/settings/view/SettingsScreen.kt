@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.House
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Poll
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,10 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,7 +46,6 @@ fun SettingsScreen(
 ) {
     val userState = sessionManager.sessionFlow.collectAsState(initial = null)
     val user = userState.value
-    var notificationsEnabled by remember { mutableStateOf(true) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -78,27 +72,6 @@ fun SettingsScreen(
             onClick = { navController.navigate(Routes.ADMIN_SETTINGS_SURVEYS) }
         )
 
-//            SectionHeader("Preferencias")
-//            SettingItemWithSwitch(
-//                icon = Icons.Default.Notifications,
-//                title = "Notificaciones",
-//                subtitle = "Mensajes, grupos y tonos de llamada",
-//                checked = notificationsEnabled,
-//                onCheckedChange = { notificationsEnabled = it }
-//            )
-//            SettingItem(
-//                icon = Icons.Default.Palette,
-//                title = "Tema",
-//                subtitle = "Claro, oscuro, automático",
-//                onClick = { /* TODO */ }
-//            )a
-        SectionHeader("Finanzas")
-        SettingItem(
-            icon = Icons.Default.Notifications,
-            title = "Monto base de contratos",
-            subtitle = "Configura el valor base aplicado al crear nuevos pagos",
-            onClick = { /* TODO */ }
-        )
         SectionHeader("Gestion de catalogos")
         SettingItem(
             icon = Icons.Default.Build,
