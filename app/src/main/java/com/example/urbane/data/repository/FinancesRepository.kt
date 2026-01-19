@@ -117,56 +117,63 @@ class FinancesRepository(private val sessionManager: SessionManager) {
         }
     }
 
-    suspend fun getIncomesbyMonth(): Double {
+    suspend fun getIncomesByMonth(): Double {
         return try {
             val residentialId = getResidentialId(sessionManager)
+            Log.d("FinancesRepository", "ResidentialId: $residentialId")
 
             val calendar = Calendar.getInstance()
-            val year = calendar.get(Calendar.YEAR)
-            val currentMonth = calendar.get(Calendar.MONTH)
-
-            calendar.set(year, currentMonth, 1, 0, 0, 0)
+            calendar.set(Calendar.DAY_OF_MONTH, 1)
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
             calendar.set(Calendar.MILLISECOND, 0)
-            val startDate =
-                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(calendar.time)
 
+            val startDate = calendar.time
             calendar.add(Calendar.MONTH, 1)
-            val endDate =
-                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(calendar.time)
+            val endDate = calendar.time
 
-            val payments = supabase.from("payments")
+            val transactions = supabase
+                .from("payments_transactions")
                 .select(
                     columns = Columns.list(
                         "id",
-                        "createdAt",
-                        "transactions:payments_transactions(id,amount,date:createdAt)",
-                        "resident:users(id,name,photoUrl)"
+                        "amount",
+                        "date:createdAt"
                     )
                 ) {
                     filter {
                         eq("residentialId", residentialId!!)
                         gte("createdAt", startDate)
                         lt("createdAt", endDate)
-                        neq("createdAt", "null")
-                        neq("status", "Pendiente")
                     }
-                }.decodeList<PaymentResponse>()
+                }
+                .decodeList<Transaction>()
 
-            Log.d("FinancesRepository", "Pagos obtenidos para mes actual: ${payments.size}")
+            Log.d(
+                "FinancesRepository",
+                "Transacciones mes actual: ${transactions.size}"
+            )
 
-            val totalIngresos = payments.sumOf { payment ->
-                payment.transactions.firstOrNull()?.amount ?: 0.0
-            }
+            val total = transactions.sumOf { it.amount ?: 0.0 }
 
-            Log.d("FinancesRepository", "Total ingresos mes actual: $totalIngresos")
+            Log.d(
+                "FinancesRepository",
+                "Total ingresos mes actual: $total"
+            )
 
-            totalIngresos
+            total
 
         } catch (e: Exception) {
-            Log.e("FinancesRepository", "Error obteniendo ingresos del mes actual: $e")
-            0.0 // Retornar 0 en caso de error
+            Log.e(
+                "FinancesRepository",
+                "Error obteniendo ingresos del mes actual",
+                e
+            )
+            0.0
         }
     }
+
 
     suspend fun getExpensesByMonth(): Double {
         return try {
@@ -230,41 +237,42 @@ class FinancesRepository(private val sessionManager: SessionManager) {
         return try {
             val residentialId = getResidentialId(sessionManager)
 
-            val payments = supabase.from("payments")
+            val transactions = supabase
+                .from("payments_transactions")
                 .select(
                     columns = Columns.list(
                         "id",
+                        "amount",
                         "createdAt",
-                        "transactions:payments_transactions(id,amount,date:createdAt)",
-                        "resident:users(id,name,photoUrl)"
+                        "payment:payments(id,resident:users(id,name))"
                     )
                 ) {
                     filter {
                         eq("residentialId", residentialId!!)
                         gte("createdAt", startDate)
                         lt("createdAt", endDate)
-                        neq("createdAt", "null")
-                        neq("status", "Pendiente")
                     }
-                }.decodeList<PaymentResponse>()
-            print(payments)
-            payments.mapNotNull { payment ->
+                }
+                .decodeList<TransactionResponse>()
+
+            transactions.mapNotNull { tx ->
                 try {
                     Transaction(
-                        id = payment.id,
+                        id = tx.id,
                         type = TransactionType.INGRESO,
-                        amount = payment.transactions.firstOrNull()?.amount ?: 0.0,
-                        description = "Pago de cuota - ${payment.resident?.name ?: "Residente"}",
-                        date = payment.transactions.firstOrNull()?.date ?: "",
-                        createdBy = payment.resident?.id ?: ""
+                        amount = tx.amount ?: 0.0,
+                        description = "Pago de cuota - ${tx.payment?.resident?.name ?: "Residente"}",
+                        date = tx.createdAt,
+                        createdBy = tx.payment?.resident?.id ?: ""
                     )
                 } catch (e: Exception) {
-                    Log.e("FinancesRepository", "Error parseando ingreso: ${payment.id}", e)
+                    Log.e("FinancesRepository", "Error parseando transacción ${tx.id}", e)
                     null
                 }
             }
+
         } catch (e: Exception) {
-            Log.e("FinancesRepository", "Error obteniendo ingresos: $e")
+            Log.e("FinancesRepository", "Error obteniendo ingresos", e)
             emptyList()
         }
     }
@@ -332,4 +340,24 @@ data class PaymentResponse(
     val resident: UserMinimal? = null,
     val createdAt: String,
     val transactions: List<Transaction> = emptyList()
+)
+
+@Serializable
+data class TransactionResponse(
+    val id: Int,
+    val amount: Double?,
+    val createdAt: String,
+    val payment: PaymentLite?
+)
+
+@Serializable
+data class PaymentLite(
+    val id: Long,
+    val resident: ResidentLite?
+)
+
+@Serializable
+data class ResidentLite(
+    val id: String,
+    val name: String
 )

@@ -22,7 +22,7 @@ class DashboardViewModel(private val sessionManager: SessionManager) : ViewModel
                 _state.update { it.copy(isLoading = true) }
 
                 val balance = financesRepository.getBalance()
-                val income = financesRepository.getIncomesbyMonth()
+                val income = financesRepository.getIncomesByMonth()
                 val expense = financesRepository.getExpensesByMonth()
 
 
